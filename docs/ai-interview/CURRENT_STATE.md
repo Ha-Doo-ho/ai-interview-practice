@@ -1,0 +1,732 @@
+# Current state
+
+## 2026-11-17 — GitHub 공개 소스 준비
+
+- 사용자 지정 공개 저장소: `Ha-Doo-ho/ai-interview-practice`. 현재 실행 코드, 원본 약속 기억 게임, 테스트 및 설계 문서를 소스 허용 목록으로 구성했다.
+- `.gitignore`에 키·사용자 DB·로그·캡처·가상환경·로컬 산출물 제외 규칙을 추가했다. 공개 `.env.example`의 키 값은 비워 두며 실제 로컬 키와 DB를 전달하지 않는다. 과거 ZIP의 `PACKAGE_MANIFEST.json`은 현재 저장소의 명세가 아니므로 제외한다.
+- README의 내려받기/설치/실행 방법과 추가 세 게임 및 AI 연결 범위를 현재 상태에 맞게 정리했다. 앱 실행 로직 변경 없음. 이번 작업의 관련 mock 검사 8개 통과; 공개 저장소 업로드는 서비스 운영 배포나 실제 AI 실행과 별개다.
+
+## 2026-11-17 — 도형 회전·길 만들기·마법약 구현
+
+- `GAME_IMPLEMENTATION_SPEC.md`에 따라 선택형 추가 게임 3종을 실제 화면/API/서버 상태/채점/저장/결과까지 구현했다. 기존 다섯 게임의 순서·규칙·점수는 유지한다. 새 게임은 게임 탭 하단 **추가 역량 게임 · 선택 연습**에서 시작한다.
+- 로그인 소유 회차의 `aptitude_games.attempts`에 시도·문항·행동·설정·버전을 저장한다. 연습/본게임/빠른 연습, 중단/미제시/시간 초과를 구분한다. 재시작은 이전 기록을 보존한 새 시도다. 추가 결과는 리포트 탭에 보이며 최종 확정 시 보고서에도 고정한다.
+- 전체 Python 495 passed; 최종 구형 확정 경로 보호 추가 후 관련 API/전체 진행 11 passed. frontend 128 passed. 실제 Chromium UI에서 도형/길 10문항, 마법약 20문항, 연습/복원/키보드/타임아웃/중단/재시작/결과/390px 화면을 확인했다. 마법약 100문항은 API 테스트로 검증했다.
+- 공식 설명의 과제 원리를 참고하며 모든 배점·확률·시간·문항·시각 자산은 자체 설계다. 새 게임의 AI 해석이나 심리측정 타당성은 구현/검증 범위가 아니다. 기존 하네스 사람 검토 2건은 대기다. 유료 AI 호출·실사용 DB 변경·배포 없음.
+- 파일 목록, 실행 방법, 설정/원본 저장 위치, 공식/자체 규칙과 제한: `docs/ai-interview/GAME_IMPLEMENTATION_RESULT.md`. 실행 증거: `artifacts/aptitude-20261117/`.
+
+## 2026-10-29 — Gemini 503 사용자 확인
+
+- 사용자가 Google 측 오류를 `503 ServiceUnavailable` 및 트래픽 과부하로 확인해 알려주었다. Google 문서상 서비스 과부하 또는 일시 중단과 관련된 응답이며, 앱이나 키를 바꾸는 것만으로 공급자의 용량을 보장할 수 없다. 사용자가 지목한 오류 이외의 과거 5xx 세부 번호는 확인되지 않았다.
+- 해당 회차 호출 예약 15/15, 비용 예약 456605/500000 micro-USD이며 실제 청구액과 다르다. 기존 성공 보고서 유지. 자동 재시도, 한도 재조정 및 추가 공급자 호출은 하지 않았다.
+
+## 2026-10-29 — 반복 Gemini 5xx 원인 조사
+
+- 동일 회차는 요청 5건 중 성공 1건·실패 4건, 호출 예약 15/15회, 추정 비용 예약 456605/500000 micro-USD다. 예약은 실제 청구액이 아니다. 이전 성공 보고서와 다섯 게임 결과는 보존됐다. 과거 5xx는 세부 번호/본문이 남지 않아 근본 원인을 확정하지 못했다.
+- 앞으로 Gemini 5xx의 HTTP 숫자 코드만 오류 응답 및 실패 예약에 저장하고, 기타 예외 원문은 저장하지 않도록 수정했다. 보존된 과거 실패의 상세 번호를 복구할 수는 없다. 실제 사이트 서버는 재시작 전 이전 코드다.
+- Google GenerateContent 요청에 `store=false`를 추가해 이후 요청의 Google AI Studio 요청 로그 저장을 끄도록 보완했다. 과거 요청은 명시 설정이 없었으며 프로젝트 설정에 따라 저장 여부가 다를 수 있다. Google의 다른 보관 정책이나 학습 사용을 이 설정만으로 단정하지 않는다.
+
+## 2026-10-29 — Gemini 재분석 서버 오류
+
+- 사용자의 최신 재분석 요청이 실패했다. 표시된 서비스 오류는 Gemini HTTP 5xx에 대응하지만 세부 번호나 정확한 원인은 저장되지 않아 일시 장애로 확정할 수 없다. Google Cloud 일반 상태판과 Gemini 개별 서비스 상태는 동일하지 않다.
+- 기존 성공 면접 보고서(`live`, `provider_completed`, Gemini 3.6 Flash, 면접 3개·게임 5개)는 보존되어 있다. 해당 회차에 호출 12회·추정 비용 346420 micro-USD가 예약되어 있으며 실제 결제액과 다르다. 서버가 제공하는 15회·500000 micro-USD 한도에서 비용과 횟수가 모두 적용된다.
+- 추가 실제 요청은 하지 않았다. 기존 보고서 조회 및 고정 연습 안내는 새 AI 호출 없이 가능하다.
+
+## 2026-10-29 — 회차별 AI 호출 한도 조정
+
+- 사용자 요청으로 Gemini 로컬 실행 스크립트의 회차별 호출 예약 한도를 9회에서 15회로 조정했다. 회차별 추정 비용 상한 $0.50과 기존 예약 기록은 유지한다. 실행 중 서버는 아직 이전 설정이며 재시작 필요.
+- 사용자의 확인된 회차는 예약 9회·236235 micro-USD. 예약은 실제 호출·청구와 같지 않으며 비용 상한이 먼저 도달할 수 있다. 사용자 기록 변경이나 외부 AI 추가 호출은 하지 않았다.
+
+## 2026-10-29 — 면접 답변 연습 안내
+
+- 저장된 면접 분석과 원문에 정확히 일치하는 인용을 사용하여 각 답변에 `잘 드러난 부분`, `보완할 부분`, `다음 연습 제안`을 표시한다. 언급되지 않은 항목은 행동 부재가 아니라 답변에서 확인되지 않은 것으로 설명하며, 모든 항목이 명시된 경우에도 중립적인 연습 안내를 표시한다.
+- 안내 문장은 새로운 Gemini 생성문이 아닌 저장된 항목을 바탕으로 한 고정 문구라고 표시한다. 추가 AI 요청·서버 저장·원본 변경 없이 기존 보고서에서 표시하며, 특정 답변의 서술형 AI 평가 생성은 아직 구현하지 않았다. 내부 비교 사유 코드 하나를 사람이 읽을 수 있는 설명으로 표시한다.
+
+## 2026-10-29 — 사용자 실제 Gemini 면접 분석 확인
+
+- 사용자가 캡처 8·9를 제공했다. 해당 회차의 저장된 분석 메타데이터가 `requested_mode=live`, `runtime_mode=live`, `provider_execution=provider_completed`, 모델 `gemini-3.6-flash`로 기록되어 있다. 면접 분석 성공 1건과 앞선 실패 2건의 예약을 확인했다.
+- 같은 회차 기본 보고서에 인용 19건이 저장된 답변 버전과 정확히 일치하고, 다섯 게임의 결과 항목이 존재함을 원문 출력 없이 검증했다. 이는 인용의 의미 해석 정확성이나 경험의 사실 여부를 증명하지 않는다. 별도 게임 AI 제안은 아직 없다.
+- 해당 회차의 분석 호출 예약은 총 9회로 현재 기본 회차 한도 9회에 도달했다. 예약과 실제 공급자 호출·청구는 다르다. 추가 게임 AI 요청은 현재 제한에 걸릴 수 있다.
+
+## 2026-10-29 — Gemini 사이트와 진단 설정 정렬
+
+- 사이트용 서버 시작 스크립트를 Google 권장 `gemini-3.6-flash`로 바꾸고 Gemini 3의 사고 수준 low, 최대 출력 4096을 독립 진단과 맞췄다. 여전히 새 백엔드 적용에는 서버 재시작이 필요하며 사용자 서버는 건드리지 않았다.
+- 독립 진단에서 인용 불일치를 원문에 없음·반복으로 위치 불명·기타 위치 문제로 구분하는 고정 코드만 출력하도록 추가했다. 이전 생성 응답이 저장되지 않아 지금은 어떤 원인이었는지 알 수 없다. 추가 실제 API 요청은 하지 않았다.
+
+## 2026-10-29 — Gemini 인용 검증 보완
+
+- 사용자가 합성 진단 결과 `MODEL_METADATA_OK`, `citation_invalid`를 보고했다. Gemini 생성 응답은 도착했으나 합성 답변에 대한 인용 검증을 통과하지 못했다. 실제 인용 값은 출력·보관되지 않아 정확히 위치 오류인지 가상 인용인지 확인할 수 없다.
+- Gemini 응답에서 인용 원문이 현재 답변에 단 한 번 정확히 존재하면 코드포인트 위치를 서버가 다시 계산하고 기존 엄격한 검증을 적용한다. 존재하지 않거나 위치가 틀리고 반복되는 문구는 계속 거부한다. 진단 도구에도 동일 처리 적용. 실제 재진단과 실행 서버 재시작은 미실행이다.
+
+## 2026-10-29 — Gemini 합성 응답 미완료
+
+- 사용자 보고: 3.6 Flash 진단에서 `MODEL_METADATA_OK`, `provider_incomplete`. 모델 정보 조회 성공, 생성 응답 종료 이유는 이전 진단에서 저장되지 않아 미확정이다.
+- 독립 진단에서만 사고 수준 low 및 최대 출력 4096을 적용하고 MAX_TOKENS·SAFETY 종료를 구분하도록 변경했다. 사용자 서버의 모델 설정이나 실제 면접 결과를 변경하지 않았다. 이후 실제 진단은 미실행이다.
+
+## 2026-10-29 — Gemini 키 진단 결과
+
+- 사용자가 메타데이터 전용 진단 결과 `MODEL_HTTP_400`, `API_KEY_INVALID`를 보고했다. 이 진단에서 입력된 값은 Google이 유효한 API 키로 받아들이지 않았다. 이전 메타데이터 성공 시 입력값과 같은지는 알 수 없으며, 사이트 서버에 입력된 키의 유효성이나 5xx의 원인을 단정할 수 없다. 합성 생성 요청은 발생하지 않았다.
+
+## 2026-10-29 — Gemini 모델 조회 HTTP 400
+
+- 사용자 보고: 직접 모델 진단에서 `MODEL_HTTP_400`으로 메타데이터 조회가 실패해 생성 요청은 실행되지 않았다. 이전 메타데이터 조회는 성공했지만 두 번의 입력 키가 동일한지 또는 400의 상세 사유는 알 수 없다.
+- Google의 알려진 오류 사유만 안전하게 출력하고 생성 요청을 생략하는 `diagnose_gemini.ps1 -MetadataOnly`를 준비했다. 키와 응답 원문은 출력하지 않는다.
+
+## 2026-10-29 — 사용자 Gemini 진단 응답
+
+- 사용자가 독립 진단에서 `MODEL_METADATA_OK`, `gemini_service_unavailable`를 보고했다. 3.6 모델 메타데이터 조회는 성공했으나 3.5 별칭을 통한 합성 생성 요청은 Google HTTP 5xx로 실패했다. 해당 결과는 정확한 HTTP 코드나 요청 형식의 유효성을 알려주지 않는다.
+- 독립 진단만 3.6 직접 요청과 안전한 HTTP 상태 번호 표시로 보완했다. 실제 사이트 서버 모델 설정은 변경하지 않았다. 사용자의 면접 회차에 추가 요청은 하지 않았다.
+
+## 2026-10-29 — Gemini 독립 진단 준비
+
+- 기존 회차와 실제 답변을 읽지 않는 진단 명령 `tools/diagnose_gemini.ps1`을 준비했다. 키 숨김 입력 후 3.6 Flash 모델 메타데이터를 조회하고 성공하면 3.5 Flash 별칭으로 합성 면접 질문·답변과 실제 스키마를 이용해 1회 생성한다. Google 연결과 비용이 발생할 수 있으며 기존 앱 회차의 호출 예약은 사용하지 않는다.
+- 실제 키나 외부 호출을 수행하지 않았으므로 사용자의 직접 실행 결과가 필요하다. 키와 공급자 원문은 출력하지 않는다.
+
+## 2026-10-29 — Gemini 400 진단 정정
+
+- HTTP 400을 무조건 요청 형식 오류로 안내한 것은 부정확했다. 이전 응답 본문이 남지 않아 과거 실패 원인은 확정할 수 없다. 이후 오류에서 알려진 API 키/서비스 접근 오류 코드를 민감한 원문 없이 구분하고, 그 외에는 원인 미확인으로 표시하도록 수정했다.
+- 현재 사용자 회차에는 실패 2건, 총 호출 6회 예약과 비용 126050 micro-USD 예약이 있다. 실제 호출 또는 청구 횟수와 다르다. 추가 유료 호출·서버 재시작은 하지 않았다.
+
+## 2026-10-29 — Gemini 400 오류 조사
+
+- 사용자가 두 번째 실제 요청에서 Gemini 요청 형식 거절 안내를 확인했다. API 400의 상세 본문은 보관되지 않았으므로 정확한 원인은 미확정이다.
+- Gemini 문서의 지원 스키마 목록에 없는 문자열 `maxLength`가 면접 인용 스키마에 포함되는 호환성 문제를 발견하여 Gemini 요청에서만 제거했다. 기존 서버의 400자 제한과 실제 원문 인용 검증은 유지한다. 실제 Gemini 재호출로 수정 성공 여부는 확인하지 않았다.
+- 해당 회차는 실패 요청 2건에 총 6회 호출 예약이 남아 있다. 현재 기본 최대 9회이므로 추가 분석 요청은 예약상 최대 3회가 남으며, 이는 실제 호출 또는 청구 횟수와 다르다.
+
+## 2026-10-29 — Gemini 요청 실패 진단
+
+- 캡처 7의 회차에 live 요청 1건이 실패 상태로 예약된 것을 확인했다. 기록에는 구체적 오류 코드가 남지 않아 키·권한·할당량·모델·응답 문제 중 실제 원인을 소급 확인할 수 없다. 결과가 성공했다고 단정하지 않는다.
+- Gemini의 HTTP 응답 상태를 키나 응답 원문 없이 분류해 안전한 안내로 표시하도록 보완했다. 실행 중 서버에는 재시작 전까지 백엔드 수정이 반영되지 않는다. 추가 실제 호출은 하지 않았다.
+
+## 2026-10-29 — Gemini 로컬 실행 준비
+
+- `tools/start_gemini_local.ps1`에서 키를 숨김 입력으로 받아 프로세스 환경에만 설정하고 기존 루트 `interview.db`를 사용하도록 준비했다. 지정 모델 `gemini-3.5-flash`, 회차 추정 상한 $0.50, Google 3.6 Flash의 발표된 2027 단가로 보수적 계산한다. 호출은 사용자의 별도 분석 요청 시에만 발생한다.
+- 준비 중 자체 로컬 서버 PID 12736을 정상 종료해 8000 포트를 비웠다. 사용자가 새 키를 직접 입력하고 서버를 시작해야 한다. 실제 Gemini 서버 실행과 유료 호출은 미실행이다.
+
+## 2026-10-29 — Gemini 서버 연결 준비
+
+- `AI_PROVIDER=gemini` 선택 시 Gemini GenerateContent 구조화 출력으로 면접·게임 제안 요청을 전송하도록 추가했다. 기본 제공자는 OpenAI이며 기존 검증·예산·출처·mock 분리를 유지한다. 제공자 변경은 요청 준비 이후 차단한다.
+- `.env.example`에서 발견된 키 값은 노출을 막기 위해 제거했다. 해당 키는 노출 가능성이 있으므로 폐기·재발급이 필요하다. `.env`는 자동으로 읽지 않으며 `.gitignore`는 파일 공유를 완전히 막는 보장 수단이 아니다.
+- 실제 모델 ID·가격·예산·새 키 설정과 서버 재시작은 미완료. Google에 실제 호출하지 않았고 현재 실행 중인 서버에도 새 백엔드가 반영됐다고 가정하지 않는다. 설정 안내는 `GEMINI_SETUP.md`.
+
+## 2026-10-29 — 보고서 화면 초기화 오류
+
+- 사용자 캡처 6에서 보고서 화면이 초기 문구에 머문 상태를 확인했다. 현재 report.js의 문법 오류로 스크립트 전체가 실행되지 않는 것을 재현했으며, 수정 전 파일은 `artifacts/report-fix-20261029/report-before.js`에 보존했다.
+- 현재 화면 편집을 유지하면서 문법 오류와 누락된 다섯 게임 결과·게임 제안 요청 연결, 완료 보고서 표시, 근거 출처 및 저장 요청 복구를 보완했다. 사용자 회차와 DB는 변경하지 않았다.
+- 화면 코드 자동 검사 114건 통과. 실제 사용자 브라우저 재확인은 미실행. 서버의 실제 AI는 기존과 같이 꺼져 있으며 제미나이 연결은 아직 없다.
+
+## 2026-10-29 — 보고서 연습 제안 표시 수정
+
+- 사용자의 `캡처화면/2.png`–`5.png`에서 AI 미사용 보고서 및 반복된 제안 출처를 확인했다. 보고서 화면이 첫 연습 제안 문구만 표시하면서 모든 제안의 출처를 반복하는 문제가 있어, 모든 제안 문구를 표시하고 같은 버전·출처를 공유하는 제안은 묶어 출처를 한 번 표시하도록 수정했다.
+- 해당 캡처는 AI를 사용하지 않은 저장 근거 보고서다. 실제 AI 실행은 미검증이며, 캡처만으로 다섯 게임의 전체 문항 기록이나 실제 AI 전달 여부는 검증할 수 없다.
+
+## 2026-10-29 — 약속 게임 글자 크기
+
+- 약속 게임의 제목, 게임별 진행 상태, 난이도와 문항 결과의 글자 크기 및 줄 간격을 확대했다. 카드 내부 글자는 변경하지 않았다.
+
+## 2026-10-29 — 게임 화면 가독성 개선
+
+- 새 회차에서 앞선 게임 미완료 시 약속 게임 영역을 숨기고, 가위바위보 완료 후 숫자 카드 화면으로 이동한다. 기존 두 게임이 모두 저장되면 게임 영역을 숨겨 약속 게임이 위에 표시된다. 구 회차는 기존 화면을 유지한다.
+- 약속 요일의 제시값과 선택지를 독립 게임을 참고한 달력 카드로 표시하고, 버스 번호도 카드로 표시한다. 장소 지도와 서버 선택·채점 규칙은 유지한다.
+- 화면 코드 합성 DOM 검사 113건 통과. 사용자 계정으로 실제 게임을 조작한 화면 검사는 미실행이다.
+
+## 2026-10-29 — 다섯 게임 통합 구현
+
+- 새 회차 `five-game-v2`에서 가위바위보, 숫자 카드, 약속 요일·장소·버스를 순서대로 진행한다. 기존 회차는 이전 흐름을 유지한다.
+- 마지막 세 게임은 공통 난이도를 한 번 선택하고 각 10문항을 서버에서 생성·채점한다. 정답 +10, 오답 및 시간 초과 -5, 매 문항 채점 후 최저 0점이다. 문항별 선택, 시간, 정답과 상태를 현재 사용자·회차에 저장한다.
+- 보고서는 서버 기록을 검증해 게임별로 따로 제시한다. 완료된 면접 보고서와 최종 근거 연결 보고서를 구분하며 이전 게임 조언의 출처가 바뀌면 오래된 결과로 처리한다. 응답 재시도는 동일한 저장 결과를 보장하되, 진행 중 남은 시간은 조회 시각에 따라 달라진다.
+- 게임 AI 입력은 검증된 게임별 조건과 집계 및 출처다. 문항별 기록은 서버와 보고서에 보존되지만 현재 AI에는 문항별 원본이 전달되지 않으며 AI는 제한된 연습 제안 문구를 선택한다. 따라서 문항별 AI 해석은 미구현이다.
+- 실제 AI 호출과 실제 브라우저 사용자의 전체 수동 검사는 미실행. 로컬 서버는 외부 AI를 비활성화하고 실행 중이다. 세부 실행 결과는 `VERIFICATION.md` 참고.
+
+## 2026-10-29 — 다섯 게임 통합 계약 초안
+
+- 사용자 요청: 현재 회차에 다섯 게임 및 문항별 원본 저장, 중단·전송 실패 구분, 보고서와 출처가 검증된 AI 해석 연결. 10문항·공통 난이도·점수 규칙·게임 순서를 유지.
+- `FIVE_GAME_INTEGRATION_DESIGN.md`에 서버 상태·버전·기존 회차·미공개 정보·AI 입력 분리와 검증 단계를 기록했다. 이번 단계에서 제품 코드 변경/통합 실행/새 테스트 수행 없음. 전체 통합 및 실제 AI는 미완료.
+
+## 2026-10-29 — 약속 게임 조건 사용자 결정
+
+- 요일·장소·버스 각 게임은 10문항 고정, 난이도는 세 게임 시작 전 한 번 선택해 공통 적용. 정답 +10, 오답·시간 초과 -5, 각 문항 채점 후 0점 미만은 0으로 처리. 게임별 최대 100점; 실제 응답 순서와 선택·시간 초과를 보존한다.
+- 5개 점수는 합산하지 않고 각 게임의 조건·정답·오답·시간 초과·총점을 나란히 표시하고 AI가 근거를 참고하도록 요청. 기존 두 규칙 게임은 3개 20초 라운드이며 현재 새 게임의 10문항과 같은 분모/시간 체계가 아니다. 결측·중단은 미응답으로 구분한다.
+- 게임 원자료/조건을 기본 면접 추출에 주입하지 않는다. AI를 사용할 경우 기본 추출 고정 이후 별도 통합 단계에서 검증된 게임 결과와 출처를 제공하는 설계가 필요하다. 현행 AI 연결은 실제 미검증이며 다섯 게임의 AI 해석은 구현되지 않았다.
+- 기존 독립 게임에서 10문항은 선택 가능하나 6/20도 선택 가능하고 게임마다 개별 선택한다. 사용자 결정은 아직 제품 코드에 적용되지 않았다. 독립 core 검사 10 passed(기존 테스트), 10문항 고정·공통 난이도·5게임 통합·AI 해석은 미실행.
+
+## 2026-10-29 — appointment-memory-game 연결 가능성 점검
+
+- 사용자 요청: 가위바위보 → 숫자 카드 → 약속 요일 → 약속 장소 → 미사용 버스 번호 순서, 디자인 조화 및 자연스러운 연결 가능성 확인. 이번에는 코드 조사와 독립 게임 규칙 검사만 수행했으며 제품 코드는 수정하지 않았다.
+- 현재 `appointment-memory-game/dist`에 day/place/bus가 각각 존재하나 독립 화면에서 개별 선택하며 결과는 브라우저 메모리에만 있다. 기존 UI는 rsp/card 완료 후 바로 면접으로 이동하고 서버 최종 확정도 그 두 게임만 확인한다. 따라서 요청한 다섯 단계 흐름은 아직 구현되지 않았다.
+- 기존 2번은 숫자 카드를 짝수·3의 배수·7 이상 규칙에 맞게 고르는 게임이며, 숫자를 추측하는 별도의 게임은 아니다. 사용자 표현과 차이를 보존한다.
+- 결합 시 단계 순서, 서버 생성/채점/시간 검증, 기존 소유 회차와 버전/멱등성/삭제/재개, 보고서 원본 및 완료 요건을 함께 연결해야 한다. 게임 점수를 성향·협업 평가로 전환하지 않으며 기존 회차 호환을 고려한다. 사이트끼리 단순 이동만으로 저장·보고서 연결을 충족하지 않는다.
+- 독립 게임은 메인 프로젝트와 별도 서버 없이 FastAPI 정적 경로에 통합 가능하나 UI 충돌·디자인 조정 필요. 별도 `start_game.py`는 8000 포트를 사용하므로 같은 포트에서 기존 서버와 동시에 실행할 수 없다.
+- 독립 게임 core 테스트 10 passed (`artifacts/appointment-assessment-20261029/core-tests.log`), 전달된 6개 소스 SHA-256 대조 일치. 실제 브라우저 조작·다섯 게임 전체 API/DB/보고서·사람 평가 및 AI 호출은 이번에 미실행.
+
+## 2026-10-29 — 선택형 자원 게임 추가 취소
+
+- 사용자 요청으로 2026-10-28의 선택형 자원 게임 추가를 롤백했다. 체크포인트 원복 스크립트가 변경 파일 8개를 기존 백업으로 복원하고 신규 소스·테스트·원복 도구 5개를 `artifacts/resource-preview-20261028/restored-*/`로 보관했다. 원복 전 이후 사용자 편집 충돌은 없었다.
+- 복원 후 기존 8개 파일 SHA-256이 추가 전 manifest와 일치하고 신규 5개는 제품 경로에 없음. 기존 resource-bridge 서버 구현 등 추가 전부터 있었던 소스는 유지했다. 사용자 DB/계정/기록은 스크립트가 수정하지 않았다.
+- 검증: 기존 practice/game UI 연결 1 passed(합성 DOM), frontend HTTP 및 규칙 게임 Python 31 passed(임시 DB/mock, `artifacts/resource-preview-20261028/rollback-check/run-eikjm_tq`). 사용자 PC의 실제 브라우저 수동 검사는 미실행.
+- 현재 `127.0.0.1:8000` 연결 불가. 실행 서버는 이번에 시작하거나 종료하지 않았다. 기존 보고서 표시 오류 4건과 실제 AI 연결 미검증도 이번 롤백으로 해결된 것이 아니다.
+
+## 2026-10-28 — 선택형 자원 배분 게임 시험 연결
+
+- 사용자 승인: 기존 게임을 시험적으로 붙이고 플래그/체크포인트로 되돌릴 수 있게 구성. 연습1+본3, 기존 두 게임 완료 뒤 선택형; 과제 조건·배분 원본을 현재 보고서 화면에 별도로 표시. 확정 보고서 내용 자체에 편입된 것으로 주장하지 않음.
+- 서버 기본 플래그 `RESOURCE_GAME_PREVIEW_ENABLED=false`. true인 경우 `/api/features` 및 별도 `/resource-game-preview`에 의한 기존 resource-game 저장 가능. ON 상태의 진행 중 라운드는 확정 차단; OFF는 새 입력을 차단하고 기존 기록 보존 및 기존 완료 경로 허용. 기존 두 게임의 필수 조건은 보존.
+- 잠금은 `resourceGameLocked`와 기존 게임 잠금을 분리해 사용. 동작 중 동일 회차의 다른 작업 차단, 세션별 대기 요청 저장/동일 멱등키 재시도. 고정 자원 배분의 한계는 해소하지 않았고 연구용 타당성 검증은 하지 않음.
+- 백업 `artifacts/resource-preview-20261028/before/`, 적용 후 해시 `after.json`; `tools/restore_resource_preview.py` 기본 dry-run, `--apply`는 이후 사용자 수정 감지 시 전부 중단, 새 소스는 보관. DB/원본 자료는 복원/삭제하지 않음. OFF는 서버 재시작 필요.
+- 검증: 전체 Python 321 passed, HTTP 3416, provider0/guard0, 하네스 66 passed/2 pending_manual. 이후 UI 잠금 보완 후 관련 Python 9 passed. 최종 Node 109 passed/4 failed: 기존 보고서 표시 4건 동일, 새 자원 게임 DOM 13개 포함. 실제 브라우저 시험·실제 AI 미실행.
+- 별도 검토에서 라운드 사이에도 선택형 게임이 다른 작업을 잠그는 문제를 발견해 재현 후 수정. 진행 중/대기 요청 동안만 잠금. 이번 검토는 AI 코드 검토이며 사람의 제품 검증이 아니다.
+- 현재 8000의 기존 서버는 새 `/api/features`에 404를 반환하므로 새 백엔드 미반영. 기존 프로세스의 명령행 확인은 접근 거부됐고 임의 종료하지 않았다. 사용자가 서버 창에서 Ctrl+C 후 같은 폴더에서 `$env:RESOURCE_GAME_PREVIEW_ENABLED='true'` 및 `.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log` 실행하면 활성화된다. OFF는 해당 변수 false로 재시작. 기존 서버가 실행한 DB/환경을 보존할 것.
+
+## 2026-10-28 — 기존 자원 배분 게임의 결과 미표시 조사
+
+- 사용자 설명: 동료가 만든 자원 배분 게임에서 마지막 결과가 나오지 않는다고 들었다고 함. 이번 검토는 현재 저장소의 resource-bridge이며 당시 동료의 코드/화면과 동일한지는 미확인.
+- 재현: 기존 `/game`→`/analyze`→`/finalize`로 합성 회차를 완료하면 `run.report`에 카드 3개가 생성·재조회되나 `interview_report`는 없음. 이 실제 API 산출물을 현재 `html/report.js`에 넣은 합성 DOM 검사에서 보고서 영역 공백·‘보고서 없음’·완료 회차 재분석 버튼 비활성화 재현. 현재 렌더러는 `interview_report`만 읽는다.
+- 통합 공백: 자원 배분 게임만 완료한 회차를 신규 분석/연결 경로로 보낼 때 기본 보고서는 생성되지만 신규 `rule_games` 결과 목록에 자원 게임 상세 결과는 포함되지 않는다. 일부 비교에는 resource metric 참조가 반영되므로 완전히 무시된다고 표현하지 않는다. 신규 최종 확정은 기존 rsp/card 각각 3라운드를 계속 요구하여 409 `game_completion_required` 반환.
+- 설계 관찰: 연습1+본3 모두 정보 열기 없이 개인5/팀5 유지로 최종 개인·팀 조건 충족 가능함을 실행으로 확인. 이것만으로 적응력/협업능력 점수라 해석할 수 없다. 과거 UI의 라운드 종료 영역도 상세 조건 충족 결과보다 기록 완료 안내를 표시하는 상태임(코드 검토).
+- 검증: 합성/임시 SQLite Python 28 passed, HTTP 578, 외부 provider 전송0, guard 위반0(`artifacts/resource-review-20261028/checks/run-k8vzn3rm/`). 별도 현재 report.js DOM 재현 exit0(`display.log`). ‘passed’는 진단 assertion 통과이며 결함 수정 완료가 아님.
+- 기존 게임 재사용에는 현재 UI·보고서·완료 조건을 통합하는 작업이 필요함. 이번에는 조사/진단 artifact/문서만 추가했고 제품 코드·사용자 DB·실제 AI 설정은 변경하지 않았다. 문제를 키만으로 해결할 수 있다고 안내하지 않는다.
+
+## 2026-10-28 — 사용자 캡처로 최종 화면 확인
+
+- 사용자 제공 `캡처화면/1.png` 확인: 설문 6/6, 가위바위보 3/3, 카드 3/3, 기본 면접 3/3, 근거 연결 저장됨 및 ‘최종 보고서 · 확정됨’ 표시. 사용자는 게임 수정 후 나머지 진행에 문제가 없었다고 보고했다.
+- 화면에 ‘서버에 AI 분석 설정이 준비되지 않았습니다.’ 표시. 현재 결과는 실제 AI 분석 완료가 아니라 기본 근거 연결 보고서다. 해당 안내는 코드의 `live_not_configured`에 대응하며 필수 설정 중 하나 이상이 누락된 경우다. 어떤 설정이 빠졌는지, 키 자체가 없는지는 캡처만으로 확정하지 않는다.
+- AI 미사용 보고서에도 ‘AI 역량 평가 & 시장 맥락 피드백’, ‘AI 멘토의 실전 코칭 팁’ 제목이 표시되어 오해를 줄 수 있음. 기존 보고서 표시 검사 실패와 연결된 미해결 사항으로 기록한다.
+- 확정된 회차는 프런트엔드에서 재분석을 차단한다. AI 설정 후 재시험에는 새 회차가 필요하며 이번에 확정 결과/원본을 수정하거나 잠금을 해제하지 않았다.
+- 이번 작업은 캡처·코드 읽기 및 기록만 수행. 실제 AI 호출, 설정 변경, 제품 코드 수정 없음. 사용자 화면 확인을 전문 평가/효과성 하네스 통과로 대체하지 않는다.
+
+## 2026-10-28 — 수동 테스트 문제 1: 게임 시작 불가
+
+- 사용자 보고: 나 알아보기 응답 후 게임 화면의 ‘1라운드 시작’이 동작하지 않으며 오류 문구 없음.
+- 확인 원인: `html/practice.js:10`의 `interviewDrafts` 속성 이름 중간에 `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload` 문자열이 삽입되어 문법 오류 발생. 회차 저장 및 게임 연결 모듈이 초기화되지 않는 상태를 재현했다. 삽입 경위는 확인하지 않았다.
+- 수정: 해당 문자열만 제거하여 속성 이름 복구. 기존 앱 코드의 다른 변경과 사용자 DB는 수정하지 않음. 수정 전 파일과 실행 로그는 `artifacts/issue-1-20261028/`에 보존.
+- 검증: 수정 전 practice 검사 22건 모두 문법 오류로 실패. 수정 후 실제 practice/game 스크립트의 설문 6문항 저장→라운드 시작→종료 저장 연결 검사 passed. 전체 frontend 96 passed / 4 failed, 전체 Python 315 passed. 합성 DOM/transport 및 임시 SQLite 검사이며 사용자 브라우저 재시험은 대기.
+- 별도 미해결: 보고서 문구·표시 검사 4건(`VERIFICATION.md`에 개별 기록). 전체 제품 검사 통과로 표현하지 않는다.
+- 재시험: Ctrl+F5 → 로그인 확인 → 저장된 회차 이어하기 또는 새 연습 시작 → 문항별 저장 및 ‘서버 저장 6 / 6문항’ 확인 → 게임 시작. 화면 체험에서만 입력한 응답은 서버 저장으로 간주하지 않음.
+
+## 2026-10-28 — 사용자 수동 테스트용 사이트 실행 준비
+
+- 요청: 사용자가 로그인부터 최종 결과까지 직접 테스트할 접속 주소 제공.
+- 현재 폴더에는 `.venv`가 없었으며 새로 생성했다. 기본 Python 및 기존 `py311` 환경에 FastAPI가 없었다.
+- 서버 시작은 **blocked**: `pip install -r requirements.txt`가 네트워크 접근 제한(WinError 10013)으로 실패했다. 서버를 실행하지 못했으며 `http://127.0.0.1:8000/frontend/index.html` 접속도 실패했다. 이전 날짜의 서버 실행 기록을 현재 가동 상태로 간주하지 않는다.
+- 다음 단계: 사용자 PowerShell에서 의존성 설치 후 로컬 uvicorn 실행. 로그인·설문·게임·면접·최종 보고서의 이번 수동 테스트는 아직 미실행이다. 실제 AI 연결도 이번에 검증하지 않았다.
+- 앱 코드와 기존 DB는 변경하지 않았다. 외부 AI 호출 및 운영 배포는 실행하지 않았다.
+
+## 최신 구현·검증 — 2026-10-13 밤 10시 제출 연결
+
+- 사용자 승인: 이전에 남긴 로컬 연결 단계를 22:00 KST 제출을 위해 진행. 현재 가위바위보·카드 유지. 팀원 AI 코드는 사용자 확인상 별도 컴퓨터에 있고 현재 폴더에는 없다.
+- 구현: `app/evidence_linkage.py`의 사건별 게임 사실/설문 원문/검증된 중립 인용 연결, 조건부 후속 질문 생성·기존 answers 저장, `/evidence-linkage` 및 `/interview-finalize`, 최종 보고서·완료 잠금. 기본 분석/설문/게임 원본은 보존하고 재분석/연결 이력을 남긴다. 현재 게임의 B01~B03 신규 매핑 활성화 없음.
+- 화면: 후속 질문/공개근거/답변 분리, 연결→후속 답변→확정, 미저장 초안 확정 차단, 서버 응시 기록 조회·이어하기·삭제. 늦은 응답/계정 변경/동일 요청 재시도 경계 검사. client.js 변경 없음.
+- 경계 수정: 기본 질문/답변의 조건부 표지 거부, 실제 게임 사건 해시로 오래된 보고서 감지, 원문 인용과 질문/답변/행동 바인딩, 소유권/버전/매핑 허용 용도 대조, 제외 사유 및 not_comparable 우선순위. 조건부 답변을 기본 분석에 합치지 않는다.
+- 자동 검증: 전체 Python **315 passed**, exit0, in-process HTTP 3,239건, 외부 provider transport 0, guard 위반0. `artifacts/completion-20261013/final-checks/run-xde15lqp/`. 전체 frontend **100 passed/0 failed/0 skipped**(Node DOM/transport 대역), 독립 root 실행 exec196f9b와 frontend/node-tests.log. 하네스 **66 passed/2 pending_manual**로 overall incomplete; 사람평가와 자동검사 수를 합산하지 않는다.
+- 실패 이력 보존: 새 기능/오염경계13실패 재현, 리뷰 경계6실패 및 폐기 면접매핑1실패 재현 후 보완. 최초 전체검사313통과/1실패는 CSS/JS 자산 버전 불일치였고 수정 후 위315개 통과. 검사 수 증가는 합성 최종 예시 검사 추가를 포함한다.
+- 로컬 반영: 8000 포트에 기존 listener가 없어 다른 프로세스 종료 없이 최신 앱 시작(PID19040). 기존 테스트 DB를 SQLite backup 및 무결성 확인한 뒤 동일 DB 사용. 기존 회차1개의 snapshot hash 일치, 페이지/9자산 HTTP200·소스 바이트 일치, 미인증2경로401, 새2API 존재 확인. live/paid false. 증거 `artifacts/completion-20261013/local/`; 이 폴더 DB/백업은 외부 전달에서 제외한다.
+- 현재 주소: http://127.0.0.1:8000/frontend/index.html . Ctrl+F5 후 기존 회차를 열고 AI 미사용 보고서→근거 연결→후속 면접→최종 확정. 새 내용 해시로 이전 보고서는 오래된 상태가 될 수 있으나 원본을 다시 입력할 필요는 없다.
+- 인계: `DELIVERY_20261013.md`, `completion-example-20261013.json`(실제 API로 생성한 합성 mock 보고서), 안전 소스 ZIP 생성기/실행 스크립트. 전달본 `artifacts/delivery-20261013/AI-interview-source-20261013.zip` 생성·117파일 해시 대조·DB/키 제외 확인. 별도 압축 해제본에서 핵심 Python62개와 Node100개 재현 통과. 최종 ZIP 해시는 옆 `.zip.sha256` 파일을 따른다.
+- 독립 검토: `/root/completion_review`의 도메인/API/화면 검토에서 보고된 R1~R6 수정 확인, 검토 범위 내 차단 항목 없음. 사람 전문가 검토가 아니다. backend/frontend는 gpt-6.1-sol high, reviewer는 gpt-6-astra high로 각 파일 소유권을 나눴고 동시 서브에이전트3개 이하. Git 저장소가 없어 commit/worktree 없음; 변경 전 사본을 보존했다.
+- 미실행: 팀원 실제 AI 통합·외부 모델 호출, 실제 브라우저 조작/시각/키보드(도구 inventory apps/browsers=[]; iab unavailable), MySQL/운영 배포, 사람 평가/효과성 연구. 이 항목을 합성 검사 통과로 대체하지 않는다.
+
+이하 항목은 당시 상태를 보존한 이력이다.
+
+## 최신 작업 — 2026-10-12 문항·게임·면접 연결 논리와 근거 확정
+
+- 사용자 선택: **현재 가위바위보·카드 게임 유지**. 규칙 변경 후 선택은 별도 과제 관찰로 설명하고, 정보 확인·자원 배분은 설문·면접에 근거한다. 현재 게임을 B01/B02/B03의 직접 관찰로 재명명하지 않는다.
+- `EVIDENCE_LINKAGE_EXPLANATION.md` 작성: 6문항별 질문/행동/허용 용도, 답변에서 확인할 설명 요소, 실제 이벤트 경로, 카드 규칙 중복 반례, 교수 질문 답변, 현재 구현과 목표를 구분했다. 정의상 주제 연결 5개, 비교 용도 등록 4개, 현재 규칙 게임의 B01~B03 활성 매핑 0개이며 정확도 수치가 아니다.
+- `/root/review_linkage_logic`의 독립 AI 도메인 검토를 반영했다. RG01은 문서상의 미활성 관찰 초안이며 사람 전문가 승인·심리측정 타당화가 아니다. 규칙 미공개와 공개 후 무응답을 구분했다.
+- 제품 수정은 `app/interview_analysis.py::_survey_report`의 제외 사유만: S-B02는 `context_only_preference`, R-UNMAPPED는 `R-UNMAPPED`. 원본/정의/게임/화면/완료 정책을 바꾸지 않았다. 기존 보고서·DB를 재작성하지 않았다. 실행 중인 서버를 재시작하거나 새 코드 반영을 확인하지 않았다.
+- 새 검증: 오류 재현 2 failed + 비교용 O-B02 대조 1 passed → 수정 후 3 passed. 전체 Python **277 passed**(그 3개 포함), 별도 설명 합성 검사 **4 passed**. 증거 `artifacts/linkage-review-20261012/`; 모든 실행에 앱 import 전 새 DB 및 외부 모델/네트워크 차단 적용. 실제 AI 호출/guard 위반 0. 이번 frontend 재실행·사용자 DB 조회 없음.
+- 미완료: 사건별 요약/설문/면접 인용의 보고서 연결 자동화, 조건부 후속 질문·답변 UI/API, 현재 게임을 반영한 최종 확정 경로, 기록 탭 서버 연결, 실제 팀원 AI 통합·PC 최종 시연. 이전 파이프라인 감사의 미완료를 이번 문서 작성으로 완료 처리하지 않는다.
+- 후속 연결 전 확인: 분석기의 조건부 표지/공개 근거 불변 대조 보완. 정상 답변 API는 서버 질문에서 표지를 복사하지만 오염 스냅샷의 명시적 거부와 HTTP 도달 가능성은 이번 미검증이다.
+- 도구 한계: 기본 셸 샌드박스가 프로세스 시작 전 `helper_unknown_error: setup refresh had errors`로 실패했다. 승인 실행 경로의 안전 검사들은 정상 실행됐다. 브라우저는 발견됐으나 도구가 현재 URL을 확인하지 못해 자동 조작을 중단했다. 브라우저 검증 통과나 전체 제품 완료로 기록하지 않는다.
+
+## 최신 점검 — 2026-10-12 팀원 AI 통합 전 파이프라인 감사
+
+- 사용자 설명: AI 연결은 팀원이 구현했다고 함. 팀원 코드가 현재 폴더에 병합됐는지 별도 보관 중인지 확인 질문을 했으며 아직 미확인이다. 키를 새로 준비하도록 요구하거나 팀원 작업을 다시 만들라는 의미가 아니다. 이번 판단은 현재 `E:\SchoolContest` 코드에 한정한다.
+- 결론: **현재 게임·설문·기본 면접의 저장과 같은 보고서 표시까지 연결됐으나, 현재 RPS/card와 성향 응답을 비교한 맞춤 후속 면접·최종 완료 파이프라인은 미완성이다.** 앞선 ‘통합 보고서 연결’ 완료를 전체 맞춤 면접 완성으로 확대하지 않는다.
+- 새 `interview_analysis`는 중립 기본 질문/답변의 검증된 추출과 별도 설문/게임 목록을 조립한다. 설문 응답은 `_comparison`의 입력이 아니고 연습 제안은 빠진 설명 요소에 대한 고정 안내다. 현재 규칙 게임은 unmapped/not_comparable이며 기존 B01/B02/B03 매핑은 resource-bridge 게임용이다.
+- 기존 `app/analysis.py`의 설문·게임 근거 비교/조건부 후속 질문은 남아 있다. 다만 이 경로는 별도 mock 추출을 사용하고 현재 HTML이 호출하는 `/interview-analysis`와 이어지지 않는다. HTML 면접은 baseline만 표시하고, `/analyze` 및 `/finalize`의 기존 resource 게임 완료 조건도 현재 규칙 게임 완료로 대체되지 않는다.
+- 추가 인계 누락: 현재 HTML `응시 기록` 탭은 예전 localStorage 표다. 서버 회차 목록/재개는 설문 영역에서 동작하고 서버 삭제 API는 있지만 해당 기록 탭의 서버 조회·삭제 연결은 남아 있다. README의 오래된 완성 표현을 현재 상태로 정정했다.
+- 인계 판단: 통합 개발용 소스로 넘기는 것은 타당하다. 전체 파이프라인 완성본으로 표시하지 않고 게임/행동 정의 확정 → 검증된 AI 추출과 비교 연결 → 조건부 후속 질문/답변 UI → 최종 보고서/완료 조건 → 실제 AI 통합 시연을 남은 작업으로 전달한다. 원본 점수/설문 응답을 면접 답변으로 소급 수정하는 설계는 아니다.
+- 인계 문서 `PIPELINE_HANDOFF.md`에 상태표·두 API 경로·관련 파일·남은 작업·실행법·소스 전달 범위를 정리했다. HTML 외 서버/검사/설계 문서가 필요하며 키·사용자 DB·DB 백업·캐시·가상환경을 그대로 묶지 않는다. 이번에는 외부 전송·파일 압축·팀원 코드 병합을 실행하지 않았다.
+- 재검증: 안전 실행기 전체 Python **274 passed**(`run-mhgbquze`), 전체 frontend **91 passed**, live/provider transport 0, guard 위반 0. 현재 저장/보고서 계약을 검증한 것이며 미구현 후속 면접 완료를 증명하지 않는다. 하네스의 사람 평가 2건은 계속 pending_manual이다.
+- 읽기 전용 독립 도메인 검토: `/root/analysis_review`가 새/기존 분석 경로의 의미·매핑·후속 질문 연결 여부를 확인했다. root는 API/UI 경로와 인계 범위를 점검했다. 제품 코드/사용자 DB/서버 실행 설정 변경과 실제 AI 호출은 없으며 문서만 갱신했다.
+
+## 최신 보완 — 2026-10-11 탐색 검사 미해결 3건 해소
+
+- 이전 보고서 작업에서 미해결로 남겼던 `frontend_navigation.test.cjs` 3건을 재현하고 처리했다. 당시 교체 전 `#app`, `답변 작성`, `#/run/r` 기반 검사가 현재 탭 화면의 script.js를 실행하고 있어 실제 사용자 동작 검사에 도달하지 못했다. 단순히 검사만 오래된 것이 아니라, 현재 navigateTab이 클래스만 변경하고 URL/브라우저 이력을 연결하지 않아 뒤로가기·새로고침 탭 복원도 빠져 있었다.
+- `html/script.js`에 현재 6개 탭의 주소 fragment와 pushState/replaceState, popstate/hashchange 복원을 연결했다. 같은 탭 재선택과 중복 브라우저 이벤트가 이력이나 게임 화면 이동 이벤트를 중복 생성하지 않는다. 유효하지 않은 주소는 설문 탭으로 복구한다. 탭을 바꿀 때 면접 DOM/회차를 재생성하지 않으며 기존 초안 journal과 동일 회차 저장 요청을 유지한다. 저장 요청의 완료가 사용자를 이전 탭으로 강제로 돌리지 않는다.
+- 검사를 현재 HTML+실제 script.js/interview.js에 맞게 교체하고 원래 3가지 보호 목적을 유지했다: 초안 보존, 느린 조회 중 이전 화면 숨김/늦은 완료가 현재 탭을 바꾸지 않음, 저장 중 뒤로가기 시 같은 회차에 정확히 한 번 저장. 여기에 잘못된 탭/중복 이력 검사를 추가했다. 기존 파일은 `artifacts/navigation-fix-20261011/before/`에 보존했다. 기존 실패를 단순 삭제·skip하거나 기대만 낮춰 통과시킨 것이 아니다.
+- 검증: 현재 동작 검사 RED 4 failed 후 GREEN 4 passed. **전체 frontend glob 91 passed/0 failed/0 skipped**로, 이제 navigation 파일을 제외하지 않는다. 정적 자산/인증 API 집중 Python 3 passed(`run-zapo8onu`), guard 위반/provider transport 0. 이전 전체 Python 274 passed는 이전 실행이며 이번에 재실행한 수로 합산하지 않는다.
+- 정적 자산 공통 버전 `20261011-navigation1`. 실행 페이지/버전 자산 10개 HTTP 200/바이트 일치, client.js 해시 유지. 기존 로컬 서버 PID 3192/7688을 유지했으며 서버 재시작·사용자 DB 읽기/쓰기·live AI 호출 없음. 근거 `artifacts/navigation-fix-20261011/`.
+- 실제 브라우저 뒤로가기/키보드/접근성 확인은 여전히 pending_manual이다. 자동 검사는 DOM/history/전송 경계 대역이며 실제 브라우저 검증으로 부르지 않는다. 사용자는 Ctrl+F5 후 변경 화면을 받을 수 있다. 미실행 live AI 설정/사람 평가 항목은 이번 탐색 수정과 별개로 유지한다.
+
+## 최신 상태 — 2026-10-11 02:16 KST 통합 근거 보고서 연결
+
+- 현재 HTML의 `4. AI 리포트`에 같은 회차의 설문 원문·선택, 두 규칙 게임의 실제 저장 결과, 기본 면접의 인용/결측 상태를 표시하는 보고서를 연결했다. `저장 근거 보기 · AI 미사용`과 `AI 분석 요청`을 구분한다. 이전 임의 점수·강점 문구와 로컬 가짜 완료 처리는 제거했다. 기존 `/analyze`와 `/finalize` 계약은 유지하며 새 보고서 저장만으로 회차를 완료하지 않는다.
+- 서버는 `/api/interview-analysis-capabilities`와 `/api/runs/{id}/interview-analysis`를 제공한다. 원본과 별도로 interview_analysis/report를 저장하며 원자 요청 예약, 실패 포함 회차 예산, 동일 요청 재전달, 삭제·수정 경합 검사를 적용한다. 수정 이후 보고서는 이전 입력 기준임을 표시한다. UI는 동일 계정·회차의 잠금/불확실 요청 재시도/복원/늦은 응답 차단을 공유한다.
+- 기존 AI 어댑터를 연결했다. 기본 추출에는 현재 중립 질문과 답변만 입력한다. 설문·게임·계정 정보는 주입하지 않는다. 정확한 원문 인용·Unicode 코드 포인트·답변 버전·질문/행동/루브릭 결속을 서버가 검사한다. 빈 인용, 잘못된 매핑, 방향 근거 없는 지지 판정은 거절하거나 비교 제한으로 남긴다. RPS/card는 unmapped/not_comparable이며 해당 점수를 성격/합격 점수로 바꾸지 않는다.
+- **실제 외부 AI는 미실행**이다. 현재 서버는 AI_LIVE_ENABLED=false/PAID_AI_ENABLED=false다. 확인한 Process/User 환경과 프로젝트 `.env`에서는 키·모델을 찾지 못했다. 기존 키가 다른 환경에도 없다는 뜻은 아니다. 서버 키·모델·허용 목록·가격·회차 상한을 설정한 뒤 실제 제공자 응답을 확인해야 실제 AI 연결 완료로 판정할 수 있다. 설정 안내: `AI_CONNECTION_SETUP.md`.
+- 최종 자동 검증: 관련 Node **87 passed**; 전체 Python **274 passed**, 2,594 in-process HTTP, provider transport 0, guard 위반 0 (`run-ooq7dcvg`). 같은 회차의 설문 6개→규칙 게임 각 3라운드→면접→보고서→앱 재생성 후 복원/답변 수정 stale를 mock와 명시적 test_double로 검사했다. 하네스는 66 passed/2 pending_manual, overall incomplete다. fixture·mock 통과를 사람 평가나 live 성공으로 확대하지 않는다.
+- 당시 `frontend_navigation.test.cjs` 3건은 이전 UI/라우팅을 기대해 실패했고 관련 Node 87개에서 제외했다. 이 시점의 broad 실행은 84 passed/3 failed였다. **이후 위 최신 보완에서 실제 탭 복원 누락을 수정하고 현재 화면 검사로 연결해 전체 Node 91 passed를 확인했다.** 실제 브라우저 수동 확인은 별도다.
+- 현재 URL: `http://127.0.0.1:8000/frontend/index.html`. 기존 DB를 SQLite backup API로 백업/무결성 확인한 뒤 같은 DB로 서버를 재시작했다. launcher PID **3192**, uvicorn child PID **7688**. 페이지/버전 자산 10개 HTTP 200/작업 파일 일치, 미인증 조회 2개 401, 모든 기존 회차 snapshot 해시 동일, 추가 요청 테이블 존재/분석 요청 0건을 확인했다. 사용자 회차에 테스트 답변이나 보고서를 임의 제출하지 않았다. client.js SHA256 `3A6566BEF6B57823ABDF917EF526B9351E9F1C1D1D8A94BBDB942002016C9040` 유지.
+- 사용자가 다음으로 확인할 화면: Ctrl+F5 → 기존 회차 → `4. AI 리포트` → `저장 근거 보기 · AI 미사용` → 새로고침 후 같은 보고서. 기존 설문·게임·면접을 다시 실행할 필요는 없다. 직접 브라우저 제어는 apps=[], browsers=[]라 blocked; 사용자 보고서 화면 확인/접근성/실제 AI 인용 사람 검토는 pending_manual이다.
+- 마감은 기존 사용자 확정 **2026-10-19 24시 전 PC 웹 시연**을 유지한다. 최근 날짜 확인 질문은 10/12와 10/19의 혼동을 풀기 위한 것이었으며 새로운 범위 승인을 요구한 것이 아니다. 실제 AI 실행과 PC 전체 시연이 아직 남아 있어 전체 제품 완성을 보장하지 않는다.
+- 파일 소유권: analysis_ai는 AI 모듈/어댑터/집중 검사, analysis_store는 main/store/API 검사, analysis_ui는 report.js/집중 Node 검사, root는 화면 틀·모듈 잠금·결합/API 여정 검사·운영/문서. analysis_review는 읽기 전용 독립 검토. 최대 동시 하위 3개, 재귀 위임 없음. 기본 모델 상속 구현자와 설정된 interview_domain_reviewer 역할 사용. 새 Git 저장소·커밋·배포 없음.
+- 근거: `AI_REPORT_CONNECTION.md`, `artifacts/ai-report-connect-20261011/`, `artifacts/offline-checks/run-ooq7dcvg/`. 아래는 이전 단계의 이력이며 현재 상태는 이 항목을 우선한다.
+
+## 최신 보완 — 2026-10-11 면접 불러오기·입력칸 미표시
+
+- 최신 사용자 확인: 면접 답변이 잘 저장되고 새로고침 후에도 유지된다고 보고했다. 기본 면접 저장·복원 흐름은 사용자 확인 완료다. 정확한 저장 문항 수나 수정 이력 검증까지 확인한 것으로 확대하지 않는다. 설문·게임·면접 기본 저장 확인을 반복 요청하지 않으며, 다음 범위는 같은 회차의 실제 AI 분석·근거 보고서 연결이다. 두 규칙 게임의 unmapped 상태와 기존 resource-bridge 분석 선행조건은 별도 해결이 필요하다.
+- 최신 사용자 확인: 버튼이 `답변 저장`으로 바뀌었다고 보고했다. 앞선 면접 표시 복구와 함께 버튼 표시 문제는 사용자 확인 완료다. 실제 답변 저장/서버 저장 3/3/새로고침 후 복원은 아직 pending_manual이며 AI 분석 확인으로 전용하지 않는다. 표시 문제 확인을 위해 접속 URL을 다시 요청하지 않는다.
+- 이전 사용자 보고: 면접 내용은 표시되지만 마지막에 `면접 답변 제출 및 분석 요청` 버튼이 보인다고 함. 서버 재조회 결과 해당 버튼 문구/구 제출 함수는 없고 새 면접 영역/버전 스크립트가 제공됐다(exec fb2589). 이후 위 사용자 확인으로 버튼 표시 차이가 해소됐다. 사용자 브라우저에서 발생했던 구체적인 원인을 확정한 것은 아니다.
+- 사용자 제보: 면접을 불러오지 못하고 답변 입력칸도 보이지 않음. 주소/화면 오류 문구를 확인 요청했으며 아직 답변 없음. 직접 브라우저 목록은 apps=[], browsers=[]여서 사용자 탭의 구체적인 오류는 관찰하지 못했다.
+- 읽기 전용 확인: 기존 지정 회차에는 baseline 질문 3개와 설문 기록 6개가 있으며 revision 72/in_progress였다. 질문 메타데이터만 확인하고 답변·인증 정보는 출력하지 않았다. 실행 서버의 HTML/JS는 작업 파일과 일치한다.
+- 재현·수정: 이전 practice 모듈에는 setInterviewLock이 없어 새 면접 모듈이 초기화 중 TypeError로 중단된다. 같은 조건의 합성 검사에서 재현했다. 모든 로컬 CSS/JS URL에 같은 새 버전 값을 붙여 이전 파일 캐시와 분리하고, 필수 연결 함수가 없으면 초기화를 중단하면서 명시적인 새로고침 안내를 표시한다. 실제 사용자 브라우저의 원인까지 캐시로 확정한 것은 아니다.
+- 최초 조회 실패 시 계속 ‘불러오는 중’으로 남고 없는 ‘같은 요청 다시 시도’ 버튼을 안내하던 오류도 수정했다. 조회 실패는 실패 상태와 ‘저장된 면접 다시 불러오기’를 안내하며, 미확정 제출은 기존 동일 요청 재시도를 유지한다.
+- 검증: 관련 Node 74 passed, 집중 Python 4 passed(격리 DB/mock, run-6ob0sqg1). 실행 페이지와 버전 URL 7개가 HTTP 200/파일 바이트 일치. 근거 artifacts/interview-load-20261011/. client.js 내용 보존, DB 변경/서버 재시작/live AI 없음. 실제 사용 중인 탭에서 입력칸 복구 확인은 pending_manual이다.
+
+## 현재 작업 상태 — 2026-10-11 기본 면접 저장 연결 완료
+
+- 후속 화면 확인: 사용자가 아직 이전 `면접 답변 제출 및 분석 요청` 버튼이 보인다고 보고했다. 실행 서버의 `/`, `/frontend/index.html`과 새 쿼리 URL, localhost 주소를 읽기 전용 재조회한 결과 모두 HTTP 200이며 새 면접 영역/스크립트 참조가 있고 이전 제출 함수 참조는 없다. 사용자 접속 주소를 확인 요청했으며 브라우저에 새 화면이 반영됐는지는 미확인이다. 캐시 문제로 단정하지 않았고 제품 코드·DB 변경이나 서버 재시작은 하지 않았다.
+- 현재 HTML에서 소유 회차의 중립 기본 질문 3개를 불러오고 질문별 답변/답변 없음/건너뜀을 저장한다. 입력 원문과 수정 이력, 새로고침 후 서버 답변/작성 중 초안 복원, 동일 요청 재시도, 충돌 시 명시적 입력 이어가기를 구현했다. 기존 자기소개·지원동기 예시와 가짜 접수 알림을 실제 저장 흐름으로 교체했다.
+- 계정·회차 경계를 공유하는 `html/interview.js`를 추가했다. `practice.js`/`games.js`의 독립 면접 잠금으로 요청 중 회차 변경·동시 게임 쓰기를 막는다. `client.js`와 서버 제품 코드는 그대로다. 현재 테스트 DB·계정·설문·가위바위보 3/3·카드 3/3 기록을 초기화하거나 재생성하지 않았다.
+- 구현 검토에서 발견한 저장 거절 후 무한 재시도, ‘입력 이어가기’의 자동 제출, 저장소 오류 안내 소실을 수정했다. 질문 이력은 저장 당시 원문을 표시하며 완료 문구는 실제 문항 수를 따른다. 독립 AI 리뷰는 범위 내 남은 Important 코드 문제가 없다고 확인했다.
+- 최종 검증: 관련 Node 73 passed, 전체 Python 236 passed, guard 위반 0/provider transport 0. 실제 API 검사에는 동일 회차의 설문 6개·두 게임 각각 3라운드 후 면접 저장/수정/재조회와 게임 원본 보존이 포함된다. 자동 검사와 실제 사용자 확인을 구분한다.
+- 현재 URL `http://127.0.0.1:8000/frontend/index.html`. 기존 서버 launcher PID 22964 / server PID 29268을 유지했다. 서버 재시작·DB 변경 없이 정적 파일을 반영했으며 10개 정상 경로 HTTP 200/파일 일치 및 미인증 회차 조회 401을 확인했다. API/DB 스키마 변경, live AI 호출, 운영 배포 없음.
+- 파일 소유권: root는 화면 틀/회차·게임 연동/결합 검사·문서; `/root/interview_ui` worker는 새 면접 JS와 집중 Node 검사; 기존 `/root/rule_game_backend`는 새 API 여정 검사만 담당; `/root/game_contracts`와 `/root/rule_game_review`는 읽기 전용 탐색/독립 리뷰. 최대 동시 하위 에이전트 3개, 재귀 위임 없음. 새 worker의 모델은 부모 기본값 상속이며 별도 모델 변경은 하지 않았다. 기존 작업 폴더를 유지했고 Git 커밋/브랜치 생성 없음.
+- 근거: `docs/ai-interview/INTERVIEW_CONNECTION.md`, `artifacts/interview-connect-20261011/`, `artifacts/offline-checks/run-b4h4bwxa/`. `html/client.js` SHA256 `3A6566BEF6B57823ABDF917EF526B9351E9F1C1D1D8A94BBDB942002016C9040` 보존.
+- 남은 사용자 확인: Ctrl+F5 후 기존 게임 완료 회차의 `3. 기본 면접`에서 문항별 답변 저장 → 서버 저장 3/3 → 새로고침 후 면접 탭에서 복원 → 답변 하나 수정 저장 후 이전/새 버전 확인. 이미 확인한 설문·게임을 다시 요청하지 않는다. 직접 브라우저 제어는 apps/browsers=[]로 blocked; 실제 화면/키보드/스크린리더와 새 면접 수동 확인은 pending_manual이다.
+- 후속 범위: 새로고침 시 화면/탭 위치 복원, 실제 AI 분석·근거 보고서 연결. 두 규칙 게임은 여전히 unmapped이고 원래 resource-bridge 분석/완료 조건을 바꾸지 않았다. 이 작업을 전체 면접·보고서 제품 완성으로 표시하지 않는다.
+
+아래는 이전 작업의 범위 결정과 실행 이력이다. 현재 연결 상태는 위 항목을 우선한다.
+
+## 최신 범위 — 2026-10-08 확정: 10월 19일 PC 웹 시연
+
+- **사용자 확정:** 마감은 2026-10-19. 완료 기준은 A: PC 웹에서 상황게임·실제 AI·근거 보고서까지 이어지는 발표·시연 가능 상태다. 외부 공개 배포는 이번 완료 조건에 포함하지 않는다. 모바일 연동·실제 모바일 기기 검증도 제외한다.
+- **사용자 전달 / 미확정:** 별도 개발 중인 게임은 2026-10-15 연결 가능할 것으로 알고 있으나 확정은 아니다. 전달 완료나 연결 성공으로 기록하지 않는다.
+- **기존 점검 정리:** 사용자 보고로 마친 PC 기본 8개 및 추가 오류·접근 통제 점검은 해당 범위에서 종료한다. 아래 이전 기록의 '모바일 1건이 남아 1단계 완료 불가' 조건은 이번 범위 변경으로 대체한다. 모바일은 skipped / 사용자 범위 제외이며 passed가 아니다. 이는 DELIVERY_PHASES.md의 전체 구현 단계 완료를 뜻하지 않는다.
+- **현재 남은 핵심:** 새 게임 화면 연결, 웹앱의 실제 AI 호출·출력 검증 연결, 동일 회차의 게임→면접→보고서 통합 시연. 현재 새 화면의 게임은 미연결이며 분석은 mock이다. 별도 LiveProvider가 있어도 실제 웹앱 AI 연동 완료가 아니다.
+- **마감에 유지할 기능:** 현재 설문 6개/네 형식, 연습 1회+본게임 3회, 기본 텍스트 면접 3개, 필요한 확인 질문, 원본·버전·인용을 확인할 수 있는 보고서, 로그인·본인 기록 재개·삭제·접근 통제. 입력 보존·실패 안내·재시도 및 기본 추출의 설문 강도 독립성도 유지한다.
+- **추가 개발에서 제외/후속 이관:** 모바일, 외부 공개 운영, 영상·음성 면접, 추가 게임·설문·화면 장식, 공개 운영을 위한 DB 전환과 부하 확장. 기존 로컬 SQLite를 시연 기준으로 유지하며 MySQL 검증 완료를 주장하지 않는다. 대규모 효과성 연구와 전체 사람 평가 프로토콜은 pending_manual로 보존하고, 시연 예시의 인용·수치·과장 여부 검토는 남긴다. 기존 구현이나 원본 명세를 삭제하는 결정은 아니다.
+
+### 마감 작업 목표 — 일정 제안, 실행 결과와 구분
+
+| 기간 | 작업과 확인할 결과 |
+|---|---|
+| 10/9~10/12 | 실제 AI 연결 경로 구현 및 mock 기반 경계 검증. 게임 전달 전에도 기존 게임 API와 합성 회차로 입력·출력 계약을 확인한다. |
+| 10/13~10/14 | AI·보고서 사전 연결 검증, 게임 연결 지점 준비. 실제 호출은 서버 키·모델·비용 범위가 준비된 뒤 실행하고 mock 결과와 구분한다. |
+| 10/15 (잠정) | 전달된 게임을 같은 로그인·회차·저장 API에 연결한다. 전달되지 않으면 아래 대안 판단으로 넘어간다. |
+| 10/16~10/17 | 실제 게임과 실제 AI를 포함한 PC 전체 여정, 보고서 인용·수치 확인, 연결 실패·재시도·삭제 등 변경 영향 검증과 수정. |
+| 10/18 | 새 기능 추가 중단, 시연 PC에서 실행·재시작 및 최종 리허설, 실행 안내와 알려진 제한 정리. |
+| 10/19 | 최종 시연·제출. 이 날의 신규 통합 작업을 전제로 일정 잡지 않는다. |
+
+- **게임 지연 대안:** 10/15 전달 상태를 확인하고 10/16에도 연결 가능한 게임이 없으면, 기존 app/static/app.js의 게임 화면·동작을 활용하는 최소 연결안을 우선 검토한다. 새 게임을 추가 제작하는 범위는 피한다. 이 대안의 새 화면 호환성·통합 검증은 아직 수행하지 않았으며 시연 성공을 보장하지 않는다. 가짜 완료 기록으로 게임 조건을 통과시키지 않는다.
+- **완료 판정:** PC에서 새 회차→설문→실제 게임 기록→기본 면접→실제 AI 분석→출처 있는 보고서→기록 재조회가 이어지고, 필요한 수정과 실행 안내가 마무리되어야 한다. mock 결과만으로 실제 AI 완료를 선언하지 않는다. 외부 공개·모바일·효과성 입증은 이 판정에 포함하지 않는다.
+- **이번 변경:** 진행·검증 문서만 갱신. 제품 코드·기존 테스트 DB·10월 7일 회차는 변경하지 않았고, 실제 AI 호출·배포·신규 기능 검증은 실행하지 않았다. 다음 우선 작업은 게임 전달을 기다리지 않고 진행할 수 있는 실제 AI 연결 준비다.
+
+이하 내용은 이전 시점의 기록으로 보존한다. 최신 범위와 충돌하는 모바일·외부 공개 완료 조건은 위 결정을 따른다.
+
+## 최신 상태 — 2026-10-08 PC 수동 점검 종료 및 저장 자료 대조 정리
+
+- 사용자 보고 기준으로 PC 수동 점검을 마쳤다. 기본 8개 항목 외에 다른 계정의 기존 회차 URL 조회 거절, 5개 설문 건너뜀+마지막 문항 시간 초과 후 6/6, 통신 실패 시 답변 입력 유지와 연결 복구 후 원래 요청 재시도·저장 표시를 확인했다. Codex 직접 브라우저 관찰 결과와 구분한다.
+- 자동 / 읽기 전용 SQLite 저장 자료 대조: 설문 6개, 기본 질문 3개의 답변 버전 10개, 과거 저장 응답 스냅샷 16개를 검사했다. 과거 스냅샷과 현재 원본 레코드의 136개 비교가 일치했고 정의·라벨·관점·방향·순위 및 답변 이전 버전 연결 검사도 통과했다.
+- 최초 assertion 174 passed / 1 failed의 원인은 검사기 가정 오류다. 숫자 order를 최종 선택 목록으로 오해했다. UI의 select/move/remove 의미로 이력을 재생해 최종 순위를 대조하도록 정정했다. 합성 정상 예와 잘못된 순서·순번·rank 거절 확인을 포함한 재실행은 assertion 179 passed / 0 failed다. pytest 테스트 개수나 하네스 통과 수가 아니다.
+- 증거: `artifacts/manual-browser/run-20261007-212826-f2c9a079/record-audit-corrected-20261008-222111/RESULTS.json`, `CORRECTION.json`, `verify_saved_records.py`, stdout/stderr. 최초 실패 artifact는 그대로 보존했다. 정정 실행기의 첫 시도는 PowerShell의 -c 인용 전달 때문에 Python 구문 분석에서 실패했으며 UTF-8 코드 전달로 재시도했다. 앱 소스·기존 DB는 수정하지 않았다.
+- 대조 범위는 저장 당시 서버 응답과 현재 저장본 사이의 원본 보존 및 정의·버전 일치다. 독립적으로 녹화한 최초 브라우저 입력 대조나 AI 정확도 검증은 아니다. 전체 자동 회귀·live AI·게임 화면·운영 배포는 이번 미실행이다.
+- 현재 합의한 1단계 화면 점검 범위에서 남은 사용자 확인은 **실제 모바일 기기의 화면·조작 확인 1건**이다. 연결 준비와 실제 확인 전까지 1단계 전체 완료로 표시하지 않는다. 현재 서버는 127.0.0.1 바인딩이므로 휴대폰에서 같은 주소만 입력하면 접속되지 않는다. 게임 연결과 전체 보고서 여정은 다음 단계의 별도 범위다.
+- 기존 테스트 DB와 10월 7일 회차를 보존한다. 재개 DB·명령 및 이전 결과는 아래 이력을 참고한다.
+
+
+## 최신 인계 — 2026-10-07 사용자 수동 점검 종료
+
+- 사용자가 오늘 테스트를 여기까지 진행하기로 했다. 추가 테스트는 진행하지 않는다.
+- 사용자 보고로 확인: 회원가입·로그인·새 회차 화면, 설문 6개 저장 표시, 기본 면접 3개 저장·수정 표시, 새로고침 후 첫 설문 저장 상태, 재로그인 후 기존 회차·진행률·수정 답변 유지, 미저장 답변의 뒤로 가기 확인창과 취소 후 내용 유지.
+- 마지막 사용자 보고: 좁힌 데스크톱 브라우저 창에서 글·입력칸·버튼의 겹침·잘림 없음, 키보드 조작 원활. 실제 모바일 기기 또는 전체 접근성 검증으로 확대하지 않는다. Codex는 사용자 화면을 직접 관찰하지 않았다.
+- 별도 읽기 전용 SQLite 확인: 무삭제 회차 1개(in_progress), 설문 레코드 6개, 기본 질문 3개의 답변 기록, 기본 답변 버전 레코드 총 10개, PRAGMA quick_check=ok. 원문·비밀번호·세션 토큰은 출력하거나 문서에 복사하지 않았다. [저장 확인 결과](../../artifacts/manual-browser/run-20261007-212826-f2c9a079/SESSION_END_CHECK.json).
+- **재개할 DB:** `E:/SchoolContest/artifacts/manual-browser/run-20261007-212826-f2c9a079/interview.db`. 기본 `interview.db` 또는 새 테스트 DB로 바꾸면 오늘 회차가 보이지 않으므로 반드시 이 DB를 사용한다. WAL/SHM이 있으면 DB와 같은 폴더에서 보존한다.
+- 확인 시점 서버 PID 11488은 실행 중이며 이번 인계에서 종료하지 않았다. 재개 시 기존 서버 상태를 먼저 확인한다. 서버가 꺼졌으면 아래 명령으로 같은 DB를 연결하고, 테스트 계정으로 로그인해 **연습 기록의 기존 회차**를 연다. 비밀번호는 문서에 저장하지 않는다.
+- 남은 항목: 회차 삭제와 삭제 뒤 접근, 사용자 간 접근 통제의 실제 화면 확인, 원본 선택값·이전 답변 버전 대조, 추가 오류·재시도·타이머 분기. 게임 화면·AI·보고서의 전체 흐름, 실제 모바일, MySQL·운영·사람 연구는 별도 미완료 상태다. 다음에 삭제를 확인할 때에는 오늘 기록 보존 의도를 먼저 반영한다.
+
+```powershell
+Set-Location E:\SchoolContest
+$env:DATABASE_URL = 'sqlite:///E:/SchoolContest/artifacts/manual-browser/run-20261007-212826-f2c9a079/interview.db'
+$env:AI_LIVE_ENABLED = 'false'
+$env:PAID_AI_ENABLED = 'false'
+$env:COOKIE_SECURE = 'false'
+.\.venv\Scripts\python.exe -B -X utf8 -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+아래는 기존 구현·검증 및 이번 수동 확인의 상세 이력이다.
+
+## 최신 상태 — 2026-10-04 제공 HTML 연결
+
+사용자 승인에 따라 `html/`의 Astra 화면을 기존 서버에 연결했다. 로그인·회차/설문, 서버 질문·버전 보존 답변, mock 근거 보고서, 본인 기록 재개·삭제 순서의 구현과 자동 검사를 마쳤다. `/`에서 새 HTML을 제공하며 기존 `app/static/`와 게임 코드는 변경하지 않았다. **게임 화면은 별도 개발 중이고 AI도 아직 미연동이다.**
+
+전체 Python 202개, JavaScript 13개 통과. 이 중 DOM 대역을 사용한 화면 이동 검사는 3개이며 실제 브라우저 검사로 집계하지 않는다. 브라우저 연결 도구에서 사용 가능한 브라우저가 없어 **새 HTML의 실제 화면 조작·키보드·모바일 검토는 확인 대기**다. 별도 게임 화면이 제공된 후 동일 회차의 전체 화면 여정도 확인해야 한다. 과거 화면 검증 기록을 새 HTML의 검증으로 재사용하지 않는다.
+
+본게임 1라운드 종료 후 중간 분석, 6설문+4라운드+기본 면접3개 처리 및 분석 이후 최종 확정, reveal 전 새 정보 미전송 정책을 유지했다. 임의 점수 대신 서버 근거 카드를 표시한다. 실제 API 합성 여정에서 수정 버전·인용·완료 조건·소유권·삭제를 확인했다.
+
+인계와 남은 조건: [이번 README](frontend-integration/20261004-214259-KST/README.md). 검사와 보존 대조: [VALIDATION.md](frontend-integration/20261004-214259-KST/VALIDATION.md), [PRESERVATION_AFTER.json](frontend-integration/20261004-214259-KST/PRESERVATION_AFTER.json). 아래는 기존 이력을 보존한 기록이다.
+
+---
+
+## Latest handoff — 2026-09-17
+
+The local text MVP is implemented and runs in **mock** mode. The latest full automatic run passed **78 tests**; the harness has **66 passed and 2 pending_manual**, with no failed, blocked or skipped automatic scenarios. See [VERIFICATION.md](VERIFICATION.md) and [harness-results.json](harness-results.json) for evidence and limits.
+
+Implemented: same-origin authenticated API, four survey formats with original semantics, practice plus three main game rounds, versioned text answers/corrections, independent baseline extraction and conditioned followups, source-linked reports, owned history and deletion. Actual browser journey through report creation was completed. Deletion races and stale finalization were reproduced and fixed with SQLite regression tests. The app's external AI path is not enabled; the separate live adapter has only mocked boundary tests.
+
+Original specs, sch.py and user configuration are preserved. No Git repository exists; no branch, commit, push or deployment was made. Resumed ownership: root UI/harness/integration/docs, backend_resume backend/migrations, ai_resume analysis/provider, domain_review_resume read-only review. All implementation agents completed their assigned work. Custom roles actually ran in this session; earlier discovery uncertainty below is historical.
+
+Remaining outside the verified local scope: a dedicated MySQL migration/concurrency run, paid/live integration, operational deployment, SCN-051 human review and SCN-053 effectiveness study. Protocols are in [MANUAL_REVIEW.md](MANUAL_REVIEW.md). No human accuracy, effectiveness or psychometric validity is claimed.
+
+Start with the one-line PowerShell commands in [README](../../README.md). The default local DB is `interview.db`; browser verification uses separate synthetic DBs. Do not use an old development browser DB as a new user's practice database.
+
+The two browser checks interrupted before handoff are now **passed**: information-request input locking preserves the user's 4→5 allocation, and deleting a run prevents cached content on its old URL (API 404). [Exact results](browser-resume-results.json) are saved. Resumption preserved application code; only regression tools, evidence and handoff documents were added/updated. Historical browser DBs and WAL/SHM files were moved together to `artifacts/browser/legacy-0916/`; contents and default `interview.db` were preserved. Temporary QA servers are stopped after verification; start the application explicitly using README when needed.
+
+The entries below preserve historical interruption and resumption evidence. Statements such as missing `app.content` or blocked sandbox describe those earlier checkpoints, not the latest implementation.
+
+---
+
+2026-09-16: implementation in progress. Workspace E:/SchoolContest, no Git repository. Original sch.py, .vscode and specification package preserved.
+
+Read all primary specification documents; exact API/ownership plan in IMPLEMENTATION_PLAN.md. Python 3.13.9, Codex CLI 0.154.0. Generic domain_review subagent actually started (gpt-6-astra/high). Custom role discovery and project configuration application are not yet verified.
+
+Main owns setup, analysis, integration; domain reviewer read-only. Backend/UI delegation follows frozen API contract. Mock only, zero paid app API calls. MySQL server unavailable so far; Docker daemon absent. Local SQLite verification planned; MySQL verification must be reported separately.
+
+Next: apply settings, install local dependencies, implement and verify service. Nothing is yet claimed complete. Manual research SCN-051/053 pending_manual.
+
+## 2026-09-16 오류 진단 체크포인트
+
+사용자 요청에 따라 반복 오류를 조사했으며 구현 작업은 일시 중지 상태다. MVP 구현/테스트 완료가 아니다.
+
+- 실제 적용: AGENTS.md, .codex/config.toml, 역할 TOML 5개 생성 및 tomllib 구문 검증 통과. 일반 서브에이전트 실행 확인. 사용자 정의 역할 자동 인식은 미확인.
+- 의존성 설치: 최초 네트워크 제한 WinError 10013 이후 승인받은 재시도로 .venv 설치 성공. FastAPI 0.116.1/Uvicorn 0.35.0/PyMySQL 1.1.2. 유료 API 호출 없음.
+- 현재 차단: Get-Location조차 프로세스 생성 전에 helper_unknown_error: setup refresh had errors로 실패. 앱 예외나 pytest assertion 실패가 아니다. pytest 실행은 승인 단계에서 중단되어 결과 없음.
+- codex 0.154.0 doctor: config.load=ok, sandbox.helpers=fail (elevated Windows sandbox provisioning failed).
+- 정확한 로그: C:/Users/user/.codex/.sandbox/sandbox.2026-09-16.log. 반복 오류: deny ACE failed on E:\SchoolContest\.codex: SetNamedSecurityInfoW failed ... : 5. 접근 권한 변경이 거부되어 helper exit 1.
+- Get-Acl 확인: 프로젝트 루트 소유자는 DESKTOP-BRC510K\user, .codex와 config.toml 소유자는 DESKTOP-BRC510K\CodexSandboxOffline. 일반 사용자/샌드박스 그룹의 상속 권한은 Modify. 파일 편집 권한과 DACL 변경 권한은 다르다.
+- 원인: 샌드박스 안에서 생성된 .codex의 소유권과 이후 보호용 deny ACE를 설정하는 과정의 권한 불일치. TOML 내용 오류가 아니다. 소유권/ACL 수정은 아직 실행하지 않았다.
+- 제안 해결: Codex 종료 후 관리자 PowerShell에서 .codex 및 하위 파일 소유자를 DESKTOP-BRC510K\user로 복구하고 기존 ACL/내용 보존. 일반 권한으로 다시 열어 샌드박스 Get-Location과 doctor 재확인. 해결되지 않으면 새 helper 로그 확인 후 Codex 복구/재설치. 샌드박스 해제나 Everyone 권한 부여는 하지 않는다.
+- 실제 파일 확인: app/static/index.html 1364 bytes, app.js 46376, styles.css 11339. 통합/브라우저 검증 미실행. backend 에이전트는 interrupted이므로 재개 전 실제 파일 확인 필요.
+- 별개 오류: Git 저장소 없음; Docker daemon pipe 없음; 조사 명령의 cp949 이모지 출력 오류와 JSON 키 scenarios 오타는 각각 python -X utf8, cases로 정정.
+
+다음 작업: 샌드박스 복구 확인, 부분 구현 파일 대조, IMPLEMENTATION_PLAN 재개. SCN-051/053 pending_manual 유지.
+
+## 2026-09-16 재개 (진행 중)
+
+- 사용자 Doctor 결과: sandbox 통과, 0 fail, Defender 예외 미확인 경고 1개. 현재 세션 Get-Location/파일 읽기/pytest 실행 가능.
+- 실제 기준선: `.venv/Scripts/python.exe -X utf8 -m pytest -q`는 app.content 부재로 수집 오류 1개 (0.73초). 샌드박스 실행 실패와 구분한다.
+- Git 재확인: 저장소 아님. 기존 경로에서 작업하며 worktree/commit은 만들지 않는다. 기존 화면 및 테스트 초안을 보존한다.
+- 현재 도구의 사용자 정의 역할 실행 확인: backend_resume=interview_backend (Sol/high), ai_resume=interview_ai_feedback (Sol/high), domain_review_resume=interview_domain_reviewer (Astra/high). 동시에 3개 이하, 재귀 위임 없음.
+- 파일 소유권: backend_resume는 app/{__init__,main,store,content,game,survey}.py, migrations/, tests/test_backend.py. ai_resume는 app/analysis.py, app/ai_provider.py, tests/test_analysis.py. domain_review_resume는 읽기 전용. 메인은 UI, 수용 하네스, 통합 문서와 검증을 담당한다.
+- Ruling: 기존 구현 계획의 API를 유지한다. B03 유지 선택은 유효 관찰이나 수정 분자는 0이다. 매핑 활성화는 실제 독립 검토 뒤 적용한다. 새 API 기능 설계가 아닌 승인된 계획 재개다.
+- 다음: 서버/분석 누락 구현, 독립 매핑 검토, 실제 API 수용 테스트와 브라우저 흐름 실행. 유료 앱 API 호출/배포 없음. MySQL과 사람 연구는 별도 검증 상태로 유지.
+
+
+## 명령 1 근거 대조 — 20260918-183707-KST
+
+이번 범위는 문서 준비·기존 증거 대조다. [실행 폴더](traceability-followup/20260918-183707-KST/README.md), [입력 manifest](traceability-followup/20260918-183707-KST/SOURCE_MANIFEST.json), [H-01/H-03 개별 판정](traceability-followup/20260918-183707-KST/TASK_RESULTS/01_EVIDENCE.json)을 참조한다. 명령 2~6은 미시작이다.
+
+- H-01: JSON 6개·Python 4개 모두 존재하며 SHA를 기록하고 원본 사본을 보존했다. 과거 스크립트는 미실행이다.
+- H-03: 저장된 과거 79개 시작/종료 SHA와 출력 14개 SHA가 일치한다. 작업용 CSV 3개는 보고서 §9와 일치한다. 현재 파일 중 과거 79개 기준과 다른 것은 검토 로그 1개이며 버전 4 후보로 분리했다.
+- 보류: 정확한 당시 입력 검토 로그 원본 바이트 대조, CODEX_FOLLOWUP_COMMANDS_20260918.md 원본 확인. 해당 자료 미발견을 이유로 독립 CSV 작업을 차단하지 않는다.
+- 자동 검사: 파일 역할·존재·SHA·복사·포인터·이번 전후 보존 검사만 실행했다. 실제 passed/failed 수는 [PREPARATION_VERIFICATION.json](traceability-followup/20260918-183707-KST/evidence/current/PREPARATION_VERIFICATION.json)에 기록한다. 과거 30/103개 검사는 이번에 재실행하지 않았다.
+- 실행 환경: 로컬 파일 검사, mock/live 모델 실행 없음. 전체 앱 테스트·서버·DB 조회·실제 모델 호출·배포는 이번 범위에서 skipped(미실행)다. 사람 평가는 skipped(미실행)이며 정확도·효과성 주장은 없다. AI 미연동은 현재 단계이며 실패가 아니다.
+- 제품 구현 상태: 이번 미변경. 앱·설정·기존 DB·과거 결과 폴더는 변경하지 않았다. Git 저장소가 없어 commit 상태 대신 파일별 SHA와 코드 집합 SHA를 기록했다.
+
+이 기록은 위 과거 검증 결과를 이번 실행 결과로 승격하지 않는다.
+
+
+## 2026-09-20 — AI 미연동 백엔드 명령 1/4
+
+[기준선과 남은 조건](backend-readiness/20260920-003025-KST/BASELINE.md), [1-A/B/C 개별 판정](backend-readiness/20260920-003025-KST/TASK_RESULTS/01.json), [실제 검사 결과](backend-readiness/20260920-003025-KST/VALIDATION_RESULTS.json).
+
+- 범위: 현재 API·호출 경로·기존 검사 식별 및 앱 import 전 DB 격리 확인. 1-A/B/C는 이 범위에서 충족이다. 명령 2는 미시작이며 백엔드 전체 준비 완료 판정은 아니다.
+- 자동/로컬 SQLite/mock: 격리 검사 8개 통과. 실제 새 DB 2개 연결·스키마 확인, API 등록 15개 대조, 테스트 78개 수집. 테스트 본문 실행 0개이며 78개 기능 통과로 집계하지 않는다.
+- 실행기 초기 실패 4회는 결과 폴더에 보존했다. NUL 로그 장치 및 Windows OS 정보 조회 차단을 보완한 실행이 통과했다. 앱 결함 수정은 없다.
+- 기존 앱·프런트·테스트·설정 및 기존 DB 파일 40개의 전후 SHA가 일치한다. 기존 DB는 SQL로 열지 않았다. 새 결과 폴더와 이 상태/검증 문서의 추기만 작성했다.
+- 서버/브라우저/MySQL/실제 AI/사람 평가는 이번 미실행이다. AI 미연동은 전제이며 실패가 아니다. 프런트는 별도 담당자가 개발 중이고 API/origin 합의는 아직 확인되지 않았다.
+- 기존 PKG-01/02는 최신 후속 기록상 충족. H-03/C-05의 역사적 원본 확인은 국소 보류로 유지한다. 입력 명령 파일은 최신 보완 기록에 존재하므로 과거의 파일 미발견 상태를 현재로 확대하지 않는다.
+
+
+## 2026-09-20 — AI 제외 프런트 연동 전 추가 검토
+
+[검토 결과와 잔여 작업](preintegration-review/20260920-201656-KST/REVIEW.md), [개별 항목](preintegration-review/20260920-201656-KST/FINDINGS.json), [합성 함수 검사](preintegration-review/20260920-201656-KST/PROBE_RESULTS.json).
+
+- 프로젝트 파일 627개 목록/해시 및 595개 텍스트 형식 확인. 설치 의존성·캐시 제외; DB 관련 22개는 바이트 해시만 검사. 전수 형식 검사가 모든 동작의 무결함을 증명하지 않는다.
+- 현재 소스/설정 28개와 명령 1의 고정 해시 일치. 기존 산출물 64개도 영수증 해시 일치. 최신 검토자 입력은 review/AI_INTERVIEW_REVIEW_LOG.md 버전 16/26절이다.
+- 자동/합성/함수 검사: 정상 대조 1개 passed, 기대 검증과 다른 사례 7개 failed(잘못된 자료형 6종+오류 코드 전달 1종), 기존 현상 관찰 2개. 프로세스 정상 종료를 이 실패들의 통과로 세지 않는다. 타입 오류와 deadline 오류 전달 보완 필요.
+- 실제 HTTP/Store/DB/전체 pytest/서버/브라우저/MySQL/live AI/사람 평가 미실행. API 경로 함수 일부는 AST로 추출하고 인증·본문 helper를 대체했으므로 라우터·인증·DB 검사로 집계하지 않는다.
+- API 계약, 안전한 검증 안내, 실제 API/저장 회귀, 정책/origin 합의, 인계가 남았다. AI 미연동은 결함 아님. 프런트는 별도 담당이며 새 UI는 이 저장소에서 식별되지 않았다.
+- 앱/프런트/설정/기존 테스트/기존 DB/과거 결과는 미변경. 검토 파일과 CURRENT_STATE/VERIFICATION 추기만 작성. 기존 명령 2~4는 시작하지 않았다.
+
+
+## 2026-09-20 — 첫 필수 보완: PRV-01/03
+
+[변경·실행 근거](backend-readiness/20260920-204132-KST-fixes/README.md), [개별 결과](backend-readiness/20260920-204132-KST-fixes/TASK_RESULTS.json).
+
+- 사용자 마감 범위: 2026-09-24까지 AI/실제 새 프런트 연결을 제외한 백엔드 준비·검증·인계. 새 UI 전달 자체를 이번 완료 조건으로 두지 않는다.
+- PRV-01: 잘못된 JSON 자료형을 먼저 검사하도록 main/game/survey 최소 수정. 실제 API 13개 사례가 수정 전 500에서 수정 후 422/validation_error로 바뀌었고, 새 DB 세션으로 전체 테이블 무변경을 확인했다.
+- PRV-03: tools.run_checks로 app import 전 DB/mock 격리 및 외부 통신 차단. README/실행 안내와 샘플 출력 경로 보완. 직접 샘플 진입은 app import 전에 거절한다.
+- 자동/실제 in-process FastAPI·Store·임시 SQLite/mock: 전체 회귀 **91 passed**, HTTP 179건 계측. 하네스 **66 passed / 2 pending_manual**. 별도 샘플 생성 HTTP 40건 성공. 외부 모델 transport 시도/가드 위반 없음. 서버·브라우저·MySQL·live AI·사람 평가는 미실행.
+- 기존 DB/프런트/과거 결과는 보존. 현재 소스가 과거 명령1 SHA와 달라졌으므로 과거 입력 목록을 갱신하지 않는다.
+- API 계약, deadline 오류 코드 정리, 추가 부작용/경계 검사, 정책/목표 DB 범위와 최종 인계가 남았다. 91개 통과를 전체 준비 완료나 사람 평가 완료로 확대하지 않는다.
+
+
+## 2026-09-24 — AI 미연동 백엔드 명령 2/4
+
+[현재 API 계약](backend-readiness/20260920-003025-KST/API_CONTRACT.md), [미실행 시나리오](backend-readiness/20260920-003025-KST/API_SCENARIOS.json), [2-A/B/C 개별 결과](backend-readiness/20260920-003025-KST/TASK_RESULTS/02.json), [추가 입력·변경 근거 안내](backend-readiness/20260920-003025-KST/command02-20260924/README.md).
+
+- 명령2 문서 산출물 작성: API15개의 인증·요청/응답·오류·버전·멱등 규칙, 정상/예외 흐름, 현재 정책과 미결 선택, 81개 선언형 검증 시나리오. 새로운 API 시나리오는 전부 미실행이며 actual=null이다. 명령3은 시작하지 않았다.
+- 최신 검토자 입력은 review/AI_INTERVIEW_REVIEW_LOG.md 버전17·27절이다. 정확한 경로·SHA·사본을 command02-20260924/SOURCE_MANIFEST.json에 추가했다. 명령1 BASELINE/SOURCE_MANIFEST/inputs/01.json은 당시 기준으로 보존한다.
+- 이미 수정한 입력 오류는 main/game/survey 3파일의 전후 SHA·diff·13개 문제 입력을 별도로 기록했다. 과거 red13실패→green13통과·전체91통과의 원본 결과와 소스 SHA를 연결했으며, 전체 회귀 당시 기록된 소스는 현재와 일치한다. 이번에 91개를 재실행하거나 새81개 시나리오 통과로 집계하지 않았다.
+- deadline_not_reached의 현행 정적 경로는 GameValidation 발생→domain_error에서 validation_error로 변환→HTTP422다. 내부409 매핑을 목표 계약의 독립 근거로 사용하지 않는다. 마감 전 거절 시 snapshot/revision/이벤트/기록/멱등 등 업무 상태 유지와 마감 도달·초과의 timeout 저장 처리를 구분했다.
+- 이번 자동 실행은 문서·JSON·AST·파일 해시 검사뿐이다. 결과는 command02-20260924/DOCUMENT_VALIDATION_RESULTS.json. 기존 고정 보호파일223개의 전후 해시가 일치했다. 기존 DB는 SQL로 열지 않았으며 바이트 해시만 대조했다. 앱·프론트·설정·과거 결과 변경은 없다.
+- 남은 조건: 명령3의 실제 HTTP/새 DB 세션 검증, timeout 목표 HTTP/code 선택과 필요한 최소 변경·회귀, 분석 실패/긴key의 job 쓰기 확인, 완료·중간 분석·정보 공개·입력 범위 및 프론트 origin 합의, 이후 명령4 인계. 실제 AI·새 UI 통합·MySQL·배포·사람 평가는 이번 미실행/별도 범위다.
+- 프론트는 별도 담당이 개발하며 실제 AI는 미연동이다. H-03/C-05의 역사적 원본 확인 보류는 유지한다. 문서 산출물 충족을 제품 또는 백엔드 준비 전체 완료로 확대하지 않는다.
+
+
+## 2026-09-24 — 명령2 시나리오 보완 및 명령3 우선 항목 부분 실행
+
+[변경·검증·잔여 조건](backend-readiness/20260920-003025-KST/priority-fixes/20260924-233409-KST/README.md), [명령3 부분 결과](backend-readiness/20260920-003025-KST/TASK_RESULTS/03.json).
+
+- 먼저 질문 생성 뒤 적격 기회가0→1로 달라지고 같은ID의 새 질문 문구가 실제 달라지는 시나리오를 작성했다. 기존 원문·버전·공개정보·답변 연결 및 기본 추출 보존을 검사했다.
+- 실제 HTTP/Store/새 SQLite: 수정 전8개 중6실패/2통과, 최소 수정 후8통과. 기존 검사를 포함한 전체99통과. 하네스66통과/사람평가2대기이며 후자를 완료로 바꾸지 않았다.
+- main.py는 기존128자 키 한도를 DB 접근 전에 검사하고 analyze에서도 제시 질문 보존을 적용한다. main/store는 분석 예외의 running job을 failed/result null/종료시각으로 정리하며 삭제·취소·성공 결과를 덮어쓰지 않는다. 원본이나 예외 원문을 실패 job에 추가 저장하지 않는다.
+- 기존81개 계약 시나리오 중 이번에 개별 연결한4개 통과,77개 미실행.8개 집중 검사는 finalize 변형과 잘못된 결과/삭제취소 확인을 포함한다.99개 회귀 성공을 계약81개 완료로 계산하지 않는다. 명령3 전체는 부분 수행, 명령4는 미시작이다.
+- 새 DB는 앱 import 전에 지정하고 기존 runner의 네트워크/model transport 차단을 사용했다. 실제 외부 모델 호출/transport 시도 및 가드 위반0. 프론트/기존DB/설정/과거 결과를 보존했다. API_CONTRACT/API_SCENARIOS의 변경 전 사본과 해시를 별도 보관했다.
+- 정보 공개·완료 정책·프론트 origin·timeout 코드 선택은 미변경이다. 명령3 이후 결정 가능하지만 명령4에서 미결을 숨긴 채 무조건 준비완료로 닫을 수 없다. 조건부 인계 문서에는 영향과 재검증 조건을 남긴다. 실제 AI 미연동은 실패가 아니다.
+
+
+## 2026-09-25 — 진행안 3 오류 계약 / 4 정책 구분
+
+입력·인증·소유권·충돌·완료/삭제 후 오류 및 timeout 단계 경계를 실제 in-process HTTP/새 SQLite로 확인했다. 미사용 deadline_not_reached 내부409 매핑을 제거했으며 공개422/validation_error는 유지했다. 새33개·전체132개 통과, 외부 모델 시도0/격리 위반0. harness66 통과·사람평가2 대기.
+
+정책 관찰: 게임 도중 분석 가능, 기본 무응답/스킵 접수+분석 후 설문/게임 미시작이어도 완료 가능, 후반 게임 정보가 공개 전에도 응답에 포함됨. 정책 동작은 변경하지 않았다. 원래 명령3 전체는 부분 수행, 명령4 인계는 미실행. 프론트 별도 개발·AI 미연동 유지. [결과](backend-readiness/20260920-003025-KST/error-policy/20260924-235044-KST/README.md)의 저장소 경로는 `docs/ai-interview/backend-readiness/20260920-003025-KST/error-policy/20260924-235044-KST/README.md`이다.
+
+
+## 2026-09-25 — 명령3 필수 API·DB 검증 마무리
+
+새 합성 SQLite/mock에서 기존·추가 검사 전체 175개 통과, API 시나리오81개 개별 연결(정책 관찰3개는 승인과 구분). 새 앱/DB 재조회, 사용자 분리·삭제, 실제 HTTP 분석중 삭제, 버전/재시도/timeout/기본·조건부 모드 저장 확인. 앱 코드 이번 미변경; 기존 DB 보존 대조는 새 실행 증거 참조. 외부 모델 호출0/격리 위반0. 사람평가2건은 별도 대기.
+
+정책 결정과 명령4 인계는 아직 남음. 프론트 별도 개발·실제 AI 미연동 유지. [실행 결과](backend-readiness/20260920-003025-KST/command03-completion/20260925-001303-KST/README.md).
+
+
+## 2026-09-25 — 승인된 보고서 확정 정책 적용
+
+설문6개 접수(건너뜀/시간초과 인정), 게임4라운드 정상/시간초과 종료, 기본면접3개 접수(무응답/스킵 인정) 후 확정하도록 서버 gate 추가. 후속 답변 필수화 없음. 새409 survey_responses_required/game_completion_required; 거절시6개 DB 업무 테이블 보존. 기존 확정 기록/동일요청 재시도 유지. 새14개·전체189개 통과, 실제모델 시도0/격리 위반0.
+
+[결과](backend-readiness/20260920-003025-KST/completion-policy/20260925-003553-KST/README.md). 중간 분석·정보 공개 정책과 명령4 인계는 별도 남음. 프론트/AI/기존DB/과거 결과 미변경.
+
+
+## 2026-09-25 — 요청한 합성 회차 실행 및 mock 보고서 확정
+
+설문6 → 게임4(연습1+본게임3) → 기본면접3 → mock 분석 → 보고서 확정(completed)을 새 SQLite/in-process HTTP로 실행했습니다. 시나리오1개 통과, HTTP40건, 실제 모델 transport 시도0/격리 위반0. 저장·동일 확정 재시도·새 앱 인스턴스 재조회 일치. 후속 질문3개 생성, 후속 답변0개. 소스 및 기존 DB 등 캡처한736개 파일 해시 동일. 합성 사례이며 사람의 성향/진실성 또는 AI 의미 분석 정확도 검증은 아닙니다. 앱 코드·프론트 변경 없음. 중간 분석/정보 공개 정책·명령4 인계는 별도 잔여 작업입니다. [보고서와 실행 근거](backend-readiness/20260920-003025-KST/mock-demonstration/20260925-005420-KST/README.md).
+
+
+## 2026-09-25 — 승인된 중간 분석·서버 정보 공개 및 명령4 인계
+
+본게임1개 정상/timeout 종료 후 analyze 허용(연습제외), 이전요청409 main_round_completion_required와DB보존. reveal 전 새정보·변경조건4개경로를 모든Run/definitions응답·재시도에서 제외, 서버원본유지. 새정책11개 포함 전체회귀200개+현재소스합성회차1개 통과, 모델transport0/격리위반0. 명령4 4-A/B/C 작성, 개발SQLite/mock 백엔드 준비완료. 프론트개발·배포origin/담당자합의·브라우저연결·MySQL/운영·실제AI·사람평가는 별도. [인계와증거](backend-readiness/20260920-003025-KST/command04-handoff/20260925-010843-KST/README.md).
+
+
+## 2026-10-07 — 사용자 수동 확인 1단계 준비
+
+- 회원가입·로그인·새 회차 생성을 사용자가 직접 확인하도록 로컬 서버를 시작했다. 시작 시점 주소: http://127.0.0.1:8000 (서버 PID 11488).
+- 별도 테스트 DB: artifacts/manual-browser/run-20261007-212826-f2c9a079/interview.db. 앱 import 전에 DATABASE_URL 지정, AI_LIVE_ENABLED=false, PAID_AI_ENABLED=false, COOKIE_SECURE=false 적용.
+- 루트 페이지 HTTP 200과 Astra/mock 표시·프론트 스크립트 참조를 확인했다. 회원가입·로그인·회차 생성의 사용자 브라우저 조작은 아직 확인 대기다. 게임·실제 AI 미연동 상태는 유지한다.
+
+
+## 2026-10-07 — 사용자 보고에 따른 수동 화면 확인
+
+- 사용자 보고로 확인: 회원가입 뒤 아이디·로그아웃·새 연습 시작 표시, 이어서 새 회차의 1. 나 알아보기 / 2. 상황 게임 / 3. 면접 연습 / 4. 근거 확인 모의 분석 표시.
+- 근거 유형: 사용자의 채팅 보고. Codex가 실제 브라우저 화면을 직접 관찰하거나 조작한 결과가 아니다. 로그아웃 후 재로그인은 별도 명시 보고가 없어 독립 통과로 추가하지 않는다.
+- 다음: 설문 첫 문항 표시·입력·저장 수동 확인. 설문/답변 저장, 게임, 분석, 보고서 확정, 삭제 검증은 이번 사용자 보고로 통과 처리하지 않는다. 계정 비밀번호는 기록하지 않는다.
+
+
+## 2026-10-07 — 첫 설문 저장 표시 사용자 확인
+
+- 사용자 보고: 나 알아보기 첫 문항에서 응답하기 → 선택 → 응답 저장을 진행했고, 해당 문항에 응답 저장 표시가 나타남.
+- 이 조작 후 저장 표시 확인은 수동/사용자 보고 기준 passed. Codex의 직접 브라우저 관찰이나 DB 원본 대조 결과가 아니다.
+- 다음 확인: 브라우저 새로고침 후 같은 회차에서 첫 문항의 저장 상태 유지. 선택값 원본 일치와 나머지 설문은 아직 확인 대기.
+
+
+## 2026-10-07 — 새로고침 후 첫 설문 저장 상태 사용자 확인
+
+- 사용자 보고: F5 새로고침 후 같은 회차 화면이 다시 열리고, 첫 문항의 응답 저장 표시가 유지됨.
+- 수동/사용자 보고 기준으로 회차 화면 복귀와 저장 상태 표시 유지 passed. Codex의 직접 브라우저 관찰, 선택값 원본 대조 또는 전체 DB 영속성 검증으로 확대하지 않는다.
+- 다음 확인: 나머지 설문 5개의 입력·저장 및 설문 처리 진행 표시. 면접 답변·게임·분석·삭제는 이번 확인에 포함하지 않는다.
+
+
+## 2026-10-07 — 설문 6개 저장 표시 및 진행률 사용자 확인
+
+- 사용자 보고: 나 알아보기 문항 6개 모두 응답 저장으로 표시되고, 근거 확인에 설문 6/6이 표시됨.
+- 수동/사용자 보고 기준으로 설문 6개 저장 상태 표시와 진행률 표시 passed. 선택 라벨·강도·관점·순위의 저장 원본 대조, 시간 초과·건너뜀 분기 또는 Codex 직접 브라우저 검증 완료를 뜻하지 않는다.
+- 다음 확인: 기본 면접 질문 3개의 답변 작성·저장. 게임 종료 기록이 없어 분석·보고서 확정은 계속 대기한다.
+
+
+## 2026-10-07 — 기본 면접 3개 저장 표시 및 진행률 사용자 확인
+
+- 사용자 보고: 기본 면접 질문 3개 각각에 답변 저장이 표시되고, 근거 확인에 기본 면접 3/3이 표시됨.
+- 수동/사용자 보고 기준으로 기본 면접 3개 저장 상태 표시와 진행률 표시 passed. 답변 원문 대조, 수정 버전 보존, 새로고침 후 답변 유지 또는 Codex 직접 브라우저 검증을 수행한 것으로 집계하지 않는다.
+- 다음 확인: 첫 기본 답변 수정·저장 후 새로고침과 재열기, 수정 내용·버전 및 기본 면접 3/3 유지 확인. 게임·분석·최종 확정은 이번 확인에 포함하지 않는다.
+
+
+## 2026-10-07 — 기본 면접 답변 3개의 수정 및 재열기 사용자 보고
+
+- 사용자 보고: 기본 면접 질문 3개 모두 수정 가능하며, 답변 보기 / 수정을 열면 수정된 내용이 저장된 상태로 보임.
+- 수동/사용자 보고 기준으로 수정 기능과 재열기 시 수정 내용 표시를 확인했다. 수정 답변 저장 버튼의 실제 클릭 순서, F5 이후 유지, 표시된 답변 버전 번호 및 이전 원문 보존은 별도 명시 확인이 없어 통과로 추가하지 않는다.
+- 다음 확인: 같은 테스트 계정으로 로그아웃·재로그인 후 연습 기록에서 기존 회차를 열고 설문 6/6, 기본 면접 3/3, 수정 답변 내용이 유지되는지 확인. 비밀번호는 기록하지 않는다.
+
+
+## 2026-10-07 — 재로그인 후 기존 회차 및 수정 답변 유지 사용자 확인
+
+- 사용자 보고: 로그아웃 → 같은 테스트 계정으로 로그인 → 연습 기록에서 기존 회차 열기를 순서대로 수행했고, 설문 6/6·기본 면접 3/3·수정 답변 내용이 모두 유지됨.
+- 수동/사용자 보고 기준으로 재로그인, 기록 목록에서 기존 회차 재개, 진행률 및 수정 답변 내용 유지 passed. Codex의 직접 브라우저 관찰·DB 원본 대조 또는 이전 답변 버전 보존 검증으로 확대하지 않는다.
+- 다음 확인: 면접 답변에 미저장 내용을 입력한 뒤 화면 이동 시 확인 대화상자가 나타나고, 이동을 취소하면 작성 내용이 유지되는지 확인. 회차 삭제는 아직 수행하지 않았다.
+
+
+## 2026-10-07 — 미저장 답변 이동 취소 및 내용 유지 사용자 확인
+
+- 사용자 보고: 면접 답변에 저장하지 않은 문장을 추가한 뒤 브라우저 뒤로 가기를 누르자 저장하지 않은 입력이 있다는 이동 확인창이 표시됨. 취소를 누르면 답변 화면과 추가한 문장이 유지됨.
+- 수동/사용자 보고 기준으로 뒤로 가기 확인창 표시와 취소 후 미저장 내용 유지 passed. 이동 승인·탭 종료·새로고침 경계까지 검증한 것으로 확대하지 않는다.
+- 다음 확인: 좁은 데스크톱 브라우저 창에서 글·입력칸·버튼 표시, Tab 이동 시 초점 표시 및 면접 답변 열기. 실제 모바일 기기 검증과 구분한다. 회차 삭제는 아직 수행하지 않았다.
+
+
+## 2026-10-08 — 10월 7일 수동 점검 재개 준비
+
+- 사용자 요청으로 점검을 재개한다. 10월 7일 회차를 보존하고, 삭제 확인은 별도 새 테스트 회차로 진행한다. 삭제는 아직 수행하지 않았다.
+- 샌드박스 초기화 오류(helper_unknown_error: setup refresh had errors)로 기본 명령 2개가 프로세스 생성 전에 실패했다. 샌드박스 밖 확인에서 기존 테스트 DB·Python 존재, 포트 8000 미기동 및 HTTP 연결 불가를 확인했다. 앱 테스트 실패와 구분한다.
+- 기존 DB artifacts/manual-browser/run-20261007-212826-f2c9a079/interview.db를 명시해 mock 전용 로컬 서버를 재시작했다. 새 DB는 만들지 않았다. AI_LIVE_ENABLED=false, PAID_AI_ENABLED=false, COOKIE_SECURE=false, --no-access-log 적용.
+- 서버 PID 13360, GET http://127.0.0.1:8000/ → HTTP 200 및 Astra 페이지 표시 문자열 확인. 시작 근거: artifacts\manual-browser\run-20261007-212826-f2c9a079\resume-20261008-211759-06559595/STARTUP_CHECK.json.
+- 실제 사용자 브라우저 재로그인·새 회차 생성·삭제·삭제 후 접근 확인은 대기다. HTTP 확인을 브라우저 조작 통과로 집계하지 않는다. 전체 자동 회귀·live AI·운영 배포는 이번 미실행이다.
+
+
+## 2026-10-08 — 별도 테스트 회차 삭제 및 삭제 후 접근 사용자 확인
+
+- 사용자 보고: 삭제 확인용 새 회차에 답변을 저장한 뒤 해당 회차를 삭제했다. 연습 기록에는 10월 7일 기존 회차가 남아 있고, 삭제한 회차 주소로 재접속하면 불러오지 못했습니다 / 회차가 삭제되었거나 접근할 수 없습니다 안내가 표시됨.
+- 수동 / 사용자 보고 / passed: 별도 회차 삭제 뒤 기존 회차 보존 표시, 삭제한 회차 URL 재접속 차단 안내. Codex의 직접 브라우저 관찰, 실제 HTTP 상태 코드 확인 또는 DB 원본·파생 자료 전체 삭제 검증으로 확대하지 않는다.
+- 처음 안내한 사용자 기본 점검 8개 항목을 사용자 보고 기준으로 모두 확인했다: 회원가입·로그인·회차 생성, 설문 저장 표시, 기본 면접 저장 표시, 답변 수정·재열기, 새로고침·재로그인 후 기록 유지, 미저장 답변 이동 취소, 좁은 창·키보드 조작, 별도 회차 삭제·삭제 후 접근.
+- 1단계 전체 완료 판정과는 구분한다. 남은 확인은 5개 묶음: 다른 계정의 접근 차단, 원본 선택값·이전 답변 버전 대조, 통신 오류·지연·재시도, 시간 초과·건너뜀, 실제 모바일 기기 화면·조작. 기존 자동 검사 이력과 새 화면의 추가 확인을 구분한다.
+- 10월 7일 기존 회차는 계속 보존한다. 재개 DB는 artifacts/manual-browser/run-20261007-212826-f2c9a079/interview.db이며, 이번에는 전체 자동 회귀·live AI·게임 통합·운영 배포를 실행하지 않았다.
+
+
+## 2026-10-08 — 다른 계정 조회 차단 및 설문 건너뜀·시간 초과 사용자 확인
+
+- 다른 계정 조회 차단: 사용자가 tester01의 10월 7일 기존 회차를 열어 주소 복사 → 로그아웃 → 별도 계정 가입/로그인 → 복사한 주소 접속 순서로 진행했다고 명시 확인했다. 불러오지 못했습니다 / 회차가 삭제되었거나 접근할 수 없습니다 안내가 표시됨. 해당 수동 조회 차단 검사는 사용자 보고 기준 passed이며 반복 확인하지 않는다. Codex의 직접 브라우저 관찰이나 다른 계정의 수정/삭제 API 검사는 아니다.
+- 최초 건너뜀: 사용자 보고로 첫 설문의 건너뜀 표시와 설문 1/6을 확인했다.
+- 실제 후속 진행: 사용자가 같은 테스트 흐름에서 설문 5개를 건너뛰고 마지막 질문을 시간 초과시킨 뒤 설문 6/6 표시를 확인했다. 수동 / 사용자 보고 기준으로 건너뜀·시간 초과를 포함한 처리 진행률 확인 passed. 안내했던 두 번째 문항 시간 초과 및 2/6을 실행한 것으로 기록하지 않는다. 모든 입력 형식의 시간 초과 의미를 검증한 것으로 확대하지 않는다.
+- 중간의 불명확한 입력과 안되는데 메시지는 사용자가 채팅 줄바꿈 확인이었다고 정정했다. 앱 오류나 수용 검사 실패로 집계하지 않는다.
+- 별도 저장 자료 검사: artifacts/manual-browser/run-20261007-212826-f2c9a079/record-audit-20261008-215425/RESULTS.json에 검사 assertion 174 passed / 1 failed가 있다. 실패명은 survey_6_selection_events_final_order다. 당시 자료는 읽기 전용으로 대조했으며 앱 결함인지 검사 가정 문제인지 아직 미판정이다. 전체 pytest·하네스 결과가 아니며 원본 대조 전체 통과로 집계하지 않는다. 사용자 요청에 따라 추가 조사보다 수동 화면 점검을 우선한다.
+- 다음: 별도 테스트 회차의 기본 면접 답변을 이용해 통신 실패 표시·미저장 텍스트 보존·동일 요청 재시도 후 저장을 수동 확인한다. 실제 모바일 확인과 저장 자료 검사의 미판정 항목도 남아 있다. 10월 7일 기존 회차는 보존한다.
+
+
+## 2026-10-08 — 통신 실패·재시도 사용자 확인 및 PC 수동 점검 종료
+
+- 사용자 보고: 별도 테스트 회차의 면접 답변에 대해 안내한 Offline 전환 → 저장 시 연결 오류와 입력 유지 확인 → No throttling 복원 → 원래 요청 다시 시도 → 저장 표시 확인 절차가 모두 정상 동작함.
+- 수동 / 사용자 보고 / passed: 통신 실패 안내, 답변 입력 보존, 통신 복원 뒤 저장 재시도. Codex의 직접 화면 관찰, 실제 전송 body/key 비교 또는 서버 저장 뒤 응답만 유실되는 모든 경로의 재현으로 확대하지 않는다.
+- 사용자와 진행하는 PC 기본 수동 점검은 여기서 마친다. 같은 동작을 다시 요구하지 않는다. 남은 것은 실제 모바일 기기 확인 및 record-audit-20261008-215425의 미판정 assertion 한 건을 포함한 저장 자료 대조 정리다. 새 검증 범위를 임의로 추가하지 않는다.
+
+## 2026-10-09 — 사용자 변경 html 화면 미리보기 시작
+
+- 사용자 요청: 서버 연동 복구와 근거 기반 결과 반영에 앞서 변경한 페이지를 띄워 확인한다. 이번에는 html/index.html, html/style.css, html/script.js, html/client.js 및 서버 제품 코드를 수정하지 않았다.
+- mock 전용 로컬 서버를 127.0.0.1:8000에서 시작했다. DATABASE_URL은 artifacts/manual-browser/preview-20261009-95ca0574/interview.db로 지정했다. 기존 10월 7일 테스트 DB를 재사용하거나 수정하지 않았다. AI_LIVE_ENABLED=false, PAID_AI_ENABLED=false, COOKIE_SECURE=false, --no-access-log 적용.
+- 실행 근거: artifacts/manual-browser/preview-20261009-95ca0574/STARTUP.json, server.stderr.log, HTTP_CHECKS.json. STARTUP.json의 pid는 시작 프로세스 ID이며 Uvicorn 로그에 표시된 서버 프로세스 ID는 13104다.
+- 자동 HTTP 확인 passed: /, /frontend/index.html, /frontend/style.css, /frontend/script.js, /frontend/client.js가 각각 200 응답. 첫 화면(/)의 상대 리소스 경로인 /style.css와 /script.js는 각각 404로 리소스 로딩 failed. 코드 수정 없이 http://127.0.0.1:8000/frontend/index.html 주소로 기본 브라우저 열기를 요청했다.
+- 직접 브라우저 화면/클릭 검증 blocked: Browser 런타임이 No browser is available을 반환했고 브라우저 목록은 빈 배열이었다. 기본 브라우저 열기 명령 성공을 실제 화면 표시 또는 사용자 확인 passed로 집계하지 않는다. 사용자 화면 확인은 대기다.
+- 미완료: 새 화면의 client.js 연결과 실제 API 저장/조회 복구, 임의 평가를 실제 출처에 기반한 결과로 교체. 전체 자동 회귀·하네스·live AI·운영 배포는 skipped(이번 미실행).
+
+## 2026-10-09 — 새 디자인의 성향 설문 6문항 복원
+
+- 사용자가 기존 페이지 표시를 확인한 뒤 설문이 2문항뿐임을 지적하여 설문 복원을 요청했다. 기존 app/content.py의 원문은 네 형식, 총 여섯 문항(O-B01/O-B02/O-B03/P-B01/S-B02/R-UNMAPPED)이다.
+- html/index.html, script.js, style.css를 수정했다. 제목을 성향 파악 · 6문항으로 정정하고, /api/definitions의 원문·버전·후보·척도·관점을 이용해 입력을 표시한다. 6단계 자기보고 3개, 두 관점 1개, 양극 슬라이더 1개, 명시적 1~3순위 선택 1개를 복원했다. client.js는 변경 전과 SHA-256 동일이다.
+- 기본 선택을 두지 않고 응답 진행률, 미응답/중복 순위 차단, 슬라이더 위치의 명시적 확정, 문항 조회 실패와 재시도를 추가했다. 타인 관점은 같은 응답자의 상상임을 표시한다. 임의 0~100점 입력은 제거했다. 첫 주소(/)에서도 리소스를 읽도록 /frontend/ 절대 경로와 client.js 로드를 복구했다.
+- 이번 단계는 시간 제한 없는 화면 체험이다. 확인한 응답과 문항 정의는 메모리의 surveyPreview에 보존하며 server_saved=false, context=untimed_screen_preview로 구분한다. 서버 저장, 제한 시간 있는 정식 설문 완료, 게임·보고서 연결 완료로 취급하지 않는다. 새로고침 시 사라지는 상태를 화면에 알리며 가짜 POST 제출 완료 알림을 제거했다.
+- 자동 검사: 새 설문 DOM 경계 검사 7개 + 기존 client 검사 10개 passed. 별도 임시 DB/mock 기반 tests/test_frontend_integration.py 및 tests/test_backend.py 27개 passed. 로컬 HTTP 6개 경로 200, API 여섯 문항 원문 일치, client.js 보존 확인. 직접 브라우저 시각/키보드 검사는 아직 미실행이며 사용자 새로고침 확인을 기다린다.
+- 변경 전 기존 tests/frontend_navigation.test.cjs의 검사 3개 failed를 확인했다. 이미 대체된 화면의 뒤로 가기/면접 저장 흐름에 관한 별도 미해결 항목이며 이번 설문 검사 통과로 덮지 않는다. 전체 회귀·모바일·live AI·운영 배포는 미실행이다.
+- 근거: artifacts/survey-restore-20261009/ (변경 전 파일, Node 로그, HTTP 및 최종 결과), artifacts/offline-checks/run-b4um7b_g/ (실행·시나리오별 결과). 서버 문항 조회는 복구했으나 실제 인증/답변 저장·조회 및 근거 기반 보고서 복구는 남아 있다.
+
+## 2026-10-10 — 회원가입·로그인 화면 연결
+
+- 사용자 요청 범위: 회원가입·로그인 화면 연결부터 진행한다. 기존 /api/register, /api/login, /api/me, /api/logout을 그대로 사용한다. 서버 제품 코드·DB 스키마는 변경하지 않았다.
+- html/auth.js를 추가하고 index.html, style.css에 계정 상태/회원가입/로그인/로그아웃 화면을 연결했다. client.js와 script.js는 이번 작업 전후 해시 동일이다. 인증 코드를 설문/게임 체험 상태와 분리했다.
+- 회원가입 성공 시 서버 세션으로 자동 로그인, 페이지 로드 시 /me로 세션 복원, 로그아웃 성공 확인 후 미저장 체험 화면 초기화를 지원한다. 비밀번호 확인 불일치/아이디 중복/잘못된 로그인/통신 오류를 구분하고 처리 중 중복 제출을 차단한다. 가입 응답 유실은 /me로 결과를 확인하며 가입 요청을 자동 재전송하지 않는다.
+- 로그인 확인 실패는 로그아웃으로 단정하지 않고 확인 불가 및 재확인 버튼을 표시한다. 로그아웃 응답 유실도 /me로 재확인한다. 비밀번호·세션 토큰은 localStorage/sessionStorage/로그에 쓰지 않고 기존 HttpOnly 쿠키를 사용한다.
+- 새 인증 기능이 설문 저장 완료를 뜻하지 않도록 체험 안내를 유지했다. 기존 로컬 기록은 로그인 계정의 서버 기록이 아닌 이 브라우저의 체험 기록으로 표시한다. 설문 실제 저장/조회, 게임 및 근거 보고서 연결은 다음 단계다.
+- 자동 검사: Node 인증/설문/client 30 passed, 임시 SQLite/mock 서버 28 passed. 실제 실행 서버의 페이지와 인증 포함 리소스 6개 경로가 HTTP 200이다. Browser 자동 제어는 No browser is available로 blocked이며 실제 화면/키보드 조작은 pending_manual이다. 별도 읽기 전용 코드 검토에서 범위 내 차단 코드 결함 없음, 로컬 수동 테스트 준비로 판정했다. 브라우저 검증 공백과 minor 테스트 공백 두 건은 REVIEW.json에 남겼다.
+- 근거: artifacts/auth-connect-20261010/ 및 artifacts/offline-checks/run-337z746u/. 기존 전체 회귀와 미해결 구형 내비게이션 검사 3건은 이번에 재실행하거나 해결했다고 주장하지 않는다. live AI·운영 배포는 미실행이다.
+
+## 2026-10-10 — 회원가입·로그인 기본 흐름 사용자 확인
+
+- 사용자 보고: 안내한 다섯 단계가 모두 정상적으로 작동했다. 새로고침 후 인증 화면 확인, 회원가입 입력, 가입 직후 로그인 상태 표시, 새로고침 후 로그인 유지, 로그아웃 후 같은 계정으로 재로그인을 확인했다.
+- 수동 / 사용자 보고 / passed: 위 기본 인증 흐름. Codex의 직접 브라우저 관찰이나 오류·접근 통제 전체 검증으로 확대하지 않는다. 같은 기본 절차를 다시 요청하지 않는다.
+- 다음 단계는 로그인한 사용자의 연습 회차 생성과 여섯 설문 응답의 실제 서버 저장·재조회 연결이다. 현재 설문은 여전히 서버에 저장되지 않는 화면 체험 상태다. 이번 확인으로 추가 제품 코드를 수정하지 않았다.
+
+## 2026-10-10 — 여섯 설문 입력 후 게임 화면 이동 사용자 확인
+
+- 사용자 보고: 여섯 성향 설문을 모두 입력하고 응답 확인 후 게임 화면으로 버튼을 눌렀다. 후속 질문에 가위바위보·카드 게임 화면으로 전환되었다고 명시 확인했다.
+- 수동 / 사용자 보고 / passed: 여섯 문항 입력 후 응답 확인과 게임 화면 이동 흐름. Codex의 직접 화면 관찰, 실제 게임 라운드 실행, 선택값 원본 대조 또는 서버 저장 검증으로 확대하지 않는다. 같은 기본 이동 흐름을 반복 요청하지 않는다.
+- 새 연습 시작 버튼과 실제 서버 회차 생성·설문 저장 연결은 아직 미구현이다. 이번 확인에서는 제품 코드를 변경하거나 추가 자동 검사를 실행하지 않았다.
+
+## 2026-10-10 — 실제 회차 생성·설문 저장 연결
+
+- 후속 사용자 확인: 사용자가 `서버 저장 6 / 6문항`까지 전부 실행했다고 보고했다. 수동 / 사용자 보고 / passed로 여섯 문항 진행 및 저장 완료 표시 확인을 기록한다. 새로고침 후 같은 회차·선택값 복원은 아직 명시적으로 확인받지 않았다. Codex의 직접 화면 관찰이나 사용자 DB 원본 대조로 확대하지 않는다.
+
+- 사용자 요청에 따라 `1. 성향 설문` 상단에 `내 연습 회차`, `새 연습 시작`, 계정별 회차 선택/이어하기를 구현했다. 로그인한 사용자만 생성하고 조회한다. 이전의 시간제한 없는 화면 체험 응답은 실제 회차로 전환해 저장하지 않는다.
+- `html/practice.js`가 서버 회차를 관리한다. `auth.js`의 로그인 상태 구독으로 계정 변경 시 기존 응답 화면과 진행 중 응답의 뒤늦은 반영을 차단한다. 기존 게임의 임의 run_id/revision과 실제 서버 회차 상태를 분리했다. `client.js`는 변경하지 않았다.
+- 원본 6문항을 한 문항씩 시작하며 원래 30/45초 제한을 적용한다. 제출, 시간 초과, 건너뛰기를 구분하여 저장하고 저장된 원문 선택 라벨·관점·슬라이더 확정 상태·순위를 펼쳐 확인할 수 있다. 부분 순위의 빈 앞 칸을 없애 순위를 당기지 않도록 서버가 명시적 rank를 검사한다.
+- API가 확인한 응답만 `서버 저장`으로 표시한다. 저장 도중 연결이 끊기면 원래 payload/경과시간/revision/멱등키를 그대로 재시도한다. 동일 탭 sessionStorage에는 계정 범위의 진행 문항·선택값·제출 대기만 보관하며 인증 토큰/비밀번호는 넣지 않는다. 새로고침으로 기존 문항 제한시간을 다시 시작하지 않는다. 확인된 로그아웃에서는 해당 임시 진행 상태를 지운다.
+- `/api/runs`는 선택적 `idempotency_key`와 `expected_user_id`를 지원한다. 기존 `{}` 호출은 호환한다. 사용자별 안정적인 회차 ID와 기존 멱등 결과 저장을 사용하므로 DB 스키마 변경은 없다. 동시 재시도는 한 회차만 생성하며 삭제 tombstone이 같은 요청의 회차 부활을 막는다.
+- 서버 제시 이벤트를 새로 도입하지 않았으므로 시간은 클라이언트 경과시간이다. 서버 원본의 제시/시작 시각 미수집 사유는 유지한다. 감독된 검사 시간이나 서버가 보증한 반응시간이라고 주장하지 않는다. 저장소 사용 차단 환경은 오류를 표시하며 확인하지 않은 저장 완료를 표시하지 않는다.
+- 자동 검사: 관련 Node 42 passed, 전체 Python 207 passed/0 failed/0 skipped. 합성 DOM + mock transport와 실제 FastAPI + 임시 SQLite의 검사이며 실제 브라우저 검사와 구분한다. 전체 Python의 최초 실행에서 성격 판정 방지 안내 누락 1건을 발견해 문구 보완 후 통과했다. 이후 오류 복구 UI 변경에 해당하는 Python 통합 검사 7개도 별도 통과했다(`run-gihuhcn3`).
+- 독립 코드 리뷰가 발견한 422 검증 거부 시 제출 대기 고착을 수정했다. 서버 정의와 소유 회차를 먼저 조회한 뒤 사용자가 명시적으로 임시 입력을 버리고 다시 시작할 수 있다. 불확실한 통신 실패에는 이 경로를 열지 않고 동일 요청 재시도를 유지한다. 후속 리뷰에서 해당 Important 문제 해결을 확인했다. 오프라인 새로고침 후 재연결 버튼 활성화도 실패 재현 후 수정했다.
+- 동일한 테스트 DB/계정을 보존하고 백업 후 로컬 서버를 재시작했다. 현재 URL은 `http://127.0.0.1:8000/frontend/index.html`, launcher PID 34072 / server PID 34116이다. 페이지·관련 리소스·정의 API 7개 경로 HTTP 200. live/paid AI는 false이며 운영 배포하지 않았다.
+- 근거: `artifacts/practice-connect-20261010/`, 전체 회귀 `artifacts/offline-checks/run-xgkz4ztt/`. Browser 목록은 `[]`여서 실제 화면/브라우저 쿠키/키보드/모바일/BFCache 직접 검증은 blocked 또는 pending_manual이다. 기존 사용자 인증/화면 체험 확인을 새 저장 기능의 수동 통과로 재사용하지 않는다.
+- 다음 사용자 확인: 강력 새로고침 → `1. 성향 설문` 상단 `새 연습 시작` → 문항 시작/선택/저장 → 새로고침 후 같은 회차의 저장된 선택 확인 → 나머지 문항 이어하기. 게임·면접·리포트 서버 연결과 실제 근거 보고서는 후속 범위이며 화면에도 현재 연결 범위를 표시한다. 구형 내비게이션 검사 3건은 이번 범위에서 미실행/미해결이다.
+
+## 2026-10-10 — 설문 저장·새로고침 복원 사용자 확인 완료
+
+- 사용자가 새로고침 후 같은 회차 번호, `서버 저장 6 / 6문항` 유지, 저장된 문항의 본인 선택 응답 유지 세 가지 모두 정상 동작한다고 명시 확인했다.
+- 수동 / 사용자 보고 / passed: 실제 화면에서 여섯 문항 저장과 새로고침 후 동일 회차·응답 복원 흐름. 같은 기본 저장·복원 절차를 다시 요청하지 않는다. 앞선 pending_manual 중 이 기본 흐름은 확인 완료로 갱신한다.
+- Codex의 직접 브라우저 관찰·DB 원본 대조, 다른 계정 접근·통신 오류·BFCache·모바일·키보드 수동 검사로 확대하지 않는다. 이번 보고로 제품 코드를 변경하거나 추가 자동 검사를 실행하지 않았다.
+- 후속 구현 대상은 게임의 실제 서버 기록 연결과 이후 면접·근거 보고서 연결이다. 이번 확인 답변만으로 후속 구현을 시작하지 않았다.
+## 2026-10-10 — 게임 연결 작업 일시 중단 (최신 상태)
+
+- 사용자가 늦은 시간으로 오늘 작업 종료를 요청하여 구현·테스트·리뷰를 중단했다. 완료 또는 테스트 준비 상태가 아니다. 현재 파일 변경을 보존했다.
+- 가위바위보·카드 게임의 실제 회차 저장 API와 화면 연결을 구현했고 일부 자동 검사가 통과했다. 독립 리뷰에서 규칙 전환 시점, 채점 버전, 화면 이탈 기록 처리의 수정 사항이 발견되어 미해결 상태다.
+- 로컬 서버는 이번 게임 API 변경으로 재시작하지 않았다. 정적 화면 파일은 변경되어 있어 현재 실행 서버와 연결이 완성됐다고 간주하면 안 된다. 사용자에게 오늘 추가 테스트를 요청하지 않는다.
+- 다음 시작점과 구체적인 미해결 항목: [GAME_CONNECTION_HANDOFF.md](GAME_CONNECTION_HANDOFF.md). 기존 설문 6/6 저장·새로고침 복원은 사용자 확인 완료이며 반복 테스트를 요청하지 않는다.
+
+## 2026-10-11 — 두 게임의 실제 회차 저장 연결 구현·로컬 반영 완료
+
+- 사용자 요청으로 전날 작업을 재개했다. 현재 가위바위보·카드 화면을 유지하고 로그인한 사용자의 동일 회차에 게임 결과·선택·규칙 공개·화면 전환·종료 기록을 저장/조회한다. 각 게임 3라운드, 라운드 20초, 10초 규칙 전환이며 서버가 채점한다.
+- 어제 미해결 3건을 수정했다: 전환 시각 이후 이전 규칙 응답은 서버에서 거부; 라운드의 불변 채점 스냅샷 적용; 통신 중 화면 이탈/복귀를 순서대로 보관·재시도. 추가 리뷰에서 발견한 중복 이탈 기록과 오답 카드의 정답 색 표시도 수정하고 회귀 검사했다. 공개 기록 없이 종료된 라운드는 누락 표시를 보존하며 공개 이벤트를 만들어내지 않는다.
+- `run.rule_games`는 `mapping_status: unmapped`로 분리했다. resource-bridge 및 B01/B02/B03 분석·최종 완료 조건은 그대로다. 면접·최종 보고서의 현재 HTML은 별도 연결이 남아 있다. 이번 게임 점수를 성격/일관성/채용 점수로 해석하지 않는다.
+- 자동 검증: 실제 FastAPI·격리 SQLite·mock 환경 전체 Python 235 passed, guard 위반/모델 호출 0. 최종 관련 Node 59 passed(합성 DOM/transport; 실제 브라우저 검사 아님). 전체 Python 실행 후 변경은 화면 전환/정오답 표시 등 프런트엔드에 한정했으며 최종 Node·실행 서버 정적 파일 대조로 확인했다.
+- 독립 AI 리뷰: 기존 backend/reviewer 에이전트를 재사용했고 서버와 화면 파일 소유권을 분리했다. 최종 후속 리뷰에서 지적한 코드 문제 해결을 확인했으며 실제 브라우저 시각/키보드/스크린리더 확인은 pending_manual이다. `cua.getState()` 결과 apps/browsers가 모두 빈 배열이라 직접 브라우저 검증은 blocked이다.
+- 기존 사용자 테스트 DB를 SQLite backup 방식으로 백업하고 같은 경로로 로컬 서버를 시작했다. URL `http://127.0.0.1:8000/frontend/index.html`, launcher PID 22964 / server PID 29268. 기존 계정·설문을 초기화하지 않았다. 페이지/정적 자산/게임 정의 9개 경로 HTTP 200 및 파일 일치, 미인증 게임 기록 조회 401 확인. live/paid AI는 false이며 운영 배포는 미실행이다.
+- `html/client.js` SHA256 `3A6566BEF6B57823ABDF917EF526B9351E9F1C1D1D8A94BBDB942002016C9040` 보존. 근거: `artifacts/game-connect-20261011/`, `artifacts/offline-checks/run-wir3o9tc/`. 상세 검증은 VERIFICATION.md와 RULE_GAME_CONNECTION.md 참조.
+- 다음 사용자 확인: Ctrl+F5 → 기존 6/6 설문 회차 선택 → 게임 탭 → 1라운드 시작 → 20초 후 저장 횟수/행동 기록 → 새로고침 후 같은 기록 유지 → 나머지 라운드와 카드 게임. 기존 설문/인증 기본 검사를 다시 요청하지 않는다.
+
+## 2026-10-11 — 게임 결과 새로고침 복원 사용자 확인
+
+- 수동 / 사용자 보고 / passed: 사용자가 “이전 화면으로 돌아가긴 하지만 새로고침해도 같은 결과는 유지됩니다”라고 확인했다. 게임 결과의 새로고침 후 유지 흐름을 사용자 확인 완료로 기록한다.
+- 확인 범위는 사용자가 실행한 게임 결과 유지다. 두 게임 각각 3라운드 완료, 개별 행동 로그의 DB 원본 대조, 통신 오류·계정 전환·접근성까지 수동 통과한 것으로 확대하지 않는다.
+- 새로고침 시 이전 화면으로 돌아가는 현상도 함께 보고됐다. 결과 복원과 별개인 화면/탭 복원 항목으로 기록하며 이번 보고만으로 제품 코드를 수정하지 않았다. 기존 기본 저장·복원 테스트를 반복 요청하지 않는다.
+- 추가 자동 검사·서버 재시작·DB 변경 없음. 이전 구현/자동 검증 기록은 아래 항목을 참조한다.
+
+## 2026-10-11 — 가위바위보 3라운드 서버 저장 사용자 확인
+
+- 수동 / 사용자 보고 / passed: 화면에 `라운드 저장됨`, `서버 기록 연결됨`, `가위바위보 3 / 3 · 카드 0 / 3`이 표시된 내용을 사용자가 제공했다. 가위바위보 3라운드 종료 저장 표시를 확인 완료로 기록한다.
+- 카드 게임은 표시상 0/3이며 완료 확인 대기다. 화면의 `카드 게임으로` 또는 카드 탭에서 각 라운드 시작으로 이어간다. 같은 회차에서 진행하며 설문이나 가위바위보를 다시 요청하지 않는다.
+- 제품 코드·DB 변경 및 추가 자동 검사는 없다. 이 보고를 카드 게임 완료나 개별 채점/행동 기록 원본 대조의 수동 통과로 확대하지 않는다.
+
+## 2026-10-11 — 두 게임 3/3 저장 사용자 확인 완료
+
+- 수동 / 사용자 제공 화면 문구 / passed: 같은 회차에서 `서버 기록 연결됨`, `라운드 종료 서버 저장: 가위바위보 3 / 3 · 카드 3 / 3`을 사용자가 확인했다. 두 게임 모두 각 3라운드 종료 저장 표시 확인을 완료했다.
+- 앞선 새로고침 후 게임 결과 유지 보고와 함께 기본 게임 저장 흐름의 사용자 확인을 완료로 기록한다. 이번 두 게임 완료 상태에서 새로고침을 추가로 확인했다고 추정하지 않으며, 개별 채점·행동 기록의 DB 원본 대조/통신 오류/접근성까지 확인 완료로 확대하지 않는다. 동일한 기본 게임 테스트를 반복 요청하지 않는다.
+- 별도 남은 항목: 새로고침 시 화면/탭 위치 복원, HTML 기본 면접의 실제 질문·답변 서버 연결, 이후 근거 기반 보고서 연결. 게임 결과를 B01/B02/B03 또는 성격·채용 판단에 새로 매핑하지 않는다.
+- 이번 보고에서는 제품 코드·DB 변경, 추가 자동 검사, 후속 기능 구현을 수행하지 않았다.
+
+## 2026-10-29 Temporary Gemini limits
+
+- `tools/start_gemini_local.ps1 -TemporaryExtra` sets the per-run limits to 18 reserved calls and 600000 micro USD for that server process. Normal startup retains 15 and 500000. Existing reservations are not reset.
+- The running server was not restarted and no additional live request was made. The reported Gemini 503 remains an external service availability issue; increasing the local limit does not fix it.
+

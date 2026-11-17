@@ -1,0 +1,14 @@
+{
+  "title": "약속 정하기 · 요일·장소·버스 기억력 게임",
+  "source_commit": "a0cbb0ef9dfc1542ebaf794011752c93f051e56b",
+  "site_version": 3,
+  "site_url": "https://team-decision-lab-2847.abloom-field-7115.chatgpt.site",
+  "sha256": {
+    "dist/index.html": "bf2f5f8672db6860c55da56353f11aa6f228f398758594b76c56a76371dc98a6",
+    "dist/style.css": "4397f61130e3642c653245de35954f75ee818dca971d2585455fe07dd084d233",
+    "dist/app.js": "5b9479ee00aa7877108301bc71a1e3cb79ace59aed98082222f61f23f2e7dc22",
+    "dist/core.mjs": "b6a1cb5606e73c6a0f8725227117f9695b1d446dcf1056be4f16aa8c775152e5",
+    "dist/town.mjs": "172d12e1d762353c30f244568946a2895484cbc3bb6a8cf06c6ae4eeb023dd9e",
+    "tests/core.test.mjs": "2cf352768391dfe79cd261b1e842b4f577b6564704fb5f24fd8ea52c4db9a16d"
+  }
+}

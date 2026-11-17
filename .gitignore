@@ -1,0 +1,46 @@
+# Local server secrets; the example must never contain a real key.
+.env
+.env.*
+!.env.example
+
+# Local credentials and private keys
+*.pem
+*.key
+*.pfx
+*.p12
+.aws/
+
+# Runtime data, backups and screenshots
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.log
+*.bak
+*.zip
+artifacts/
+캡처화면/
+
+# Python / JavaScript environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+
+# Local editor and automation state
+.vscode/
+.idea/
+.playwright-mcp/
+.codex/
+.agents/
+Thumbs.db
+.DS_Store
+
+# Historical local delivery manifest; not a manifest of this repository
+/PACKAGE_MANIFEST.json

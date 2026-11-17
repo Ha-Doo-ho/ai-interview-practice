@@ -1,0 +1,104 @@
+[
+  {
+    "item_id": "O-B01",
+    "item_version": "1.0.0",
+    "status": "submitted",
+    "elapsed_ms": 1200,
+    "response": {
+      "selected_position": 5
+    }
+  },
+  {
+    "item_id": "O-B02",
+    "item_version": "1.0.0",
+    "status": "submitted",
+    "elapsed_ms": 1200,
+    "response": {
+      "selected_position": 2
+    }
+  },
+  {
+    "item_id": "O-B03",
+    "item_version": "1.0.0",
+    "status": "submitted",
+    "elapsed_ms": 1200,
+    "response": {
+      "selected_position": 6
+    }
+  },
+  {
+    "item_id": "P-B01",
+    "item_version": "1.0.0",
+    "status": "submitted",
+    "elapsed_ms": 1200,
+    "response": {
+      "self": {
+        "selected_position": 4,
+        "status": "submitted"
+      },
+      "imagined_others": {
+        "selected_position": 5,
+        "status": "submitted"
+      }
+    }
+  },
+  {
+    "item_id": "S-B02",
+    "item_version": "1.0.0",
+    "status": "submitted",
+    "elapsed_ms": 1200,
+    "response": {
+      "final_value": 0,
+      "interaction_occurred": false,
+      "explicit_confirmation": true,
+      "change_count": 0
+    }
+  },
+  {
+    "item_id": "R-UNMAPPED",
+    "item_version": "1.0.0",
+    "status": "submitted",
+    "elapsed_ms": 1200,
+    "response": {
+      "selected_ids": [
+        "helping",
+        "growth",
+        "autonomy"
+      ],
+      "ranked_selection": [
+        {
+          "option_id": "helping",
+          "rank": 1
+        },
+        {
+          "option_id": "growth",
+          "rank": 2
+        },
+        {
+          "option_id": "autonomy",
+          "rank": 3
+        }
+      ],
+      "selection_events": [
+        {
+          "action": "select",
+          "option_id": "helping",
+          "rank": 1,
+          "order": 1
+        },
+        {
+          "action": "select",
+          "option_id": "growth",
+          "rank": 2,
+          "order": 2
+        },
+        {
+          "action": "select",
+          "option_id": "autonomy",
+          "rank": 3,
+          "order": 3
+        }
+      ]
+    }
+  }
+]

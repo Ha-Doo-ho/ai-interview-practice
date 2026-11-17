@@ -1,0 +1,9 @@
+# TEMPLATE — merge keys into the existing PROJECT .codex/config.toml.
+# Verified against official documentation on 2026-09-16; check installed version.
+# Does not select the main model or change approval/sandbox policy.
+# Keep an existing enabled=false or stricter concurrency limit unless its change is authorized.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+default_subagent_model = "gpt-5.6-sol"
+default_subagent_reasoning_effort = "medium"

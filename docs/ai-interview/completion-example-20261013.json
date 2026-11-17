@@ -1,0 +1,3837 @@
+{
+  "artifact_kind": "synthetic_api_completion_example",
+  "real_user_data": false,
+  "external_ai_calls": 0,
+  "description": "실제 FastAPI/격리 SQLite 경로로 생성한 합성 mock 보고서. 생략한 원본 응답 상태도 그대로 보존.",
+  "report": {
+    "report_id": "173914ca-11f5-45b6-ae06-501bf57fca3f",
+    "report_version": "grounded-unified-report-v1",
+    "created_at": "2026-10-13T12:41:22.349878+00:00",
+    "runtime_mode": "mock",
+    "requested_mode": "mock",
+    "provider_execution": "not_called",
+    "model_id": null,
+    "input_snapshot": {
+      "generation": 0,
+      "definitions_version": "1.0.0",
+      "question_refs": [
+        {
+          "question_id": "baseline-b01",
+          "question_version": "1.0.0"
+        },
+        {
+          "question_id": "baseline-b02",
+          "question_version": "1.0.0"
+        },
+        {
+          "question_id": "baseline-b03",
+          "question_version": "1.0.0"
+        }
+      ],
+      "answer_refs": [
+        {
+          "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+          "answer_version": "1.0.0",
+          "question_id": "baseline-b01",
+          "question_version": "1.0.0",
+          "status": "asked_answered"
+        },
+        {
+          "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+          "answer_version": "1.0.0",
+          "question_id": "baseline-b02",
+          "question_version": "1.0.0",
+          "status": "skipped"
+        },
+        {
+          "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+          "answer_version": "1.0.0",
+          "question_id": "baseline-b03",
+          "question_version": "1.0.0",
+          "status": "skipped"
+        }
+      ],
+      "survey_record_refs": [
+        {
+          "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+          "record_version": "1.0.0",
+          "source_version": "1.0.0",
+          "status": "submitted"
+        },
+        {
+          "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+          "record_version": "1.0.0",
+          "source_version": "1.0.0",
+          "status": "skipped"
+        },
+        {
+          "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+          "record_version": "1.0.0",
+          "source_version": "1.0.0",
+          "status": "skipped"
+        },
+        {
+          "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+          "record_version": "1.0.0",
+          "source_version": "1.0.0",
+          "status": "skipped"
+        },
+        {
+          "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+          "record_version": "1.0.0",
+          "source_version": "1.0.0",
+          "status": "skipped"
+        },
+        {
+          "record_id": "6fb3a19d-c280-4ef2-aad2-5b6ef4e582d5",
+          "record_version": "1.0.0",
+          "source_version": "1.0.0",
+          "status": "skipped"
+        }
+      ],
+      "resource_game": {
+        "game_id": "resource-bridge",
+        "game_version": "1.0.0",
+        "state_version": 0
+      },
+      "rule_games": [
+        {
+          "game_id": "rule-rsp",
+          "game_version": "1.0.0",
+          "state_version": "1.0.0",
+          "content_digest": "5382e4ff5f4f2505b2430680cd3bedc677b980cb8ef56ae80520035511536dae"
+        },
+        {
+          "game_id": "rule-card",
+          "game_version": "1.0.0",
+          "state_version": "1.0.0",
+          "content_digest": "0e7c069ffe0d30a56d04bb8570906ef566da3b830aedd4cd75e3f0b854d2c957"
+        }
+      ]
+    },
+    "limitations": [
+      "면접 답변은 사용자의 자기보고이며 실제 사건을 외부 검증하지 않습니다.",
+      "설문 강도와 규칙 게임 점수는 면접 의미 분석 입력에 사용하지 않았습니다.",
+      "이 보고서는 합격, 성격, 거짓말 또는 채용 판단을 제공하지 않습니다.",
+      "설문과 면접은 같은 사용자의 자기보고이며 독립된 진실 검증이 아닙니다.",
+      "규칙 게임은 해당 과제의 선택 기록이며 B01/B02/B03의 직접 측정이 아닙니다.",
+      "후속 답변은 공개된 근거를 참고한 조건부 자기보고입니다."
+    ],
+    "cards": [
+      {
+        "behavior_id": "B01",
+        "behavior_version": "1.0.0",
+        "behavior_name": "결정 전 정보 확인",
+        "question_id": "baseline-b01",
+        "question_version": "1.0.0",
+        "question_text": "결정 전에 다른 사람이 가진 정보를 확인했던 경험을 설명해 주세요. 당시 상황과 본인 역할, 누구에게 무엇을 확인했고 판단에 어떻게 반영했는지, 결과와 배운 점을 함께 말해 주세요.",
+        "rubric_id": "rubric-b01",
+        "rubric_version": "1.0.0",
+        "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+        "answer_version": "1.0.0",
+        "answer_status": "asked_answered",
+        "criteria": {
+          "situation": {
+            "criterion": "situation",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "ai_not_used"
+          },
+          "role": {
+            "criterion": "role",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "ai_not_used"
+          },
+          "other_information": {
+            "criterion": "other_information",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "ai_not_used"
+          },
+          "action": {
+            "criterion": "action",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "ai_not_used"
+          },
+          "reasoning": {
+            "criterion": "reasoning",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "ai_not_used"
+          },
+          "result": {
+            "criterion": "result",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "ai_not_used"
+          },
+          "learning": {
+            "criterion": "learning",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "ai_not_used"
+          }
+        },
+        "comparison": {
+          "mapping_status": "no_eligible_resource_game_evidence",
+          "status": "insufficient_evidence",
+          "reason": "no_eligible_opportunity_or_relevant_evidence",
+          "comparison_rule_version": "comparison-precedence-v1",
+          "mapping_refs": [
+            "map-interview-b01@1.0.0"
+          ],
+          "metric_refs": [],
+          "limitations": [
+            "규칙 전환 게임 점수는 이 행동 비교에 사용하지 않습니다.",
+            "자기보고 진술의 진실이나 안정된 성향을 인증하지 않습니다."
+          ]
+        },
+        "practice_suggestions": [
+          {
+            "criterion": "situation",
+            "text": "다음 연습에서는 당시 상황과 제약을 한 문장으로 먼저 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c@1.0.0"
+            ]
+          },
+          {
+            "criterion": "role",
+            "text": "다음 연습에서는 본인이 맡은 역할과 책임 범위를 구체적으로 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c@1.0.0"
+            ]
+          },
+          {
+            "criterion": "other_information",
+            "text": "다음 연습에서는 누구에게 어떤 정보를 확인했는지 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c@1.0.0"
+            ]
+          },
+          {
+            "criterion": "action",
+            "text": "다음 연습에서는 본인이 실제로 한 행동을 순서대로 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c@1.0.0"
+            ]
+          },
+          {
+            "criterion": "reasoning",
+            "text": "다음 연습에서는 선택 기준과 다른 대안을 함께 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c@1.0.0"
+            ]
+          },
+          {
+            "criterion": "result",
+            "text": "다음 연습에서는 확인 가능한 결과와 그 범위를 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c@1.0.0"
+            ]
+          },
+          {
+            "criterion": "learning",
+            "text": "다음 연습에서는 이후 유지하거나 바꾼 점을 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c@1.0.0"
+            ]
+          }
+        ],
+        "extraction_provenance": {
+          "prompt_version": "grounded-interview-extraction-v1",
+          "schema_version": "grounded-interview-extraction-schema-v1",
+          "rubric_id": "rubric-b01",
+          "rubric_version": "1.0.0",
+          "mapping_id": "map-interview-b01",
+          "mapping_version": "1.0.0",
+          "runtime_mode": "mock",
+          "model_id": null
+        }
+      },
+      {
+        "behavior_id": "B02",
+        "behavior_version": "1.0.0",
+        "behavior_name": "제한 자원 배분",
+        "question_id": "baseline-b02",
+        "question_version": "1.0.0",
+        "question_text": "개인 과제와 팀 과제 사이에서 제한된 시간이나 자원을 나눈 경험을 설명해 주세요. 당시 상황과 본인 역할, 선택 가능한 대안, 배분 기준과 실제 행동, 결과와 배운 점을 함께 말해 주세요.",
+        "rubric_id": "rubric-b02",
+        "rubric_version": "1.0.0",
+        "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+        "answer_version": "1.0.0",
+        "answer_status": "skipped",
+        "criteria": {
+          "situation": {
+            "criterion": "situation",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "role": {
+            "criterion": "role",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "other_information": {
+            "criterion": "other_information",
+            "status": "not_asked",
+            "evidence_spans": [],
+            "limitations": [
+              "이 질문에서 해당 요소를 요청하지 않았습니다."
+            ],
+            "missing_reason": "criterion_not_asked"
+          },
+          "action": {
+            "criterion": "action",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "reasoning": {
+            "criterion": "reasoning",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "result": {
+            "criterion": "result",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "learning": {
+            "criterion": "learning",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          }
+        },
+        "comparison": {
+          "mapping_status": "no_eligible_resource_game_evidence",
+          "status": "insufficient_evidence",
+          "reason": "no_eligible_opportunity_or_relevant_evidence",
+          "comparison_rule_version": "comparison-precedence-v1",
+          "mapping_refs": [
+            "map-interview-b02@1.0.0"
+          ],
+          "metric_refs": [],
+          "limitations": [
+            "규칙 전환 게임 점수는 이 행동 비교에 사용하지 않습니다.",
+            "자기보고 진술의 진실이나 안정된 성향을 인증하지 않습니다."
+          ]
+        },
+        "practice_suggestions": [
+          {
+            "criterion": "situation",
+            "text": "다음 연습에서는 당시 상황과 제약을 한 문장으로 먼저 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "cb2a4740-d846-4533-9687-31702c378fc6@1.0.0"
+            ]
+          },
+          {
+            "criterion": "role",
+            "text": "다음 연습에서는 본인이 맡은 역할과 책임 범위를 구체적으로 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "cb2a4740-d846-4533-9687-31702c378fc6@1.0.0"
+            ]
+          },
+          {
+            "criterion": "action",
+            "text": "다음 연습에서는 본인이 실제로 한 행동을 순서대로 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "cb2a4740-d846-4533-9687-31702c378fc6@1.0.0"
+            ]
+          },
+          {
+            "criterion": "reasoning",
+            "text": "다음 연습에서는 선택 기준과 다른 대안을 함께 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "cb2a4740-d846-4533-9687-31702c378fc6@1.0.0"
+            ]
+          },
+          {
+            "criterion": "result",
+            "text": "다음 연습에서는 확인 가능한 결과와 그 범위를 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "cb2a4740-d846-4533-9687-31702c378fc6@1.0.0"
+            ]
+          },
+          {
+            "criterion": "learning",
+            "text": "다음 연습에서는 이후 유지하거나 바꾼 점을 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "cb2a4740-d846-4533-9687-31702c378fc6@1.0.0"
+            ]
+          }
+        ],
+        "extraction_provenance": {
+          "prompt_version": "grounded-interview-extraction-v1",
+          "schema_version": "grounded-interview-extraction-schema-v1",
+          "rubric_id": "rubric-b02",
+          "rubric_version": "1.0.0",
+          "mapping_id": "map-interview-b02",
+          "mapping_version": "1.0.0",
+          "runtime_mode": "mock",
+          "model_id": null
+        }
+      },
+      {
+        "behavior_id": "B03",
+        "behavior_version": "1.0.0",
+        "behavior_name": "새 정보 뒤 선택 재검토",
+        "question_id": "baseline-b03",
+        "question_version": "1.0.0",
+        "question_text": "새로운 정보를 받은 뒤 처음 선택을 유지하거나 바꾼 경험을 설명해 주세요. 당시 상황과 본인 역할, 새 정보, 재검토한 행동과 이유, 결과와 배운 점을 함께 말해 주세요.",
+        "rubric_id": "rubric-b03",
+        "rubric_version": "1.0.0",
+        "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+        "answer_version": "1.0.0",
+        "answer_status": "skipped",
+        "criteria": {
+          "situation": {
+            "criterion": "situation",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "role": {
+            "criterion": "role",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "other_information": {
+            "criterion": "other_information",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "action": {
+            "criterion": "action",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "reasoning": {
+            "criterion": "reasoning",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "result": {
+            "criterion": "result",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          },
+          "learning": {
+            "criterion": "learning",
+            "status": "unassessable",
+            "evidence_spans": [],
+            "limitations": [
+              "제출된 답변 원문이 없거나 의미 분석을 실행하지 않아 판정할 수 없습니다."
+            ],
+            "missing_reason": "asked_no_text"
+          }
+        },
+        "comparison": {
+          "mapping_status": "no_eligible_resource_game_evidence",
+          "status": "insufficient_evidence",
+          "reason": "no_eligible_opportunity_or_relevant_evidence",
+          "comparison_rule_version": "comparison-precedence-v1",
+          "mapping_refs": [
+            "map-interview-b03@1.0.0"
+          ],
+          "metric_refs": [],
+          "limitations": [
+            "규칙 전환 게임 점수는 이 행동 비교에 사용하지 않습니다.",
+            "자기보고 진술의 진실이나 안정된 성향을 인증하지 않습니다."
+          ]
+        },
+        "practice_suggestions": [
+          {
+            "criterion": "situation",
+            "text": "다음 연습에서는 당시 상황과 제약을 한 문장으로 먼저 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "db2d1981-cc06-4e79-858c-95a42573d598@1.0.0"
+            ]
+          },
+          {
+            "criterion": "role",
+            "text": "다음 연습에서는 본인이 맡은 역할과 책임 범위를 구체적으로 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "db2d1981-cc06-4e79-858c-95a42573d598@1.0.0"
+            ]
+          },
+          {
+            "criterion": "other_information",
+            "text": "다음 연습에서는 누구에게 어떤 정보를 확인했는지 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "db2d1981-cc06-4e79-858c-95a42573d598@1.0.0"
+            ]
+          },
+          {
+            "criterion": "action",
+            "text": "다음 연습에서는 본인이 실제로 한 행동을 순서대로 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "db2d1981-cc06-4e79-858c-95a42573d598@1.0.0"
+            ]
+          },
+          {
+            "criterion": "reasoning",
+            "text": "다음 연습에서는 선택 기준과 다른 대안을 함께 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "db2d1981-cc06-4e79-858c-95a42573d598@1.0.0"
+            ]
+          },
+          {
+            "criterion": "result",
+            "text": "다음 연습에서는 확인 가능한 결과와 그 범위를 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "db2d1981-cc06-4e79-858c-95a42573d598@1.0.0"
+            ]
+          },
+          {
+            "criterion": "learning",
+            "text": "다음 연습에서는 이후 유지하거나 바꾼 점을 설명해 보세요.",
+            "template_version": "rubric-practice-v1",
+            "basis_refs": [
+              "db2d1981-cc06-4e79-858c-95a42573d598@1.0.0"
+            ]
+          }
+        ],
+        "extraction_provenance": {
+          "prompt_version": "grounded-interview-extraction-v1",
+          "schema_version": "grounded-interview-extraction-schema-v1",
+          "rubric_id": "rubric-b03",
+          "rubric_version": "1.0.0",
+          "mapping_id": "map-interview-b03",
+          "mapping_version": "1.0.0",
+          "runtime_mode": "mock",
+          "model_id": null
+        }
+      }
+    ],
+    "surveys": [
+      {
+        "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+        "record_version": "1.0.0",
+        "source_type": "survey",
+        "source_version": "1.0.0",
+        "user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+        "run_id": "5cc89481-0d2f-4916-b482-6f5d47057faf",
+        "attempt_id": "d7d35e44-d398-4e9d-a142-c1bb9940eb23",
+        "item_id": "O-B01",
+        "item_version": "1.0.0",
+        "instructions_version": "1.0.0",
+        "presentation_id": "68b7ac3e-06b9-4af2-a8e9-ac028437bc4d",
+        "presentation_order": 1,
+        "status": "submitted",
+        "started_at": null,
+        "started_at_missing_reason": "client_start_time_not_collected",
+        "presented_at": null,
+        "presented_at_missing_reason": "definition_loaded_before_submission_without_server_presentation_event",
+        "completed_at": "2026-10-13T12:41:21.448572+00:00",
+        "context": {
+          "response_type": "ordinal_6",
+          "behavior_id": "B01",
+          "language": "ko-KR",
+          "time_limit_ms": 30000,
+          "submitted_elapsed_ms": null
+        },
+        "data": {
+          "selected_option_id": "agreement-6",
+          "selected_label_snapshot": "매우 그렇다",
+          "selected_position": 6,
+          "scale_id": "agreement-6",
+          "scale_version": "1.0.0",
+          "ordered_options_snapshot": [
+            {
+              "option_id": "agreement-1",
+              "label": "전혀 그렇지 않다",
+              "position": 1
+            },
+            {
+              "option_id": "agreement-2",
+              "label": "그렇지 않다",
+              "position": 2
+            },
+            {
+              "option_id": "agreement-3",
+              "label": "그렇지 않은 편이다",
+              "position": 3
+            },
+            {
+              "option_id": "agreement-4",
+              "label": "그런 편이다",
+              "position": 4
+            },
+            {
+              "option_id": "agreement-5",
+              "label": "그렇다",
+              "position": 5
+            },
+            {
+              "option_id": "agreement-6",
+              "label": "매우 그렇다",
+              "position": 6
+            }
+          ],
+          "missing_reason": null,
+          "item_id": "O-B01",
+          "item_version": "1.0.0",
+          "behavior_id": "B01",
+          "prompt_snapshot": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+          "measurement_level": "ordinal",
+          "definition_snapshot": {
+            "item_id": "O-B01",
+            "item_version": "1.0.0",
+            "instructions_version": "1.0.0",
+            "type": "ordinal_6",
+            "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+            "behavior_id": "B01",
+            "scale_id": "agreement-6",
+            "scale_version": "1.0.0",
+            "ordered_options": [
+              {
+                "option_id": "agreement-1",
+                "label": "전혀 그렇지 않다",
+                "position": 1
+              },
+              {
+                "option_id": "agreement-2",
+                "label": "그렇지 않다",
+                "position": 2
+              },
+              {
+                "option_id": "agreement-3",
+                "label": "그렇지 않은 편이다",
+                "position": 3
+              },
+              {
+                "option_id": "agreement-4",
+                "label": "그런 편이다",
+                "position": 4
+              },
+              {
+                "option_id": "agreement-5",
+                "label": "그렇다",
+                "position": 5
+              },
+              {
+                "option_id": "agreement-6",
+                "label": "매우 그렇다",
+                "position": 6
+              }
+            ],
+            "time_limit_ms": 30000
+          }
+        },
+        "quality_flags": [],
+        "comparison_exclusion": null
+      },
+      {
+        "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+        "record_version": "1.0.0",
+        "source_type": "survey",
+        "source_version": "1.0.0",
+        "user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+        "run_id": "5cc89481-0d2f-4916-b482-6f5d47057faf",
+        "attempt_id": "d7d35e44-d398-4e9d-a142-c1bb9940eb23",
+        "item_id": "O-B02",
+        "item_version": "1.0.0",
+        "instructions_version": "1.0.0",
+        "presentation_id": "5c8d76b5-ca98-47b0-a2e0-808d311e85ac",
+        "presentation_order": 2,
+        "status": "skipped",
+        "started_at": null,
+        "started_at_missing_reason": "client_start_time_not_collected",
+        "presented_at": null,
+        "presented_at_missing_reason": "definition_loaded_before_submission_without_server_presentation_event",
+        "completed_at": "2026-10-13T12:41:21.459079+00:00",
+        "context": {
+          "response_type": "ordinal_6",
+          "behavior_id": "B02",
+          "language": "ko-KR",
+          "time_limit_ms": 30000,
+          "submitted_elapsed_ms": null
+        },
+        "data": {
+          "selected_option_id": "agreement-3",
+          "selected_label_snapshot": "그렇지 않은 편이다",
+          "selected_position": 3,
+          "scale_id": "agreement-6",
+          "scale_version": "1.0.0",
+          "ordered_options_snapshot": [
+            {
+              "option_id": "agreement-1",
+              "label": "전혀 그렇지 않다",
+              "position": 1
+            },
+            {
+              "option_id": "agreement-2",
+              "label": "그렇지 않다",
+              "position": 2
+            },
+            {
+              "option_id": "agreement-3",
+              "label": "그렇지 않은 편이다",
+              "position": 3
+            },
+            {
+              "option_id": "agreement-4",
+              "label": "그런 편이다",
+              "position": 4
+            },
+            {
+              "option_id": "agreement-5",
+              "label": "그렇다",
+              "position": 5
+            },
+            {
+              "option_id": "agreement-6",
+              "label": "매우 그렇다",
+              "position": 6
+            }
+          ],
+          "missing_reason": null,
+          "item_id": "O-B02",
+          "item_version": "1.0.0",
+          "behavior_id": "B02",
+          "prompt_snapshot": "개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.",
+          "measurement_level": "ordinal",
+          "definition_snapshot": {
+            "item_id": "O-B02",
+            "item_version": "1.0.0",
+            "instructions_version": "1.0.0",
+            "type": "ordinal_6",
+            "prompt": "개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.",
+            "behavior_id": "B02",
+            "scale_id": "agreement-6",
+            "scale_version": "1.0.0",
+            "ordered_options": [
+              {
+                "option_id": "agreement-1",
+                "label": "전혀 그렇지 않다",
+                "position": 1
+              },
+              {
+                "option_id": "agreement-2",
+                "label": "그렇지 않다",
+                "position": 2
+              },
+              {
+                "option_id": "agreement-3",
+                "label": "그렇지 않은 편이다",
+                "position": 3
+              },
+              {
+                "option_id": "agreement-4",
+                "label": "그런 편이다",
+                "position": 4
+              },
+              {
+                "option_id": "agreement-5",
+                "label": "그렇다",
+                "position": 5
+              },
+              {
+                "option_id": "agreement-6",
+                "label": "매우 그렇다",
+                "position": 6
+              }
+            ],
+            "time_limit_ms": 30000
+          }
+        },
+        "quality_flags": [],
+        "comparison_exclusion": null
+      },
+      {
+        "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+        "record_version": "1.0.0",
+        "source_type": "survey",
+        "source_version": "1.0.0",
+        "user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+        "run_id": "5cc89481-0d2f-4916-b482-6f5d47057faf",
+        "attempt_id": "d7d35e44-d398-4e9d-a142-c1bb9940eb23",
+        "item_id": "O-B03",
+        "item_version": "1.0.0",
+        "instructions_version": "1.0.0",
+        "presentation_id": "09ddc947-f0e3-48ff-a12d-36f648196908",
+        "presentation_order": 3,
+        "status": "skipped",
+        "started_at": null,
+        "started_at_missing_reason": "client_start_time_not_collected",
+        "presented_at": null,
+        "presented_at_missing_reason": "definition_loaded_before_submission_without_server_presentation_event",
+        "completed_at": "2026-10-13T12:41:21.469293+00:00",
+        "context": {
+          "response_type": "ordinal_6",
+          "behavior_id": "B03",
+          "language": "ko-KR",
+          "time_limit_ms": 30000,
+          "submitted_elapsed_ms": null
+        },
+        "data": {
+          "selected_option_id": "agreement-3",
+          "selected_label_snapshot": "그렇지 않은 편이다",
+          "selected_position": 3,
+          "scale_id": "agreement-6",
+          "scale_version": "1.0.0",
+          "ordered_options_snapshot": [
+            {
+              "option_id": "agreement-1",
+              "label": "전혀 그렇지 않다",
+              "position": 1
+            },
+            {
+              "option_id": "agreement-2",
+              "label": "그렇지 않다",
+              "position": 2
+            },
+            {
+              "option_id": "agreement-3",
+              "label": "그렇지 않은 편이다",
+              "position": 3
+            },
+            {
+              "option_id": "agreement-4",
+              "label": "그런 편이다",
+              "position": 4
+            },
+            {
+              "option_id": "agreement-5",
+              "label": "그렇다",
+              "position": 5
+            },
+            {
+              "option_id": "agreement-6",
+              "label": "매우 그렇다",
+              "position": 6
+            }
+          ],
+          "missing_reason": null,
+          "item_id": "O-B03",
+          "item_version": "1.0.0",
+          "behavior_id": "B03",
+          "prompt_snapshot": "새 정보가 들어오면 처음 세운 계획을 다시 검토한다.",
+          "measurement_level": "ordinal",
+          "definition_snapshot": {
+            "item_id": "O-B03",
+            "item_version": "1.0.0",
+            "instructions_version": "1.0.0",
+            "type": "ordinal_6",
+            "prompt": "새 정보가 들어오면 처음 세운 계획을 다시 검토한다.",
+            "behavior_id": "B03",
+            "scale_id": "agreement-6",
+            "scale_version": "1.0.0",
+            "ordered_options": [
+              {
+                "option_id": "agreement-1",
+                "label": "전혀 그렇지 않다",
+                "position": 1
+              },
+              {
+                "option_id": "agreement-2",
+                "label": "그렇지 않다",
+                "position": 2
+              },
+              {
+                "option_id": "agreement-3",
+                "label": "그렇지 않은 편이다",
+                "position": 3
+              },
+              {
+                "option_id": "agreement-4",
+                "label": "그런 편이다",
+                "position": 4
+              },
+              {
+                "option_id": "agreement-5",
+                "label": "그렇다",
+                "position": 5
+              },
+              {
+                "option_id": "agreement-6",
+                "label": "매우 그렇다",
+                "position": 6
+              }
+            ],
+            "time_limit_ms": 30000
+          }
+        },
+        "quality_flags": [],
+        "comparison_exclusion": null
+      },
+      {
+        "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+        "record_version": "1.0.0",
+        "source_type": "survey",
+        "source_version": "1.0.0",
+        "user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+        "run_id": "5cc89481-0d2f-4916-b482-6f5d47057faf",
+        "attempt_id": "d7d35e44-d398-4e9d-a142-c1bb9940eb23",
+        "item_id": "P-B01",
+        "item_version": "1.0.0",
+        "instructions_version": "1.0.0",
+        "presentation_id": "14b08de0-6461-4111-ab4b-3d709ac61087",
+        "presentation_order": 4,
+        "status": "skipped",
+        "started_at": null,
+        "started_at_missing_reason": "client_start_time_not_collected",
+        "presented_at": null,
+        "presented_at_missing_reason": "definition_loaded_before_submission_without_server_presentation_event",
+        "completed_at": "2026-10-13T12:41:21.483167+00:00",
+        "context": {
+          "response_type": "paired_perspective",
+          "behavior_id": "B01",
+          "language": "ko-KR",
+          "time_limit_ms": 45000,
+          "submitted_elapsed_ms": null
+        },
+        "data": {
+          "pair_id": "pair-b01-self-imagined",
+          "respondent_user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+          "paired_item_version": "1.0.0",
+          "perspective_presentation_order": [
+            "self",
+            "imagined_others"
+          ],
+          "prior_response_visible": true,
+          "ordered_options_snapshot": [
+            {
+              "option_id": "agreement-1",
+              "label": "전혀 그렇지 않다",
+              "position": 1
+            },
+            {
+              "option_id": "agreement-2",
+              "label": "그렇지 않다",
+              "position": 2
+            },
+            {
+              "option_id": "agreement-3",
+              "label": "그렇지 않은 편이다",
+              "position": 3
+            },
+            {
+              "option_id": "agreement-4",
+              "label": "그런 편이다",
+              "position": 4
+            },
+            {
+              "option_id": "agreement-5",
+              "label": "그렇다",
+              "position": 5
+            },
+            {
+              "option_id": "agreement-6",
+              "label": "매우 그렇다",
+              "position": 6
+            }
+          ],
+          "self": {
+            "perspective": "self",
+            "status": "skipped",
+            "missing_reason": "skipped"
+          },
+          "imagined_others": {
+            "perspective": "imagined_others",
+            "status": "skipped",
+            "missing_reason": "skipped"
+          },
+          "item_id": "P-B01",
+          "item_version": "1.0.0",
+          "behavior_id": "B01",
+          "prompt_snapshot": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+          "measurement_level": "ordinal",
+          "definition_snapshot": {
+            "item_id": "P-B01",
+            "item_version": "1.0.0",
+            "instructions_version": "1.0.0",
+            "type": "paired_perspective",
+            "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+            "behavior_id": "B01",
+            "pair_id": "pair-b01-self-imagined",
+            "paired_item_version": "1.0.0",
+            "scale_id": "agreement-6",
+            "scale_version": "1.0.0",
+            "ordered_options": [
+              {
+                "option_id": "agreement-1",
+                "label": "전혀 그렇지 않다",
+                "position": 1
+              },
+              {
+                "option_id": "agreement-2",
+                "label": "그렇지 않다",
+                "position": 2
+              },
+              {
+                "option_id": "agreement-3",
+                "label": "그렇지 않은 편이다",
+                "position": 3
+              },
+              {
+                "option_id": "agreement-4",
+                "label": "그런 편이다",
+                "position": 4
+              },
+              {
+                "option_id": "agreement-5",
+                "label": "그렇다",
+                "position": 5
+              },
+              {
+                "option_id": "agreement-6",
+                "label": "매우 그렇다",
+                "position": 6
+              }
+            ],
+            "perspective_presentation_order": [
+              "self",
+              "imagined_others"
+            ],
+            "prior_response_visible": true,
+            "time_limit_ms": 45000
+          }
+        },
+        "quality_flags": [],
+        "comparison_exclusion": null
+      },
+      {
+        "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+        "record_version": "1.0.0",
+        "source_type": "survey",
+        "source_version": "1.0.0",
+        "user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+        "run_id": "5cc89481-0d2f-4916-b482-6f5d47057faf",
+        "attempt_id": "d7d35e44-d398-4e9d-a142-c1bb9940eb23",
+        "item_id": "S-B02",
+        "item_version": "1.0.0",
+        "instructions_version": "1.0.0",
+        "presentation_id": "bd1fca6a-75b6-4799-8d27-e1cc19945e1f",
+        "presentation_order": 5,
+        "status": "skipped",
+        "started_at": null,
+        "started_at_missing_reason": "client_start_time_not_collected",
+        "presented_at": null,
+        "presented_at_missing_reason": "definition_loaded_before_submission_without_server_presentation_event",
+        "completed_at": "2026-10-13T12:41:21.496667+00:00",
+        "context": {
+          "response_type": "bipolar_slider",
+          "behavior_id": "B02",
+          "language": "ko-KR",
+          "time_limit_ms": 30000,
+          "submitted_elapsed_ms": null
+        },
+        "data": {
+          "left_anchor_id": "personal-first",
+          "left_anchor_label": "개인 과제의 제약을 먼저 살핀다",
+          "right_anchor_id": "team-first",
+          "right_anchor_label": "팀 과제의 제약을 먼저 살핀다",
+          "min": -6,
+          "max": 6,
+          "step": 1,
+          "initial_value": 0,
+          "final_value": null,
+          "interaction_occurred": false,
+          "explicit_confirmation": false,
+          "submit_status": "skipped",
+          "change_count": 0,
+          "missing_reason": "skipped",
+          "item_id": "S-B02",
+          "item_version": "1.0.0",
+          "behavior_id": "B02",
+          "prompt_snapshot": "개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.",
+          "measurement_level": "ordered_bipolar_position",
+          "definition_snapshot": {
+            "item_id": "S-B02",
+            "item_version": "1.0.0",
+            "instructions_version": "1.0.0",
+            "type": "bipolar_slider",
+            "prompt": "개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.",
+            "behavior_id": "B02",
+            "left_anchor": {
+              "anchor_id": "personal-first",
+              "label": "개인 과제의 제약을 먼저 살핀다"
+            },
+            "right_anchor": {
+              "anchor_id": "team-first",
+              "label": "팀 과제의 제약을 먼저 살핀다"
+            },
+            "min": -6,
+            "max": 6,
+            "step": 1,
+            "initial_value": 0,
+            "time_limit_ms": 30000
+          }
+        },
+        "quality_flags": [],
+        "comparison_exclusion": "context_only_preference"
+      },
+      {
+        "record_id": "6fb3a19d-c280-4ef2-aad2-5b6ef4e582d5",
+        "record_version": "1.0.0",
+        "source_type": "survey",
+        "source_version": "1.0.0",
+        "user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+        "run_id": "5cc89481-0d2f-4916-b482-6f5d47057faf",
+        "attempt_id": "d7d35e44-d398-4e9d-a142-c1bb9940eb23",
+        "item_id": "R-UNMAPPED",
+        "item_version": "1.0.0",
+        "instructions_version": "1.0.0",
+        "presentation_id": "130aea92-f338-43a8-9dfe-099a165045fe",
+        "presentation_order": 6,
+        "status": "skipped",
+        "started_at": null,
+        "started_at_missing_reason": "client_start_time_not_collected",
+        "presented_at": null,
+        "presented_at_missing_reason": "definition_loaded_before_submission_without_server_presentation_event",
+        "completed_at": "2026-10-13T12:41:21.508733+00:00",
+        "context": {
+          "response_type": "top_k_rank",
+          "behavior_id": null,
+          "language": "ko-KR",
+          "time_limit_ms": 45000,
+          "submitted_elapsed_ms": null
+        },
+        "data": {
+          "candidate_set_id": "practice-values",
+          "candidate_set_version": "1.0.0",
+          "all_candidate_ids": [
+            "growth",
+            "stability",
+            "autonomy",
+            "helping",
+            "recognition"
+          ],
+          "candidate_snapshots": [
+            {
+              "option_id": "growth",
+              "label": "새로운 것을 배울 기회",
+              "version": "1.0.0"
+            },
+            {
+              "option_id": "stability",
+              "label": "예측 가능한 일정",
+              "version": "1.0.0"
+            },
+            {
+              "option_id": "autonomy",
+              "label": "스스로 정할 수 있는 범위",
+              "version": "1.0.0"
+            },
+            {
+              "option_id": "helping",
+              "label": "다른 사람을 도울 기회",
+              "version": "1.0.0"
+            },
+            {
+              "option_id": "recognition",
+              "label": "기여를 인정받을 기회",
+              "version": "1.0.0"
+            }
+          ],
+          "display_order": [
+            "growth",
+            "stability",
+            "autonomy",
+            "helping",
+            "recognition"
+          ],
+          "requested_k": 3,
+          "ranked_selection": [],
+          "submitted_count": 0,
+          "selection_events": [],
+          "unselected_ids": [
+            "growth",
+            "stability",
+            "autonomy",
+            "helping",
+            "recognition"
+          ],
+          "missing_reason": "skipped",
+          "item_id": "R-UNMAPPED",
+          "item_version": "1.0.0",
+          "behavior_id": null,
+          "prompt_snapshot": "연습 환경을 고를 때 중요한 항목 세 개를 순서대로 선택해 주세요.",
+          "measurement_level": "ordinal",
+          "definition_snapshot": {
+            "item_id": "R-UNMAPPED",
+            "item_version": "1.0.0",
+            "instructions_version": "1.0.0",
+            "type": "top_k_rank",
+            "prompt": "연습 환경을 고를 때 중요한 항목 세 개를 순서대로 선택해 주세요.",
+            "behavior_id": null,
+            "candidate_set_id": "practice-values",
+            "candidate_set_version": "1.0.0",
+            "requested_k": 3,
+            "candidates": [
+              {
+                "option_id": "growth",
+                "label": "새로운 것을 배울 기회",
+                "version": "1.0.0"
+              },
+              {
+                "option_id": "stability",
+                "label": "예측 가능한 일정",
+                "version": "1.0.0"
+              },
+              {
+                "option_id": "autonomy",
+                "label": "스스로 정할 수 있는 범위",
+                "version": "1.0.0"
+              },
+              {
+                "option_id": "helping",
+                "label": "다른 사람을 도울 기회",
+                "version": "1.0.0"
+              },
+              {
+                "option_id": "recognition",
+                "label": "기여를 인정받을 기회",
+                "version": "1.0.0"
+              }
+            ],
+            "display_order": [
+              "growth",
+              "stability",
+              "autonomy",
+              "helping",
+              "recognition"
+            ],
+            "time_limit_ms": 45000
+          }
+        },
+        "quality_flags": [],
+        "comparison_exclusion": "R-UNMAPPED"
+      }
+    ],
+    "rule_games": [
+      {
+        "game_id": "rule-rsp",
+        "game_version": "1.0.0",
+        "state_version": "1.0.0",
+        "mapping_status": "unmapped",
+        "comparison_status": "not_comparable",
+        "rounds": [
+          {
+            "round_id": "0887c94d-7469-4b5c-99f4-ecb301cc6415",
+            "round_index": 1,
+            "status": "completed",
+            "score": 20,
+            "correct_count": 2,
+            "incorrect_count": 0,
+            "quality_flags": [],
+            "event_refs": [
+              "9cbb6823-2dd8-431a-9720-eb915d15d499",
+              "7517a3ef-6e79-4d02-9a90-c422cab6f34e",
+              "21b13423-ced7-41c5-a3d0-e196762e4647",
+              "5ea0a265-52ce-4210-868a-f08151f3e393",
+              "7891acf5-f7cb-4faf-99a7-32cb8adca2c8",
+              "33a459e8-6699-4f10-bb59-8e2902380e86",
+              "aa782733-d443-41fd-b12a-70d807508732",
+              "1d229f13-5e1c-4ac2-a6d3-ba4db78636a6",
+              "30122b7b-ed80-4474-bcda-6f9962a16166"
+            ]
+          },
+          {
+            "round_id": "e2f3e47c-f978-45f4-8f73-8158328b3cc6",
+            "round_index": 2,
+            "status": "completed",
+            "score": 20,
+            "correct_count": 2,
+            "incorrect_count": 0,
+            "quality_flags": [],
+            "event_refs": [
+              "609303ef-c3ac-4505-9b1f-8a9924a8dca0",
+              "562b9d56-c96d-4334-9be8-652066124e4a",
+              "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6",
+              "c8c10621-ca6b-49f5-9f3d-6b8d55482b8f",
+              "c9ee0bdc-c611-44db-9c64-c77e35fa5224",
+              "f8247dde-d350-4c6a-9087-0caf8130b1e2",
+              "31781677-fa85-4097-a578-07174dd04e51",
+              "79d84e98-6218-49fe-9936-5cb6b628aa43",
+              "d11fe654-16d9-4fe1-ab1d-a42e58d5969b"
+            ]
+          },
+          {
+            "round_id": "bba746c1-029b-4283-afd4-ce306df71d29",
+            "round_index": 3,
+            "status": "completed",
+            "score": 20,
+            "correct_count": 2,
+            "incorrect_count": 0,
+            "quality_flags": [],
+            "event_refs": [
+              "c554f69e-866d-4a37-a348-a016da4c8f2e",
+              "919dd760-bc55-47dc-9c1e-cf00445045c4",
+              "059fc6ea-c1d0-448b-afc6-62e4a2e97759",
+              "5a1d899d-3b3b-49d2-909c-b0864f037527",
+              "010ca776-a1ed-4169-9449-9d8a7942eaa6",
+              "7cdde852-4073-46a9-91fb-cdf864575038",
+              "160a8bc4-515b-4289-ac6c-f42da455258a",
+              "58741b40-f9cf-446a-b329-9e8d81a8ae92",
+              "abb55fe6-921c-4a06-aa50-7422a01bd37d"
+            ]
+          }
+        ],
+        "limitations": [
+          "라운드 점수는 규칙 게임 결과이며 합격·성향·행동 점수가 아닙니다."
+        ]
+      },
+      {
+        "game_id": "rule-card",
+        "game_version": "1.0.0",
+        "state_version": "1.0.0",
+        "mapping_status": "unmapped",
+        "comparison_status": "not_comparable",
+        "rounds": [
+          {
+            "round_id": "9ff68a60-bb6d-4c2e-a6d4-5c34a53fc182",
+            "round_index": 1,
+            "status": "completed",
+            "score": 10,
+            "correct_count": 1,
+            "incorrect_count": 1,
+            "quality_flags": [],
+            "event_refs": [
+              "187b5c82-746f-46fe-87f4-63d3a5f5406d",
+              "a82454d2-5ef6-43cd-a214-64e674f7a62f",
+              "073acb41-8d3c-40dc-b6f7-2d0f82ce1def",
+              "f5bef18e-a77a-41c9-9fee-026d9392385c",
+              "7503e99b-d82b-42bc-bbe9-5e93dbf56add",
+              "52b31007-6de9-4980-9c79-34beecde321e",
+              "8793ca7b-9ca2-428a-a7dd-17e12bc0075f"
+            ]
+          },
+          {
+            "round_id": "b747ca7f-0092-4e33-bf01-22afd95c560e",
+            "round_index": 2,
+            "status": "completed",
+            "score": 0,
+            "correct_count": 0,
+            "incorrect_count": 2,
+            "quality_flags": [],
+            "event_refs": [
+              "e67eca12-ceb5-4681-8724-48bc6318871a",
+              "c3602fd9-1b51-4e18-8b88-ae9f8704ce90",
+              "351b8801-b6f0-4f46-a7a8-20b11a18e395",
+              "da4b3603-272a-46c0-abb2-acd4da35be44",
+              "f6ef26bd-d9fb-400d-bcf0-e5e302d8e6d9",
+              "791d2b13-097e-467c-ae82-d208a12dac84",
+              "8de06fa8-121a-4db7-afa2-d7c256a51a7b"
+            ]
+          },
+          {
+            "round_id": "d8dc0cf2-8ea3-4215-a877-11d0e7268567",
+            "round_index": 3,
+            "status": "completed",
+            "score": 10,
+            "correct_count": 1,
+            "incorrect_count": 1,
+            "quality_flags": [],
+            "event_refs": [
+              "4bbf08e8-16bb-45cc-b53d-05f146d24538",
+              "f777cdde-be92-42a1-a6f2-b0f4451e27f2",
+              "1de63c7b-ed29-4693-a273-a4f933d22f38",
+              "c4464692-2d14-405b-8c1c-ec25d0c835ab",
+              "cf99ec52-9895-4cb9-8196-307dbb3f4ec5",
+              "aebe0151-e68b-401a-b34d-bbe5e5a741a5",
+              "e13c32a3-c986-48c7-9e6c-ac061a997db8"
+            ]
+          }
+        ],
+        "limitations": [
+          "라운드 점수는 규칙 게임 결과이며 합격·성향·행동 점수가 아닙니다."
+        ]
+      }
+    ],
+    "source_report_id": "7aff7e0c-7e6e-4b7f-b029-49ac7fca9e2a",
+    "status": "finalized",
+    "finalized_at": "2026-10-13T12:41:22.950246+00:00",
+    "completion_policy_version": "rule-games-text-1.0.0",
+    "evidence_linkage": {
+      "linkage_id": "link-ab3c191e3bc6a03e872c87e9",
+      "version": "evidence-linkage-1.0.0",
+      "source_report_id": "7aff7e0c-7e6e-4b7f-b029-49ac7fca9e2a",
+      "input_snapshot": {
+        "run_id": "5cc89481-0d2f-4916-b482-6f5d47057faf",
+        "user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+        "attempt_id": "d7d35e44-d398-4e9d-a142-c1bb9940eb23",
+        "baseline_input": {
+          "generation": 0,
+          "definitions_version": "1.0.0",
+          "question_refs": [
+            {
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0"
+            },
+            {
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0"
+            },
+            {
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0"
+            }
+          ],
+          "answer_refs": [
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "status": "asked_answered"
+            },
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "status": "skipped"
+            },
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "status": "skipped"
+            }
+          ],
+          "survey_record_refs": [
+            {
+              "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+              "record_version": "1.0.0",
+              "source_version": "1.0.0",
+              "status": "submitted"
+            },
+            {
+              "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+              "record_version": "1.0.0",
+              "source_version": "1.0.0",
+              "status": "skipped"
+            },
+            {
+              "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+              "record_version": "1.0.0",
+              "source_version": "1.0.0",
+              "status": "skipped"
+            },
+            {
+              "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+              "record_version": "1.0.0",
+              "source_version": "1.0.0",
+              "status": "skipped"
+            },
+            {
+              "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+              "record_version": "1.0.0",
+              "source_version": "1.0.0",
+              "status": "skipped"
+            },
+            {
+              "record_id": "6fb3a19d-c280-4ef2-aad2-5b6ef4e582d5",
+              "record_version": "1.0.0",
+              "source_version": "1.0.0",
+              "status": "skipped"
+            }
+          ],
+          "resource_game": {
+            "game_id": "resource-bridge",
+            "game_version": "1.0.0",
+            "state_version": 0
+          },
+          "rule_games": [
+            {
+              "game_id": "rule-rsp",
+              "game_version": "1.0.0",
+              "state_version": "1.0.0",
+              "content_digest": "5382e4ff5f4f2505b2430680cd3bedc677b980cb8ef56ae80520035511536dae"
+            },
+            {
+              "game_id": "rule-card",
+              "game_version": "1.0.0",
+              "state_version": "1.0.0",
+              "content_digest": "0e7c069ffe0d30a56d04bb8570906ef566da3b830aedd4cd75e3f0b854d2c957"
+            }
+          ]
+        },
+        "source_report_id": "7aff7e0c-7e6e-4b7f-b029-49ac7fca9e2a",
+        "source_digest": "6fef196588fa8b8efd873e811450788705acfae28f4b9497627d157263ef9304"
+      },
+      "links": [
+        {
+          "behavior_id": "B01",
+          "behavior_name": "결정 전 정보 확인",
+          "survey_refs": [
+            {
+              "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+              "record_version": "1.0.0",
+              "item_id": "O-B01",
+              "item_version": "1.0.0",
+              "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+              "mapping_id": "map-survey-o-b01",
+              "mapping_version": "1.0.0",
+              "use": "comparison_allowed",
+              "response_snapshot": {
+                "selected_option_id": "agreement-6",
+                "selected_label_snapshot": "매우 그렇다",
+                "selected_position": 6,
+                "scale_id": "agreement-6",
+                "scale_version": "1.0.0",
+                "ordered_options_snapshot": [
+                  {
+                    "option_id": "agreement-1",
+                    "label": "전혀 그렇지 않다",
+                    "position": 1
+                  },
+                  {
+                    "option_id": "agreement-2",
+                    "label": "그렇지 않다",
+                    "position": 2
+                  },
+                  {
+                    "option_id": "agreement-3",
+                    "label": "그렇지 않은 편이다",
+                    "position": 3
+                  },
+                  {
+                    "option_id": "agreement-4",
+                    "label": "그런 편이다",
+                    "position": 4
+                  },
+                  {
+                    "option_id": "agreement-5",
+                    "label": "그렇다",
+                    "position": 5
+                  },
+                  {
+                    "option_id": "agreement-6",
+                    "label": "매우 그렇다",
+                    "position": 6
+                  }
+                ],
+                "missing_reason": null,
+                "item_id": "O-B01",
+                "item_version": "1.0.0",
+                "behavior_id": "B01",
+                "prompt_snapshot": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+                "measurement_level": "ordinal",
+                "definition_snapshot": {
+                  "item_id": "O-B01",
+                  "item_version": "1.0.0",
+                  "instructions_version": "1.0.0",
+                  "type": "ordinal_6",
+                  "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+                  "behavior_id": "B01",
+                  "scale_id": "agreement-6",
+                  "scale_version": "1.0.0",
+                  "ordered_options": [
+                    {
+                      "option_id": "agreement-1",
+                      "label": "전혀 그렇지 않다",
+                      "position": 1
+                    },
+                    {
+                      "option_id": "agreement-2",
+                      "label": "그렇지 않다",
+                      "position": 2
+                    },
+                    {
+                      "option_id": "agreement-3",
+                      "label": "그렇지 않은 편이다",
+                      "position": 3
+                    },
+                    {
+                      "option_id": "agreement-4",
+                      "label": "그런 편이다",
+                      "position": 4
+                    },
+                    {
+                      "option_id": "agreement-5",
+                      "label": "그렇다",
+                      "position": 5
+                    },
+                    {
+                      "option_id": "agreement-6",
+                      "label": "매우 그렇다",
+                      "position": 6
+                    }
+                  ],
+                  "time_limit_ms": 30000
+                }
+              },
+              "status": "submitted",
+              "perspective": "self",
+              "response_text": "매우 그렇다",
+              "missing_reason": null,
+              "comparison_eligible": true
+            },
+            {
+              "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+              "record_version": "1.0.0",
+              "item_id": "P-B01",
+              "item_version": "1.0.0",
+              "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+              "mapping_id": "map-survey-p-b01",
+              "mapping_version": "1.0.0",
+              "use": "comparison_allowed",
+              "response_snapshot": {
+                "pair_id": "pair-b01-self-imagined",
+                "respondent_user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+                "paired_item_version": "1.0.0",
+                "perspective_presentation_order": [
+                  "self",
+                  "imagined_others"
+                ],
+                "prior_response_visible": true,
+                "ordered_options_snapshot": [
+                  {
+                    "option_id": "agreement-1",
+                    "label": "전혀 그렇지 않다",
+                    "position": 1
+                  },
+                  {
+                    "option_id": "agreement-2",
+                    "label": "그렇지 않다",
+                    "position": 2
+                  },
+                  {
+                    "option_id": "agreement-3",
+                    "label": "그렇지 않은 편이다",
+                    "position": 3
+                  },
+                  {
+                    "option_id": "agreement-4",
+                    "label": "그런 편이다",
+                    "position": 4
+                  },
+                  {
+                    "option_id": "agreement-5",
+                    "label": "그렇다",
+                    "position": 5
+                  },
+                  {
+                    "option_id": "agreement-6",
+                    "label": "매우 그렇다",
+                    "position": 6
+                  }
+                ],
+                "self": {
+                  "perspective": "self",
+                  "status": "skipped",
+                  "missing_reason": "skipped"
+                },
+                "imagined_others": {
+                  "perspective": "imagined_others",
+                  "status": "skipped",
+                  "missing_reason": "skipped"
+                },
+                "item_id": "P-B01",
+                "item_version": "1.0.0",
+                "behavior_id": "B01",
+                "prompt_snapshot": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+                "measurement_level": "ordinal",
+                "definition_snapshot": {
+                  "item_id": "P-B01",
+                  "item_version": "1.0.0",
+                  "instructions_version": "1.0.0",
+                  "type": "paired_perspective",
+                  "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+                  "behavior_id": "B01",
+                  "pair_id": "pair-b01-self-imagined",
+                  "paired_item_version": "1.0.0",
+                  "scale_id": "agreement-6",
+                  "scale_version": "1.0.0",
+                  "ordered_options": [
+                    {
+                      "option_id": "agreement-1",
+                      "label": "전혀 그렇지 않다",
+                      "position": 1
+                    },
+                    {
+                      "option_id": "agreement-2",
+                      "label": "그렇지 않다",
+                      "position": 2
+                    },
+                    {
+                      "option_id": "agreement-3",
+                      "label": "그렇지 않은 편이다",
+                      "position": 3
+                    },
+                    {
+                      "option_id": "agreement-4",
+                      "label": "그런 편이다",
+                      "position": 4
+                    },
+                    {
+                      "option_id": "agreement-5",
+                      "label": "그렇다",
+                      "position": 5
+                    },
+                    {
+                      "option_id": "agreement-6",
+                      "label": "매우 그렇다",
+                      "position": 6
+                    }
+                  ],
+                  "perspective_presentation_order": [
+                    "self",
+                    "imagined_others"
+                  ],
+                  "prior_response_visible": true,
+                  "time_limit_ms": 45000
+                }
+              },
+              "status": "skipped",
+              "perspective": "self",
+              "response_text": null,
+              "missing_reason": "skipped",
+              "comparison_eligible": false
+            },
+            {
+              "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+              "record_version": "1.0.0",
+              "item_id": "P-B01",
+              "item_version": "1.0.0",
+              "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+              "mapping_id": "map-survey-p-b01",
+              "mapping_version": "1.0.0",
+              "use": "comparison_allowed",
+              "response_snapshot": {
+                "pair_id": "pair-b01-self-imagined",
+                "respondent_user_id": "7f84bc16-1373-4214-91c3-b490c001b913",
+                "paired_item_version": "1.0.0",
+                "perspective_presentation_order": [
+                  "self",
+                  "imagined_others"
+                ],
+                "prior_response_visible": true,
+                "ordered_options_snapshot": [
+                  {
+                    "option_id": "agreement-1",
+                    "label": "전혀 그렇지 않다",
+                    "position": 1
+                  },
+                  {
+                    "option_id": "agreement-2",
+                    "label": "그렇지 않다",
+                    "position": 2
+                  },
+                  {
+                    "option_id": "agreement-3",
+                    "label": "그렇지 않은 편이다",
+                    "position": 3
+                  },
+                  {
+                    "option_id": "agreement-4",
+                    "label": "그런 편이다",
+                    "position": 4
+                  },
+                  {
+                    "option_id": "agreement-5",
+                    "label": "그렇다",
+                    "position": 5
+                  },
+                  {
+                    "option_id": "agreement-6",
+                    "label": "매우 그렇다",
+                    "position": 6
+                  }
+                ],
+                "self": {
+                  "perspective": "self",
+                  "status": "skipped",
+                  "missing_reason": "skipped"
+                },
+                "imagined_others": {
+                  "perspective": "imagined_others",
+                  "status": "skipped",
+                  "missing_reason": "skipped"
+                },
+                "item_id": "P-B01",
+                "item_version": "1.0.0",
+                "behavior_id": "B01",
+                "prompt_snapshot": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+                "measurement_level": "ordinal",
+                "definition_snapshot": {
+                  "item_id": "P-B01",
+                  "item_version": "1.0.0",
+                  "instructions_version": "1.0.0",
+                  "type": "paired_perspective",
+                  "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+                  "behavior_id": "B01",
+                  "pair_id": "pair-b01-self-imagined",
+                  "paired_item_version": "1.0.0",
+                  "scale_id": "agreement-6",
+                  "scale_version": "1.0.0",
+                  "ordered_options": [
+                    {
+                      "option_id": "agreement-1",
+                      "label": "전혀 그렇지 않다",
+                      "position": 1
+                    },
+                    {
+                      "option_id": "agreement-2",
+                      "label": "그렇지 않다",
+                      "position": 2
+                    },
+                    {
+                      "option_id": "agreement-3",
+                      "label": "그렇지 않은 편이다",
+                      "position": 3
+                    },
+                    {
+                      "option_id": "agreement-4",
+                      "label": "그런 편이다",
+                      "position": 4
+                    },
+                    {
+                      "option_id": "agreement-5",
+                      "label": "그렇다",
+                      "position": 5
+                    },
+                    {
+                      "option_id": "agreement-6",
+                      "label": "매우 그렇다",
+                      "position": 6
+                    }
+                  ],
+                  "perspective_presentation_order": [
+                    "self",
+                    "imagined_others"
+                  ],
+                  "prior_response_visible": true,
+                  "time_limit_ms": 45000
+                }
+              },
+              "status": "skipped",
+              "perspective": "imagined_others",
+              "response_text": null,
+              "missing_reason": "skipped",
+              "comparison_eligible": false
+            }
+          ],
+          "interview_refs": [
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "criterion": "situation",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "criterion": "role",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "criterion": "other_information",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "criterion": "action",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "criterion": "reasoning",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "criterion": "result",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0",
+              "criterion": "learning",
+              "status": "unassessable",
+              "evidence_spans": []
+            }
+          ],
+          "comparison_status": "insufficient_evidence",
+          "exclusions": [],
+          "summary": "원본 응답과 경험 설명을 연결해 맥락과 이유를 추가 확인합니다. 일치·모순·능력 수준을 판정하지 않습니다.",
+          "limitations": [
+            "설문과 면접은 같은 사용자의 자기보고이며 독립된 진실 검증이 아닙니다.",
+            "규칙 게임은 해당 과제의 선택 기록이며 B01/B02/B03의 직접 측정이 아닙니다.",
+            "후속 답변은 공개된 근거를 참고한 조건부 자기보고입니다."
+          ],
+          "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b01"
+        },
+        {
+          "behavior_id": "B02",
+          "behavior_name": "제한 자원 배분",
+          "survey_refs": [
+            {
+              "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+              "record_version": "1.0.0",
+              "item_id": "O-B02",
+              "item_version": "1.0.0",
+              "prompt": "개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.",
+              "mapping_id": "map-survey-o-b02",
+              "mapping_version": "1.0.0",
+              "use": "comparison_allowed",
+              "response_snapshot": {
+                "selected_option_id": "agreement-3",
+                "selected_label_snapshot": "그렇지 않은 편이다",
+                "selected_position": 3,
+                "scale_id": "agreement-6",
+                "scale_version": "1.0.0",
+                "ordered_options_snapshot": [
+                  {
+                    "option_id": "agreement-1",
+                    "label": "전혀 그렇지 않다",
+                    "position": 1
+                  },
+                  {
+                    "option_id": "agreement-2",
+                    "label": "그렇지 않다",
+                    "position": 2
+                  },
+                  {
+                    "option_id": "agreement-3",
+                    "label": "그렇지 않은 편이다",
+                    "position": 3
+                  },
+                  {
+                    "option_id": "agreement-4",
+                    "label": "그런 편이다",
+                    "position": 4
+                  },
+                  {
+                    "option_id": "agreement-5",
+                    "label": "그렇다",
+                    "position": 5
+                  },
+                  {
+                    "option_id": "agreement-6",
+                    "label": "매우 그렇다",
+                    "position": 6
+                  }
+                ],
+                "missing_reason": null,
+                "item_id": "O-B02",
+                "item_version": "1.0.0",
+                "behavior_id": "B02",
+                "prompt_snapshot": "개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.",
+                "measurement_level": "ordinal",
+                "definition_snapshot": {
+                  "item_id": "O-B02",
+                  "item_version": "1.0.0",
+                  "instructions_version": "1.0.0",
+                  "type": "ordinal_6",
+                  "prompt": "개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.",
+                  "behavior_id": "B02",
+                  "scale_id": "agreement-6",
+                  "scale_version": "1.0.0",
+                  "ordered_options": [
+                    {
+                      "option_id": "agreement-1",
+                      "label": "전혀 그렇지 않다",
+                      "position": 1
+                    },
+                    {
+                      "option_id": "agreement-2",
+                      "label": "그렇지 않다",
+                      "position": 2
+                    },
+                    {
+                      "option_id": "agreement-3",
+                      "label": "그렇지 않은 편이다",
+                      "position": 3
+                    },
+                    {
+                      "option_id": "agreement-4",
+                      "label": "그런 편이다",
+                      "position": 4
+                    },
+                    {
+                      "option_id": "agreement-5",
+                      "label": "그렇다",
+                      "position": 5
+                    },
+                    {
+                      "option_id": "agreement-6",
+                      "label": "매우 그렇다",
+                      "position": 6
+                    }
+                  ],
+                  "time_limit_ms": 30000
+                }
+              },
+              "status": "skipped",
+              "perspective": "self",
+              "response_text": "그렇지 않은 편이다",
+              "missing_reason": null,
+              "comparison_eligible": false
+            },
+            {
+              "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+              "record_version": "1.0.0",
+              "item_id": "S-B02",
+              "item_version": "1.0.0",
+              "prompt": "개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.",
+              "mapping_id": "map-survey-s-b02",
+              "mapping_version": "1.0.0",
+              "use": "context_only",
+              "response_snapshot": {
+                "left_anchor_id": "personal-first",
+                "left_anchor_label": "개인 과제의 제약을 먼저 살핀다",
+                "right_anchor_id": "team-first",
+                "right_anchor_label": "팀 과제의 제약을 먼저 살핀다",
+                "min": -6,
+                "max": 6,
+                "step": 1,
+                "initial_value": 0,
+                "final_value": null,
+                "interaction_occurred": false,
+                "explicit_confirmation": false,
+                "submit_status": "skipped",
+                "change_count": 0,
+                "missing_reason": "skipped",
+                "item_id": "S-B02",
+                "item_version": "1.0.0",
+                "behavior_id": "B02",
+                "prompt_snapshot": "개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.",
+                "measurement_level": "ordered_bipolar_position",
+                "definition_snapshot": {
+                  "item_id": "S-B02",
+                  "item_version": "1.0.0",
+                  "instructions_version": "1.0.0",
+                  "type": "bipolar_slider",
+                  "prompt": "개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.",
+                  "behavior_id": "B02",
+                  "left_anchor": {
+                    "anchor_id": "personal-first",
+                    "label": "개인 과제의 제약을 먼저 살핀다"
+                  },
+                  "right_anchor": {
+                    "anchor_id": "team-first",
+                    "label": "팀 과제의 제약을 먼저 살핀다"
+                  },
+                  "min": -6,
+                  "max": 6,
+                  "step": 1,
+                  "initial_value": 0,
+                  "time_limit_ms": 30000
+                }
+              },
+              "status": "skipped",
+              "perspective": "self",
+              "response_text": null,
+              "missing_reason": "skipped",
+              "comparison_eligible": false
+            }
+          ],
+          "interview_refs": [
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "criterion": "situation",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "criterion": "role",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "criterion": "other_information",
+              "status": "not_asked",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "criterion": "action",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "criterion": "reasoning",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "criterion": "result",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0",
+              "criterion": "learning",
+              "status": "unassessable",
+              "evidence_spans": []
+            }
+          ],
+          "comparison_status": "insufficient_evidence",
+          "exclusions": [],
+          "summary": "원본 응답과 경험 설명을 연결해 맥락과 이유를 추가 확인합니다. 일치·모순·능력 수준을 판정하지 않습니다.",
+          "limitations": [
+            "설문과 면접은 같은 사용자의 자기보고이며 독립된 진실 검증이 아닙니다.",
+            "규칙 게임은 해당 과제의 선택 기록이며 B01/B02/B03의 직접 측정이 아닙니다.",
+            "후속 답변은 공개된 근거를 참고한 조건부 자기보고입니다."
+          ],
+          "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b02"
+        },
+        {
+          "behavior_id": "B03",
+          "behavior_name": "새 정보 뒤 선택 재검토",
+          "survey_refs": [
+            {
+              "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+              "record_version": "1.0.0",
+              "item_id": "O-B03",
+              "item_version": "1.0.0",
+              "prompt": "새 정보가 들어오면 처음 세운 계획을 다시 검토한다.",
+              "mapping_id": "map-survey-o-b03",
+              "mapping_version": "1.0.0",
+              "use": "comparison_allowed",
+              "response_snapshot": {
+                "selected_option_id": "agreement-3",
+                "selected_label_snapshot": "그렇지 않은 편이다",
+                "selected_position": 3,
+                "scale_id": "agreement-6",
+                "scale_version": "1.0.0",
+                "ordered_options_snapshot": [
+                  {
+                    "option_id": "agreement-1",
+                    "label": "전혀 그렇지 않다",
+                    "position": 1
+                  },
+                  {
+                    "option_id": "agreement-2",
+                    "label": "그렇지 않다",
+                    "position": 2
+                  },
+                  {
+                    "option_id": "agreement-3",
+                    "label": "그렇지 않은 편이다",
+                    "position": 3
+                  },
+                  {
+                    "option_id": "agreement-4",
+                    "label": "그런 편이다",
+                    "position": 4
+                  },
+                  {
+                    "option_id": "agreement-5",
+                    "label": "그렇다",
+                    "position": 5
+                  },
+                  {
+                    "option_id": "agreement-6",
+                    "label": "매우 그렇다",
+                    "position": 6
+                  }
+                ],
+                "missing_reason": null,
+                "item_id": "O-B03",
+                "item_version": "1.0.0",
+                "behavior_id": "B03",
+                "prompt_snapshot": "새 정보가 들어오면 처음 세운 계획을 다시 검토한다.",
+                "measurement_level": "ordinal",
+                "definition_snapshot": {
+                  "item_id": "O-B03",
+                  "item_version": "1.0.0",
+                  "instructions_version": "1.0.0",
+                  "type": "ordinal_6",
+                  "prompt": "새 정보가 들어오면 처음 세운 계획을 다시 검토한다.",
+                  "behavior_id": "B03",
+                  "scale_id": "agreement-6",
+                  "scale_version": "1.0.0",
+                  "ordered_options": [
+                    {
+                      "option_id": "agreement-1",
+                      "label": "전혀 그렇지 않다",
+                      "position": 1
+                    },
+                    {
+                      "option_id": "agreement-2",
+                      "label": "그렇지 않다",
+                      "position": 2
+                    },
+                    {
+                      "option_id": "agreement-3",
+                      "label": "그렇지 않은 편이다",
+                      "position": 3
+                    },
+                    {
+                      "option_id": "agreement-4",
+                      "label": "그런 편이다",
+                      "position": 4
+                    },
+                    {
+                      "option_id": "agreement-5",
+                      "label": "그렇다",
+                      "position": 5
+                    },
+                    {
+                      "option_id": "agreement-6",
+                      "label": "매우 그렇다",
+                      "position": 6
+                    }
+                  ],
+                  "time_limit_ms": 30000
+                }
+              },
+              "status": "skipped",
+              "perspective": "self",
+              "response_text": "그렇지 않은 편이다",
+              "missing_reason": null,
+              "comparison_eligible": false
+            }
+          ],
+          "interview_refs": [
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "criterion": "situation",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "criterion": "role",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "criterion": "other_information",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "criterion": "action",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "criterion": "reasoning",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "criterion": "result",
+              "status": "unassessable",
+              "evidence_spans": []
+            },
+            {
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0",
+              "criterion": "learning",
+              "status": "unassessable",
+              "evidence_spans": []
+            }
+          ],
+          "comparison_status": "insufficient_evidence",
+          "exclusions": [],
+          "summary": "원본 응답과 경험 설명을 연결해 맥락과 이유를 추가 확인합니다. 일치·모순·능력 수준을 판정하지 않습니다.",
+          "limitations": [
+            "설문과 면접은 같은 사용자의 자기보고이며 독립된 진실 검증이 아닙니다.",
+            "규칙 게임은 해당 과제의 선택 기록이며 B01/B02/B03의 직접 측정이 아닙니다.",
+            "후속 답변은 공개된 근거를 참고한 조건부 자기보고입니다."
+          ],
+          "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b03"
+        }
+      ],
+      "observations": [
+        {
+          "game_type": "rsp",
+          "game_id": "rule-rsp",
+          "game_version": "1.0.0",
+          "round_id": "0887c94d-7469-4b5c-99f4-ecb301cc6415",
+          "round_index": 1,
+          "status": "completed",
+          "mapping_status": "unmapped",
+          "comparison_status": "not_comparable",
+          "before": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "21b13423-ced7-41c5-a3d0-e196762e4647"
+            ]
+          },
+          "after": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "aa782733-d443-41fd-b12a-70d807508732"
+            ]
+          },
+          "overlap": {
+            "new_only": 1,
+            "old_only": 0,
+            "both": 0,
+            "neither": 0
+          },
+          "response_details": [
+            {
+              "event_id": "21b13423-ced7-41c5-a3d0-e196762e4647",
+              "sequence_no": 3,
+              "stimulus": {
+                "stimulus_id": "3fb6d813-5cbd-409b-b950-755fa5ce1f5a",
+                "opponent_hand": "scissors"
+              },
+              "choice": "rock",
+              "rule": {
+                "rule_id": "rsp-win",
+                "label": "상대에게 이기는 손을 선택"
+              },
+              "correct": true,
+              "phase": "before"
+            },
+            {
+              "event_id": "aa782733-d443-41fd-b12a-70d807508732",
+              "sequence_no": 7,
+              "stimulus": {
+                "stimulus_id": "dd895224-9512-4c2a-932b-c211474f8129",
+                "opponent_hand": "paper"
+              },
+              "choice": "rock",
+              "rule": {
+                "rule_id": "rsp-lose",
+                "label": "상대에게 지는 손을 선택"
+              },
+              "correct": true,
+              "phase": "after",
+              "old_rule_correct": false,
+              "rule_overlap": "new_only"
+            }
+          ],
+          "disclosure_status": "recorded",
+          "missing_reason": null,
+          "rule_snapshot": {
+            "initial": {
+              "rule_id": "rsp-win",
+              "label": "상대에게 이기는 손을 선택"
+            },
+            "changed": {
+              "rule_id": "rsp-lose",
+              "label": "상대에게 지는 손을 선택"
+            }
+          },
+          "event_refs": [
+            "7891acf5-f7cb-4faf-99a7-32cb8adca2c8",
+            "21b13423-ced7-41c5-a3d0-e196762e4647",
+            "aa782733-d443-41fd-b12a-70d807508732"
+          ],
+          "limitations": [
+            "분모는 서버가 수락한 응답 수입니다. 고정된 관찰 기회 수가 아닙니다.",
+            "서버 공개 기록은 실제 읽기·이해를 보증하지 않습니다.",
+            "두 규칙에 모두 맞는 선택은 변경 규칙 사용을 구분하지 못합니다.",
+            "정오답이나 전후 차이로 적응력·동기·고집을 판단하지 않습니다."
+          ]
+        },
+        {
+          "game_type": "rsp",
+          "game_id": "rule-rsp",
+          "game_version": "1.0.0",
+          "round_id": "e2f3e47c-f978-45f4-8f73-8158328b3cc6",
+          "round_index": 2,
+          "status": "completed",
+          "mapping_status": "unmapped",
+          "comparison_status": "not_comparable",
+          "before": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6"
+            ]
+          },
+          "after": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "31781677-fa85-4097-a578-07174dd04e51"
+            ]
+          },
+          "overlap": {
+            "new_only": 1,
+            "old_only": 0,
+            "both": 0,
+            "neither": 0
+          },
+          "response_details": [
+            {
+              "event_id": "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6",
+              "sequence_no": 3,
+              "stimulus": {
+                "stimulus_id": "3b389005-f1e7-4c03-aa25-9f334cdd1506",
+                "opponent_hand": "scissors"
+              },
+              "choice": "paper",
+              "rule": {
+                "rule_id": "rsp-lose",
+                "label": "상대에게 지는 손을 선택"
+              },
+              "correct": true,
+              "phase": "before"
+            },
+            {
+              "event_id": "31781677-fa85-4097-a578-07174dd04e51",
+              "sequence_no": 7,
+              "stimulus": {
+                "stimulus_id": "771ef385-c13d-4abe-83b6-a22dd7125b05",
+                "opponent_hand": "paper"
+              },
+              "choice": "paper",
+              "rule": {
+                "rule_id": "rsp-draw",
+                "label": "상대와 같은 손을 선택"
+              },
+              "correct": true,
+              "phase": "after",
+              "old_rule_correct": false,
+              "rule_overlap": "new_only"
+            }
+          ],
+          "disclosure_status": "recorded",
+          "missing_reason": null,
+          "rule_snapshot": {
+            "initial": {
+              "rule_id": "rsp-lose",
+              "label": "상대에게 지는 손을 선택"
+            },
+            "changed": {
+              "rule_id": "rsp-draw",
+              "label": "상대와 같은 손을 선택"
+            }
+          },
+          "event_refs": [
+            "c9ee0bdc-c611-44db-9c64-c77e35fa5224",
+            "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6",
+            "31781677-fa85-4097-a578-07174dd04e51"
+          ],
+          "limitations": [
+            "분모는 서버가 수락한 응답 수입니다. 고정된 관찰 기회 수가 아닙니다.",
+            "서버 공개 기록은 실제 읽기·이해를 보증하지 않습니다.",
+            "두 규칙에 모두 맞는 선택은 변경 규칙 사용을 구분하지 못합니다.",
+            "정오답이나 전후 차이로 적응력·동기·고집을 판단하지 않습니다."
+          ]
+        },
+        {
+          "game_type": "rsp",
+          "game_id": "rule-rsp",
+          "game_version": "1.0.0",
+          "round_id": "bba746c1-029b-4283-afd4-ce306df71d29",
+          "round_index": 3,
+          "status": "completed",
+          "mapping_status": "unmapped",
+          "comparison_status": "not_comparable",
+          "before": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "059fc6ea-c1d0-448b-afc6-62e4a2e97759"
+            ]
+          },
+          "after": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "160a8bc4-515b-4289-ac6c-f42da455258a"
+            ]
+          },
+          "overlap": {
+            "new_only": 1,
+            "old_only": 0,
+            "both": 0,
+            "neither": 0
+          },
+          "response_details": [
+            {
+              "event_id": "059fc6ea-c1d0-448b-afc6-62e4a2e97759",
+              "sequence_no": 3,
+              "stimulus": {
+                "stimulus_id": "609a057e-38b1-428f-ab92-400da8d41adb",
+                "opponent_hand": "paper"
+              },
+              "choice": "paper",
+              "rule": {
+                "rule_id": "rsp-draw",
+                "label": "상대와 같은 손을 선택"
+              },
+              "correct": true,
+              "phase": "before"
+            },
+            {
+              "event_id": "160a8bc4-515b-4289-ac6c-f42da455258a",
+              "sequence_no": 7,
+              "stimulus": {
+                "stimulus_id": "e43add63-649e-4584-b3a5-4ccccb24ccf1",
+                "opponent_hand": "paper"
+              },
+              "choice": "scissors",
+              "rule": {
+                "rule_id": "rsp-win",
+                "label": "상대에게 이기는 손을 선택"
+              },
+              "correct": true,
+              "phase": "after",
+              "old_rule_correct": false,
+              "rule_overlap": "new_only"
+            }
+          ],
+          "disclosure_status": "recorded",
+          "missing_reason": null,
+          "rule_snapshot": {
+            "initial": {
+              "rule_id": "rsp-draw",
+              "label": "상대와 같은 손을 선택"
+            },
+            "changed": {
+              "rule_id": "rsp-win",
+              "label": "상대에게 이기는 손을 선택"
+            }
+          },
+          "event_refs": [
+            "010ca776-a1ed-4169-9449-9d8a7942eaa6",
+            "059fc6ea-c1d0-448b-afc6-62e4a2e97759",
+            "160a8bc4-515b-4289-ac6c-f42da455258a"
+          ],
+          "limitations": [
+            "분모는 서버가 수락한 응답 수입니다. 고정된 관찰 기회 수가 아닙니다.",
+            "서버 공개 기록은 실제 읽기·이해를 보증하지 않습니다.",
+            "두 규칙에 모두 맞는 선택은 변경 규칙 사용을 구분하지 못합니다.",
+            "정오답이나 전후 차이로 적응력·동기·고집을 판단하지 않습니다."
+          ]
+        },
+        {
+          "game_type": "card",
+          "game_id": "rule-card",
+          "game_version": "1.0.0",
+          "round_id": "9ff68a60-bb6d-4c2e-a6d4-5c34a53fc182",
+          "round_index": 1,
+          "status": "completed",
+          "mapping_status": "unmapped",
+          "comparison_status": "not_comparable",
+          "before": {
+            "accepted_count": 1,
+            "correct_count": 0,
+            "event_refs": [
+              "073acb41-8d3c-40dc-b6f7-2d0f82ce1def"
+            ]
+          },
+          "after": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "52b31007-6de9-4980-9c79-34beecde321e"
+            ]
+          },
+          "overlap": {
+            "new_only": 1,
+            "old_only": 0,
+            "both": 0,
+            "neither": 0
+          },
+          "response_details": [
+            {
+              "event_id": "073acb41-8d3c-40dc-b6f7-2d0f82ce1def",
+              "sequence_no": 3,
+              "stimulus": {
+                "stimulus_id": "1d6f7671-b985-461a-b7f8-1bfc3576fc08",
+                "cards": [
+                  {
+                    "card_id": "8522c18f-93d1-48ad-814c-9a02a2a88f68",
+                    "value": 11
+                  },
+                  {
+                    "card_id": "cb6291fa-f30f-4dfb-9a07-9e9801f9658a",
+                    "value": 12
+                  },
+                  {
+                    "card_id": "cb194547-cfc6-4328-b0d5-1e1e9834dd5d",
+                    "value": 4
+                  },
+                  {
+                    "card_id": "3670a84e-dca3-49c9-bd60-023c66a77d4c",
+                    "value": 9
+                  },
+                  {
+                    "card_id": "23b11065-b1d1-4dae-bd3a-e5107133d51e",
+                    "value": 7
+                  },
+                  {
+                    "card_id": "a050bfa4-c1ce-4de4-99ef-e21bb728117b",
+                    "value": 6
+                  },
+                  {
+                    "card_id": "bfc77efa-9218-4b16-9cab-3e822e860972",
+                    "value": 3
+                  },
+                  {
+                    "card_id": "aa032411-d5a7-4466-9c1e-60326beef3ea",
+                    "value": 2
+                  }
+                ],
+                "selected_card_ids": []
+              },
+              "choice": "8522c18f-93d1-48ad-814c-9a02a2a88f68",
+              "rule": {
+                "rule_id": "card-even",
+                "label": "짝수 카드를 선택"
+              },
+              "correct": false,
+              "phase": "before"
+            },
+            {
+              "event_id": "52b31007-6de9-4980-9c79-34beecde321e",
+              "sequence_no": 6,
+              "stimulus": {
+                "stimulus_id": "5400d410-f872-45fa-9eb2-beab41ca571c",
+                "cards": [
+                  {
+                    "card_id": "00b216b0-ac54-4204-8617-2146d6a1d541",
+                    "value": 9
+                  },
+                  {
+                    "card_id": "bf812b55-0d41-41b5-a27d-fd7598006f75",
+                    "value": 8
+                  },
+                  {
+                    "card_id": "f612adfd-4da2-4834-b1ce-02be5655c544",
+                    "value": 4
+                  },
+                  {
+                    "card_id": "8ba6dfb7-f929-4193-9a27-52bcf4b07b06",
+                    "value": 3
+                  },
+                  {
+                    "card_id": "6984d7a4-6574-484c-a9d1-8a59f2fda9a9",
+                    "value": 7
+                  },
+                  {
+                    "card_id": "4a0ad56e-7e28-4746-ae14-59289ec5a880",
+                    "value": 12
+                  },
+                  {
+                    "card_id": "3ca24b56-4a35-44e9-acd3-f056d05e3ec2",
+                    "value": 11
+                  },
+                  {
+                    "card_id": "7b310b38-1bca-46d5-99c6-c1d8881e7a57",
+                    "value": 10
+                  }
+                ],
+                "selected_card_ids": []
+              },
+              "choice": "00b216b0-ac54-4204-8617-2146d6a1d541",
+              "rule": {
+                "rule_id": "card-multiple-3",
+                "label": "3의 배수 카드를 선택"
+              },
+              "correct": true,
+              "phase": "after",
+              "old_rule_correct": false,
+              "rule_overlap": "new_only"
+            }
+          ],
+          "disclosure_status": "recorded",
+          "missing_reason": null,
+          "rule_snapshot": {
+            "initial": {
+              "rule_id": "card-even",
+              "label": "짝수 카드를 선택"
+            },
+            "changed": {
+              "rule_id": "card-multiple-3",
+              "label": "3의 배수 카드를 선택"
+            }
+          },
+          "event_refs": [
+            "f5bef18e-a77a-41c9-9fee-026d9392385c",
+            "073acb41-8d3c-40dc-b6f7-2d0f82ce1def",
+            "52b31007-6de9-4980-9c79-34beecde321e"
+          ],
+          "limitations": [
+            "분모는 서버가 수락한 응답 수입니다. 고정된 관찰 기회 수가 아닙니다.",
+            "서버 공개 기록은 실제 읽기·이해를 보증하지 않습니다.",
+            "두 규칙에 모두 맞는 선택은 변경 규칙 사용을 구분하지 못합니다.",
+            "정오답이나 전후 차이로 적응력·동기·고집을 판단하지 않습니다."
+          ]
+        },
+        {
+          "game_type": "card",
+          "game_id": "rule-card",
+          "game_version": "1.0.0",
+          "round_id": "b747ca7f-0092-4e33-bf01-22afd95c560e",
+          "round_index": 2,
+          "status": "completed",
+          "mapping_status": "unmapped",
+          "comparison_status": "not_comparable",
+          "before": {
+            "accepted_count": 1,
+            "correct_count": 0,
+            "event_refs": [
+              "351b8801-b6f0-4f46-a7a8-20b11a18e395"
+            ]
+          },
+          "after": {
+            "accepted_count": 1,
+            "correct_count": 0,
+            "event_refs": [
+              "791d2b13-097e-467c-ae82-d208a12dac84"
+            ]
+          },
+          "overlap": {
+            "new_only": 0,
+            "old_only": 0,
+            "both": 0,
+            "neither": 1
+          },
+          "response_details": [
+            {
+              "event_id": "351b8801-b6f0-4f46-a7a8-20b11a18e395",
+              "sequence_no": 3,
+              "stimulus": {
+                "stimulus_id": "1490cb2e-eed3-4c78-a9b9-70817c6cdbf9",
+                "cards": [
+                  {
+                    "card_id": "1188fd2d-7f3f-4838-9576-9c32ae8d80f9",
+                    "value": 7
+                  },
+                  {
+                    "card_id": "ef62b350-0ad8-497c-bd89-5dcecfbe7ecd",
+                    "value": 6
+                  },
+                  {
+                    "card_id": "9917e0b5-2757-42c7-aeb0-0548346a9457",
+                    "value": 5
+                  },
+                  {
+                    "card_id": "21bedbee-e3e1-4883-b3c4-e94d4441f9eb",
+                    "value": 8
+                  },
+                  {
+                    "card_id": "57e78e6e-b733-4611-ab68-470e154204e0",
+                    "value": 12
+                  },
+                  {
+                    "card_id": "20c5f428-4bae-440f-bab3-5c72e5fb9a54",
+                    "value": 9
+                  },
+                  {
+                    "card_id": "fe0f0b16-30b1-480e-bcb6-e0ea63b2e05c",
+                    "value": 10
+                  },
+                  {
+                    "card_id": "c4297844-e9d7-44fe-baa0-4762ea06fba1",
+                    "value": 1
+                  }
+                ],
+                "selected_card_ids": []
+              },
+              "choice": "1188fd2d-7f3f-4838-9576-9c32ae8d80f9",
+              "rule": {
+                "rule_id": "card-multiple-3",
+                "label": "3의 배수 카드를 선택"
+              },
+              "correct": false,
+              "phase": "before"
+            },
+            {
+              "event_id": "791d2b13-097e-467c-ae82-d208a12dac84",
+              "sequence_no": 6,
+              "stimulus": {
+                "stimulus_id": "432ec715-f7e9-4913-a634-a15cb073ef9e",
+                "cards": [
+                  {
+                    "card_id": "356abe79-a2a2-4989-ae3d-7d73e9c4ec76",
+                    "value": 2
+                  },
+                  {
+                    "card_id": "491fdffd-d8ee-4771-8890-79c24f25265d",
+                    "value": 4
+                  },
+                  {
+                    "card_id": "1c62eff4-a39b-4874-9670-a4b0682c06ac",
+                    "value": 1
+                  },
+                  {
+                    "card_id": "2c6c1bce-d0f5-4138-9d44-f8e6565745b1",
+                    "value": 9
+                  },
+                  {
+                    "card_id": "ad3b7a4b-77f2-4a43-9ac9-e3896e85eeab",
+                    "value": 8
+                  },
+                  {
+                    "card_id": "9b308da8-1ae7-4d8e-8764-9d08f993e0c3",
+                    "value": 6
+                  },
+                  {
+                    "card_id": "7b7b85e0-50bc-4349-a288-09dbf419c64b",
+                    "value": 5
+                  },
+                  {
+                    "card_id": "06bf90f2-6275-4a94-b3ab-6d1e9668ebda",
+                    "value": 10
+                  }
+                ],
+                "selected_card_ids": []
+              },
+              "choice": "356abe79-a2a2-4989-ae3d-7d73e9c4ec76",
+              "rule": {
+                "rule_id": "card-at-least-7",
+                "label": "7 이상 카드를 선택"
+              },
+              "correct": false,
+              "phase": "after",
+              "old_rule_correct": false,
+              "rule_overlap": "neither"
+            }
+          ],
+          "disclosure_status": "recorded",
+          "missing_reason": null,
+          "rule_snapshot": {
+            "initial": {
+              "rule_id": "card-multiple-3",
+              "label": "3의 배수 카드를 선택"
+            },
+            "changed": {
+              "rule_id": "card-at-least-7",
+              "label": "7 이상 카드를 선택"
+            }
+          },
+          "event_refs": [
+            "da4b3603-272a-46c0-abb2-acd4da35be44",
+            "351b8801-b6f0-4f46-a7a8-20b11a18e395",
+            "791d2b13-097e-467c-ae82-d208a12dac84"
+          ],
+          "limitations": [
+            "분모는 서버가 수락한 응답 수입니다. 고정된 관찰 기회 수가 아닙니다.",
+            "서버 공개 기록은 실제 읽기·이해를 보증하지 않습니다.",
+            "두 규칙에 모두 맞는 선택은 변경 규칙 사용을 구분하지 못합니다.",
+            "정오답이나 전후 차이로 적응력·동기·고집을 판단하지 않습니다."
+          ]
+        },
+        {
+          "game_type": "card",
+          "game_id": "rule-card",
+          "game_version": "1.0.0",
+          "round_id": "d8dc0cf2-8ea3-4215-a877-11d0e7268567",
+          "round_index": 3,
+          "status": "completed",
+          "mapping_status": "unmapped",
+          "comparison_status": "not_comparable",
+          "before": {
+            "accepted_count": 1,
+            "correct_count": 0,
+            "event_refs": [
+              "1de63c7b-ed29-4693-a273-a4f933d22f38"
+            ]
+          },
+          "after": {
+            "accepted_count": 1,
+            "correct_count": 1,
+            "event_refs": [
+              "aebe0151-e68b-401a-b34d-bbe5e5a741a5"
+            ]
+          },
+          "overlap": {
+            "new_only": 0,
+            "old_only": 0,
+            "both": 1,
+            "neither": 0
+          },
+          "response_details": [
+            {
+              "event_id": "1de63c7b-ed29-4693-a273-a4f933d22f38",
+              "sequence_no": 3,
+              "stimulus": {
+                "stimulus_id": "434e103a-982d-461f-b9a7-c8af4c91be0f",
+                "cards": [
+                  {
+                    "card_id": "c5fde212-cd01-4fd3-905d-ed3c4188df77",
+                    "value": 5
+                  },
+                  {
+                    "card_id": "fc07b2aa-5ff1-4453-a26a-343b2305295a",
+                    "value": 3
+                  },
+                  {
+                    "card_id": "fa5fea32-06ea-4eff-927e-7635916fe735",
+                    "value": 12
+                  },
+                  {
+                    "card_id": "bde6b39d-4840-46d6-b363-b80cc11d11aa",
+                    "value": 7
+                  },
+                  {
+                    "card_id": "f2f4b979-4622-4aa1-86e1-62238c10ab1a",
+                    "value": 10
+                  },
+                  {
+                    "card_id": "72ec2df7-4339-47d3-b265-45b861e8daaa",
+                    "value": 6
+                  },
+                  {
+                    "card_id": "a85d8d3e-6d2d-4b3d-86ba-5ceb1a2ca668",
+                    "value": 8
+                  },
+                  {
+                    "card_id": "14699a1f-4f76-4e17-ab80-698a7e0cfb4a",
+                    "value": 2
+                  }
+                ],
+                "selected_card_ids": []
+              },
+              "choice": "c5fde212-cd01-4fd3-905d-ed3c4188df77",
+              "rule": {
+                "rule_id": "card-at-least-7",
+                "label": "7 이상 카드를 선택"
+              },
+              "correct": false,
+              "phase": "before"
+            },
+            {
+              "event_id": "aebe0151-e68b-401a-b34d-bbe5e5a741a5",
+              "sequence_no": 6,
+              "stimulus": {
+                "stimulus_id": "819577af-55b2-4608-bc7d-159c3f324f37",
+                "cards": [
+                  {
+                    "card_id": "6cd122da-5c54-4192-a1a1-923eadab6b9f",
+                    "value": 10
+                  },
+                  {
+                    "card_id": "772dad85-977d-4ec2-af7b-c928e50d2105",
+                    "value": 1
+                  },
+                  {
+                    "card_id": "8a65a6f0-2b3b-43ac-be3f-a700f082c050",
+                    "value": 5
+                  },
+                  {
+                    "card_id": "7e8d2722-beaf-4ba6-99da-387d062911ce",
+                    "value": 7
+                  },
+                  {
+                    "card_id": "72f71651-5814-48e1-9dc9-7776147fed41",
+                    "value": 4
+                  },
+                  {
+                    "card_id": "43bf95e4-059f-4a8a-b59a-eb1a535befd6",
+                    "value": 12
+                  },
+                  {
+                    "card_id": "a06c59ec-9cfe-40cc-807a-1639e15ab4b0",
+                    "value": 11
+                  },
+                  {
+                    "card_id": "48a0651f-fdc7-4713-b169-8866a8a40713",
+                    "value": 9
+                  }
+                ],
+                "selected_card_ids": []
+              },
+              "choice": "6cd122da-5c54-4192-a1a1-923eadab6b9f",
+              "rule": {
+                "rule_id": "card-even",
+                "label": "짝수 카드를 선택"
+              },
+              "correct": true,
+              "phase": "after",
+              "old_rule_correct": true,
+              "rule_overlap": "both"
+            }
+          ],
+          "disclosure_status": "recorded",
+          "missing_reason": null,
+          "rule_snapshot": {
+            "initial": {
+              "rule_id": "card-at-least-7",
+              "label": "7 이상 카드를 선택"
+            },
+            "changed": {
+              "rule_id": "card-even",
+              "label": "짝수 카드를 선택"
+            }
+          },
+          "event_refs": [
+            "c4464692-2d14-405b-8c1c-ec25d0c835ab",
+            "1de63c7b-ed29-4693-a273-a4f933d22f38",
+            "aebe0151-e68b-401a-b34d-bbe5e5a741a5"
+          ],
+          "limitations": [
+            "분모는 서버가 수락한 응답 수입니다. 고정된 관찰 기회 수가 아닙니다.",
+            "서버 공개 기록은 실제 읽기·이해를 보증하지 않습니다.",
+            "두 규칙에 모두 맞는 선택은 변경 규칙 사용을 구분하지 못합니다.",
+            "정오답이나 전후 차이로 적응력·동기·고집을 판단하지 않습니다."
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b01",
+          "question_version": "1.0.0",
+          "question_text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’에 본인 관점에서 ‘매우 그렇다’라고 응답했습니다. 설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다. 설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다. 그 응답과 관련하여 누구에게 어떤 정보를 확인했고 결정에 어떻게 반영했는지, 구체적인 경험과 이유를 설명해 주세요.",
+          "behavior_id": "B01",
+          "target_behavior_ids": [
+            "B01"
+          ],
+          "question_mode": "adaptive_followup",
+          "conditioned_on_prior_evidence": true,
+          "generated_from_evidence_refs": [
+            {
+              "source_type": "survey",
+              "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+              "record_version": "1.0.0",
+              "item_id": "O-B01",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-o-b01",
+              "mapping_version": "1.0.0",
+              "perspective": "self"
+            },
+            {
+              "source_type": "survey",
+              "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+              "record_version": "1.0.0",
+              "item_id": "P-B01",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-p-b01",
+              "mapping_version": "1.0.0",
+              "perspective": "self"
+            },
+            {
+              "source_type": "survey",
+              "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+              "record_version": "1.0.0",
+              "item_id": "P-B01",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-p-b01",
+              "mapping_version": "1.0.0",
+              "perspective": "imagined_others"
+            },
+            {
+              "source_type": "typed_answer",
+              "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b01",
+              "question_version": "1.0.0"
+            }
+          ],
+          "disclosed_prior_information": [
+            {
+              "source_type": "survey",
+              "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+              "record_version": "1.0.0",
+              "item_id": "O-B01",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-o-b01",
+              "mapping_version": "1.0.0",
+              "perspective": "self",
+              "text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’에 본인 관점에서 ‘매우 그렇다’라고 응답했습니다."
+            },
+            {
+              "source_type": "survey",
+              "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+              "record_version": "1.0.0",
+              "item_id": "P-B01",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-p-b01",
+              "mapping_version": "1.0.0",
+              "perspective": "self",
+              "text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다."
+            },
+            {
+              "source_type": "survey",
+              "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+              "record_version": "1.0.0",
+              "item_id": "P-B01",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-p-b01",
+              "mapping_version": "1.0.0",
+              "perspective": "imagined_others",
+              "text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다."
+            }
+          ],
+          "question_prompt_version": "evidence-linkage-1.0.0",
+          "rubric_id": "rubric-b01",
+          "rubric_version": "1.0.0",
+          "asked_criteria": [
+            "action",
+            "reasoning",
+            "result"
+          ],
+          "selection_reason": "저장된 자기보고와 과제 관찰의 맥락·이유 확인",
+          "trigger_rule_id": "source-linked-practice",
+          "trigger_rule_version": "evidence-linkage-1.0.0",
+          "linkage_id": "link-ab3c191e3bc6a03e872c87e9",
+          "source_report_id": "7aff7e0c-7e6e-4b7f-b029-49ac7fca9e2a"
+        },
+        {
+          "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b02",
+          "question_version": "1.0.0",
+          "question_text": "설문 ‘개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다. 설문 ‘개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.’은 응답 내용이 없으며 저장 상태는 skipped입니다. 그 응답과 관련하여 개인·팀 과제의 제약과 선택 가능한 대안, 실제 배분 기준과 결과를 설명해 주세요.",
+          "behavior_id": "B02",
+          "target_behavior_ids": [
+            "B02"
+          ],
+          "question_mode": "adaptive_followup",
+          "conditioned_on_prior_evidence": true,
+          "generated_from_evidence_refs": [
+            {
+              "source_type": "survey",
+              "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+              "record_version": "1.0.0",
+              "item_id": "O-B02",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-o-b02",
+              "mapping_version": "1.0.0",
+              "perspective": "self"
+            },
+            {
+              "source_type": "survey",
+              "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+              "record_version": "1.0.0",
+              "item_id": "S-B02",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-s-b02",
+              "mapping_version": "1.0.0",
+              "perspective": "self"
+            },
+            {
+              "source_type": "typed_answer",
+              "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b02",
+              "question_version": "1.0.0"
+            }
+          ],
+          "disclosed_prior_information": [
+            {
+              "source_type": "survey",
+              "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+              "record_version": "1.0.0",
+              "item_id": "O-B02",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-o-b02",
+              "mapping_version": "1.0.0",
+              "perspective": "self",
+              "text": "설문 ‘개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다."
+            },
+            {
+              "source_type": "survey",
+              "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+              "record_version": "1.0.0",
+              "item_id": "S-B02",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-s-b02",
+              "mapping_version": "1.0.0",
+              "perspective": "self",
+              "text": "설문 ‘개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.’은 응답 내용이 없으며 저장 상태는 skipped입니다."
+            }
+          ],
+          "question_prompt_version": "evidence-linkage-1.0.0",
+          "rubric_id": "rubric-b02",
+          "rubric_version": "1.0.0",
+          "asked_criteria": [
+            "action",
+            "reasoning",
+            "result"
+          ],
+          "selection_reason": "저장된 자기보고와 과제 관찰의 맥락·이유 확인",
+          "trigger_rule_id": "source-linked-practice",
+          "trigger_rule_version": "evidence-linkage-1.0.0",
+          "linkage_id": "link-ab3c191e3bc6a03e872c87e9",
+          "source_report_id": "7aff7e0c-7e6e-4b7f-b029-49ac7fca9e2a"
+        },
+        {
+          "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b03",
+          "question_version": "1.0.0",
+          "question_text": "설문 ‘새 정보가 들어오면 처음 세운 계획을 다시 검토한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다. 가위바위보 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 가위바위보 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 가위바위보 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 카드 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 카드 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 0개가 당시 규칙에 맞았습니다. 카드 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 이 게임 관찰은 현실의 계획 재검토 능력을 직접 측정한 것이 아닙니다. 새 정보나 규칙을 확인했을 때 무엇을 유지하거나 바꾸었는지, 기억나는 선택의 이유와 경험을 설명해 주세요.",
+          "behavior_id": "B03",
+          "target_behavior_ids": [
+            "B03"
+          ],
+          "question_mode": "adaptive_followup",
+          "conditioned_on_prior_evidence": true,
+          "generated_from_evidence_refs": [
+            {
+              "source_type": "survey",
+              "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+              "record_version": "1.0.0",
+              "item_id": "O-B03",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-o-b03",
+              "mapping_version": "1.0.0",
+              "perspective": "self"
+            },
+            {
+              "source_type": "typed_answer",
+              "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+              "answer_version": "1.0.0",
+              "question_id": "baseline-b03",
+              "question_version": "1.0.0"
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-rsp",
+              "game_version": "1.0.0",
+              "round_id": "0887c94d-7469-4b5c-99f4-ecb301cc6415",
+              "event_refs": [
+                "7891acf5-f7cb-4faf-99a7-32cb8adca2c8",
+                "21b13423-ced7-41c5-a3d0-e196762e4647",
+                "aa782733-d443-41fd-b12a-70d807508732"
+              ]
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-rsp",
+              "game_version": "1.0.0",
+              "round_id": "e2f3e47c-f978-45f4-8f73-8158328b3cc6",
+              "event_refs": [
+                "c9ee0bdc-c611-44db-9c64-c77e35fa5224",
+                "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6",
+                "31781677-fa85-4097-a578-07174dd04e51"
+              ]
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-rsp",
+              "game_version": "1.0.0",
+              "round_id": "bba746c1-029b-4283-afd4-ce306df71d29",
+              "event_refs": [
+                "010ca776-a1ed-4169-9449-9d8a7942eaa6",
+                "059fc6ea-c1d0-448b-afc6-62e4a2e97759",
+                "160a8bc4-515b-4289-ac6c-f42da455258a"
+              ]
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-card",
+              "game_version": "1.0.0",
+              "round_id": "9ff68a60-bb6d-4c2e-a6d4-5c34a53fc182",
+              "event_refs": [
+                "f5bef18e-a77a-41c9-9fee-026d9392385c",
+                "073acb41-8d3c-40dc-b6f7-2d0f82ce1def",
+                "52b31007-6de9-4980-9c79-34beecde321e"
+              ]
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-card",
+              "game_version": "1.0.0",
+              "round_id": "b747ca7f-0092-4e33-bf01-22afd95c560e",
+              "event_refs": [
+                "da4b3603-272a-46c0-abb2-acd4da35be44",
+                "351b8801-b6f0-4f46-a7a8-20b11a18e395",
+                "791d2b13-097e-467c-ae82-d208a12dac84"
+              ]
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-card",
+              "game_version": "1.0.0",
+              "round_id": "d8dc0cf2-8ea3-4215-a877-11d0e7268567",
+              "event_refs": [
+                "c4464692-2d14-405b-8c1c-ec25d0c835ab",
+                "1de63c7b-ed29-4693-a273-a4f933d22f38",
+                "aebe0151-e68b-401a-b34d-bbe5e5a741a5"
+              ]
+            }
+          ],
+          "disclosed_prior_information": [
+            {
+              "source_type": "survey",
+              "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+              "record_version": "1.0.0",
+              "item_id": "O-B03",
+              "item_version": "1.0.0",
+              "mapping_id": "map-survey-o-b03",
+              "mapping_version": "1.0.0",
+              "perspective": "self",
+              "text": "설문 ‘새 정보가 들어오면 처음 세운 계획을 다시 검토한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다."
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-rsp",
+              "game_version": "1.0.0",
+              "round_id": "0887c94d-7469-4b5c-99f4-ecb301cc6415",
+              "event_refs": [
+                "7891acf5-f7cb-4faf-99a7-32cb8adca2c8",
+                "21b13423-ced7-41c5-a3d0-e196762e4647",
+                "aa782733-d443-41fd-b12a-70d807508732"
+              ],
+              "text": "가위바위보 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-rsp",
+              "game_version": "1.0.0",
+              "round_id": "e2f3e47c-f978-45f4-8f73-8158328b3cc6",
+              "event_refs": [
+                "c9ee0bdc-c611-44db-9c64-c77e35fa5224",
+                "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6",
+                "31781677-fa85-4097-a578-07174dd04e51"
+              ],
+              "text": "가위바위보 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-rsp",
+              "game_version": "1.0.0",
+              "round_id": "bba746c1-029b-4283-afd4-ce306df71d29",
+              "event_refs": [
+                "010ca776-a1ed-4169-9449-9d8a7942eaa6",
+                "059fc6ea-c1d0-448b-afc6-62e4a2e97759",
+                "160a8bc4-515b-4289-ac6c-f42da455258a"
+              ],
+              "text": "가위바위보 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-card",
+              "game_version": "1.0.0",
+              "round_id": "9ff68a60-bb6d-4c2e-a6d4-5c34a53fc182",
+              "event_refs": [
+                "f5bef18e-a77a-41c9-9fee-026d9392385c",
+                "073acb41-8d3c-40dc-b6f7-2d0f82ce1def",
+                "52b31007-6de9-4980-9c79-34beecde321e"
+              ],
+              "text": "카드 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-card",
+              "game_version": "1.0.0",
+              "round_id": "b747ca7f-0092-4e33-bf01-22afd95c560e",
+              "event_refs": [
+                "da4b3603-272a-46c0-abb2-acd4da35be44",
+                "351b8801-b6f0-4f46-a7a8-20b11a18e395",
+                "791d2b13-097e-467c-ae82-d208a12dac84"
+              ],
+              "text": "카드 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 0개가 당시 규칙에 맞았습니다."
+            },
+            {
+              "source_type": "rule_game",
+              "game_id": "rule-card",
+              "game_version": "1.0.0",
+              "round_id": "d8dc0cf2-8ea3-4215-a877-11d0e7268567",
+              "event_refs": [
+                "c4464692-2d14-405b-8c1c-ec25d0c835ab",
+                "1de63c7b-ed29-4693-a273-a4f933d22f38",
+                "aebe0151-e68b-401a-b34d-bbe5e5a741a5"
+              ],
+              "text": "카드 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+            }
+          ],
+          "question_prompt_version": "evidence-linkage-1.0.0",
+          "rubric_id": "rubric-b03",
+          "rubric_version": "1.0.0",
+          "asked_criteria": [
+            "action",
+            "reasoning",
+            "result"
+          ],
+          "selection_reason": "저장된 자기보고와 과제 관찰의 맥락·이유 확인",
+          "trigger_rule_id": "source-linked-practice",
+          "trigger_rule_version": "evidence-linkage-1.0.0",
+          "linkage_id": "link-ab3c191e3bc6a03e872c87e9",
+          "source_report_id": "7aff7e0c-7e6e-4b7f-b029-49ac7fca9e2a"
+        }
+      ],
+      "limitations": [
+        "설문과 면접은 같은 사용자의 자기보고이며 독립된 진실 검증이 아닙니다.",
+        "규칙 게임은 해당 과제의 선택 기록이며 B01/B02/B03의 직접 측정이 아닙니다.",
+        "후속 답변은 공개된 근거를 참고한 조건부 자기보고입니다."
+      ]
+    },
+    "followup_answers": [
+      {
+        "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b01",
+        "question_version": "1.0.0",
+        "question_text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’에 본인 관점에서 ‘매우 그렇다’라고 응답했습니다. 설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다. 설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다. 그 응답과 관련하여 누구에게 어떤 정보를 확인했고 결정에 어떻게 반영했는지, 구체적인 경험과 이유를 설명해 주세요.",
+        "question_mode": "adaptive_followup",
+        "conditioned_on_prior_evidence": true,
+        "disclosed_prior_information": [
+          {
+            "source_type": "survey",
+            "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+            "record_version": "1.0.0",
+            "item_id": "O-B01",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-o-b01",
+            "mapping_version": "1.0.0",
+            "perspective": "self",
+            "text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’에 본인 관점에서 ‘매우 그렇다’라고 응답했습니다."
+          },
+          {
+            "source_type": "survey",
+            "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+            "record_version": "1.0.0",
+            "item_id": "P-B01",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-p-b01",
+            "mapping_version": "1.0.0",
+            "perspective": "self",
+            "text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다."
+          },
+          {
+            "source_type": "survey",
+            "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+            "record_version": "1.0.0",
+            "item_id": "P-B01",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-p-b01",
+            "mapping_version": "1.0.0",
+            "perspective": "imagined_others",
+            "text": "설문 ‘공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.’은 응답 내용이 없으며 저장 상태는 skipped입니다."
+          }
+        ],
+        "generated_from_evidence_refs": [
+          {
+            "source_type": "survey",
+            "record_id": "e8ff2f47-3343-4092-9ff5-43cd8b361d49",
+            "record_version": "1.0.0",
+            "item_id": "O-B01",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-o-b01",
+            "mapping_version": "1.0.0",
+            "perspective": "self"
+          },
+          {
+            "source_type": "survey",
+            "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+            "record_version": "1.0.0",
+            "item_id": "P-B01",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-p-b01",
+            "mapping_version": "1.0.0",
+            "perspective": "self"
+          },
+          {
+            "source_type": "survey",
+            "record_id": "699fb9d9-eb11-40ae-ade2-c7d7813fbbb8",
+            "record_version": "1.0.0",
+            "item_id": "P-B01",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-p-b01",
+            "mapping_version": "1.0.0",
+            "perspective": "imagined_others"
+          },
+          {
+            "source_type": "typed_answer",
+            "answer_id": "dfde6e33-adf0-45c2-b2a8-c2e0703ab81c",
+            "answer_version": "1.0.0",
+            "question_id": "baseline-b01",
+            "question_version": "1.0.0"
+          }
+        ],
+        "answer_id": "b1a302e0-43b3-4222-85a9-b7169dcb2e7c",
+        "answer_version": "1.0.0",
+        "text": "합성 예시입니다. 공개된 선택을 참고해 당시 규칙과 선택 이유를 다시 설명합니다. 실제 사용자 경험이 아닙니다.",
+        "status": "asked_answered",
+        "source_kind": "conditioned_self_report"
+      },
+      {
+        "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b02",
+        "question_version": "1.0.0",
+        "question_text": "설문 ‘개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다. 설문 ‘개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.’은 응답 내용이 없으며 저장 상태는 skipped입니다. 그 응답과 관련하여 개인·팀 과제의 제약과 선택 가능한 대안, 실제 배분 기준과 결과를 설명해 주세요.",
+        "question_mode": "adaptive_followup",
+        "conditioned_on_prior_evidence": true,
+        "disclosed_prior_information": [
+          {
+            "source_type": "survey",
+            "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+            "record_version": "1.0.0",
+            "item_id": "O-B02",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-o-b02",
+            "mapping_version": "1.0.0",
+            "perspective": "self",
+            "text": "설문 ‘개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다."
+          },
+          {
+            "source_type": "survey",
+            "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+            "record_version": "1.0.0",
+            "item_id": "S-B02",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-s-b02",
+            "mapping_version": "1.0.0",
+            "perspective": "self",
+            "text": "설문 ‘개인 과제와 팀 과제의 요구가 함께 있을 때 현재 더 가까운 선택을 표시해 주세요.’은 응답 내용이 없으며 저장 상태는 skipped입니다."
+          }
+        ],
+        "generated_from_evidence_refs": [
+          {
+            "source_type": "survey",
+            "record_id": "8e9f8f53-07f2-4c2d-8e5b-04c69b7fe35e",
+            "record_version": "1.0.0",
+            "item_id": "O-B02",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-o-b02",
+            "mapping_version": "1.0.0",
+            "perspective": "self"
+          },
+          {
+            "source_type": "survey",
+            "record_id": "f2291c92-34b7-44cb-a0f4-8804c213c3af",
+            "record_version": "1.0.0",
+            "item_id": "S-B02",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-s-b02",
+            "mapping_version": "1.0.0",
+            "perspective": "self"
+          },
+          {
+            "source_type": "typed_answer",
+            "answer_id": "cb2a4740-d846-4533-9687-31702c378fc6",
+            "answer_version": "1.0.0",
+            "question_id": "baseline-b02",
+            "question_version": "1.0.0"
+          }
+        ],
+        "answer_id": "da5c7198-b428-4e5f-a56d-7abf5143ce56",
+        "answer_version": "1.0.0",
+        "text": "합성 예시입니다. 공개된 선택을 참고해 당시 규칙과 선택 이유를 다시 설명합니다. 실제 사용자 경험이 아닙니다.",
+        "status": "asked_answered",
+        "source_kind": "conditioned_self_report"
+      },
+      {
+        "question_id": "followup-link-ab3c191e3bc6a03e872c87e9-b03",
+        "question_version": "1.0.0",
+        "question_text": "설문 ‘새 정보가 들어오면 처음 세운 계획을 다시 검토한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다. 가위바위보 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 가위바위보 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 가위바위보 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 카드 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 카드 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 0개가 당시 규칙에 맞았습니다. 카드 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다. 이 게임 관찰은 현실의 계획 재검토 능력을 직접 측정한 것이 아닙니다. 새 정보나 규칙을 확인했을 때 무엇을 유지하거나 바꾸었는지, 기억나는 선택의 이유와 경험을 설명해 주세요.",
+        "question_mode": "adaptive_followup",
+        "conditioned_on_prior_evidence": true,
+        "disclosed_prior_information": [
+          {
+            "source_type": "survey",
+            "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+            "record_version": "1.0.0",
+            "item_id": "O-B03",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-o-b03",
+            "mapping_version": "1.0.0",
+            "perspective": "self",
+            "text": "설문 ‘새 정보가 들어오면 처음 세운 계획을 다시 검토한다.’의 본인 관점 선택 ‘그렇지 않은 편이다’이 미완료 상태(skipped)로 저장되어 있습니다."
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-rsp",
+            "game_version": "1.0.0",
+            "round_id": "0887c94d-7469-4b5c-99f4-ecb301cc6415",
+            "event_refs": [
+              "7891acf5-f7cb-4faf-99a7-32cb8adca2c8",
+              "21b13423-ced7-41c5-a3d0-e196762e4647",
+              "aa782733-d443-41fd-b12a-70d807508732"
+            ],
+            "text": "가위바위보 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-rsp",
+            "game_version": "1.0.0",
+            "round_id": "e2f3e47c-f978-45f4-8f73-8158328b3cc6",
+            "event_refs": [
+              "c9ee0bdc-c611-44db-9c64-c77e35fa5224",
+              "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6",
+              "31781677-fa85-4097-a578-07174dd04e51"
+            ],
+            "text": "가위바위보 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-rsp",
+            "game_version": "1.0.0",
+            "round_id": "bba746c1-029b-4283-afd4-ce306df71d29",
+            "event_refs": [
+              "010ca776-a1ed-4169-9449-9d8a7942eaa6",
+              "059fc6ea-c1d0-448b-afc6-62e4a2e97759",
+              "160a8bc4-515b-4289-ac6c-f42da455258a"
+            ],
+            "text": "가위바위보 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-card",
+            "game_version": "1.0.0",
+            "round_id": "9ff68a60-bb6d-4c2e-a6d4-5c34a53fc182",
+            "event_refs": [
+              "f5bef18e-a77a-41c9-9fee-026d9392385c",
+              "073acb41-8d3c-40dc-b6f7-2d0f82ce1def",
+              "52b31007-6de9-4980-9c79-34beecde321e"
+            ],
+            "text": "카드 1라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-card",
+            "game_version": "1.0.0",
+            "round_id": "b747ca7f-0092-4e33-bf01-22afd95c560e",
+            "event_refs": [
+              "da4b3603-272a-46c0-abb2-acd4da35be44",
+              "351b8801-b6f0-4f46-a7a8-20b11a18e395",
+              "791d2b13-097e-467c-ae82-d208a12dac84"
+            ],
+            "text": "카드 2라운드는 변경 규칙 공개 후 수락 응답 1개 중 0개가 당시 규칙에 맞았습니다."
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-card",
+            "game_version": "1.0.0",
+            "round_id": "d8dc0cf2-8ea3-4215-a877-11d0e7268567",
+            "event_refs": [
+              "c4464692-2d14-405b-8c1c-ec25d0c835ab",
+              "1de63c7b-ed29-4693-a273-a4f933d22f38",
+              "aebe0151-e68b-401a-b34d-bbe5e5a741a5"
+            ],
+            "text": "카드 3라운드는 변경 규칙 공개 후 수락 응답 1개 중 1개가 당시 규칙에 맞았습니다."
+          }
+        ],
+        "generated_from_evidence_refs": [
+          {
+            "source_type": "survey",
+            "record_id": "62a05cc1-d741-4680-ae1b-7b96597f6f01",
+            "record_version": "1.0.0",
+            "item_id": "O-B03",
+            "item_version": "1.0.0",
+            "mapping_id": "map-survey-o-b03",
+            "mapping_version": "1.0.0",
+            "perspective": "self"
+          },
+          {
+            "source_type": "typed_answer",
+            "answer_id": "db2d1981-cc06-4e79-858c-95a42573d598",
+            "answer_version": "1.0.0",
+            "question_id": "baseline-b03",
+            "question_version": "1.0.0"
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-rsp",
+            "game_version": "1.0.0",
+            "round_id": "0887c94d-7469-4b5c-99f4-ecb301cc6415",
+            "event_refs": [
+              "7891acf5-f7cb-4faf-99a7-32cb8adca2c8",
+              "21b13423-ced7-41c5-a3d0-e196762e4647",
+              "aa782733-d443-41fd-b12a-70d807508732"
+            ]
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-rsp",
+            "game_version": "1.0.0",
+            "round_id": "e2f3e47c-f978-45f4-8f73-8158328b3cc6",
+            "event_refs": [
+              "c9ee0bdc-c611-44db-9c64-c77e35fa5224",
+              "78a27cd1-29d9-4bd0-9270-1c9e8c1c00d6",
+              "31781677-fa85-4097-a578-07174dd04e51"
+            ]
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-rsp",
+            "game_version": "1.0.0",
+            "round_id": "bba746c1-029b-4283-afd4-ce306df71d29",
+            "event_refs": [
+              "010ca776-a1ed-4169-9449-9d8a7942eaa6",
+              "059fc6ea-c1d0-448b-afc6-62e4a2e97759",
+              "160a8bc4-515b-4289-ac6c-f42da455258a"
+            ]
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-card",
+            "game_version": "1.0.0",
+            "round_id": "9ff68a60-bb6d-4c2e-a6d4-5c34a53fc182",
+            "event_refs": [
+              "f5bef18e-a77a-41c9-9fee-026d9392385c",
+              "073acb41-8d3c-40dc-b6f7-2d0f82ce1def",
+              "52b31007-6de9-4980-9c79-34beecde321e"
+            ]
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-card",
+            "game_version": "1.0.0",
+            "round_id": "b747ca7f-0092-4e33-bf01-22afd95c560e",
+            "event_refs": [
+              "da4b3603-272a-46c0-abb2-acd4da35be44",
+              "351b8801-b6f0-4f46-a7a8-20b11a18e395",
+              "791d2b13-097e-467c-ae82-d208a12dac84"
+            ]
+          },
+          {
+            "source_type": "rule_game",
+            "game_id": "rule-card",
+            "game_version": "1.0.0",
+            "round_id": "d8dc0cf2-8ea3-4215-a877-11d0e7268567",
+            "event_refs": [
+              "c4464692-2d14-405b-8c1c-ec25d0c835ab",
+              "1de63c7b-ed29-4693-a273-a4f933d22f38",
+              "aebe0151-e68b-401a-b34d-bbe5e5a741a5"
+            ]
+          }
+        ],
+        "answer_id": "0215aa06-00d6-4f66-8f07-fa94c3095bb0",
+        "answer_version": "1.0.0",
+        "text": "합성 예시입니다. 공개된 선택을 참고해 당시 규칙과 선택 이유를 다시 설명합니다. 실제 사용자 경험이 아닙니다.",
+        "status": "asked_answered",
+        "source_kind": "conditioned_self_report"
+      }
+    ]
+  }
+}
