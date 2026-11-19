@@ -10,8 +10,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- 외부 스타일시트 -->
-  <link rel="stylesheet" href="/frontend/style.css?v=20261117">
-  <link rel="stylesheet" href="/frontend/aptitude-games.css?v=20261117">
+  <link rel="stylesheet" href="/frontend/style.css?v=20261119-synthesis">
+  <link rel="stylesheet" href="/frontend/aptitude-games.css?v=20261119-synthesis">
 </head>
 <body>
 
@@ -242,6 +242,11 @@
         </div>
         <div id="interview-items"></div>
         <p id="interview-complete" role="status" hidden></p>
+        <h3 class="game-records-title">업무 경험 면접 · 선택 답변</h3>
+        <p class="survey-help">요청 변경 처리, 공간 배치, 반복 업무에서의 판단 경험을 묻습니다. 주제별 경험 질문과 후속 질문에 답해 주세요. 직장 경험이 없다면 학업·프로젝트·일상 사례로 답하거나 건너뛸 수 있습니다. 답변은 개별 저장되며, 능력 점수나 기본 면접 AI 분석에는 포함하지 않습니다.</p>
+        <p id="interview-supplemental-progress" class="survey-help" role="status"></p>
+        <button type="button" id="interview-supplemental-add" class="btn-action btn-light" disabled>이 회차에 빠진 업무 경험 문항 추가</button>
+        <div id="interview-supplemental"></div>
         <h3 class="game-records-title">조건부 후속 질문 · 선택 답변</h3>
         <p id="interview-followup-progress" class="survey-help" role="status"></p>
         <div id="interview-followups"></div>
@@ -270,7 +275,7 @@
         <div class="practice-actions">
           <button type="button" id="report-refresh" class="btn-action btn-light" disabled>저장된 보고서 다시 불러오기</button>
           <button type="button" id="report-mock" class="btn-action btn-light" disabled>저장 근거 보기 · AI 미사용</button>
-          <button type="button" id="report-analyze" class="btn-action btn-gradient" disabled>AI 분석 요청</button>
+          <button type="button" id="report-analyze" class="btn-action btn-gradient" disabled>기본 면접 AI 분석 요청</button>
           <button type="button" id="report-retry" class="btn-action btn-light" hidden>같은 요청 결과 다시 확인</button>
         </div>
         <p class="survey-help">기본 보고서를 확인한 뒤 근거 연결·후속 질문을 만들 수 있습니다. 후속 질문은 공개된 설문·게임 근거를 따로 표시하며, 답변하지 않아도 미응답으로 최종 확정할 수 있습니다. 근거 연결과 최종 확정은 외부 AI를 호출하지 않습니다.</p>
@@ -284,6 +289,14 @@
           <button type="button" id="report-followups" class="btn-action btn-light" hidden>조건부 후속 질문에 답하기</button>
           <button type="button" id="report-finalize" class="btn-action btn-gradient" disabled>최종 보고서 확정</button>
         </div>
+        <h3>세 활동 종합 피드백</h3>
+        <p class="survey-help">설문 원척도, 게임별 수행 기록, 기본·업무 경험·후속 면접 답변을 함께 검토합니다. 성향 점수를 합산하지 않고 잘한 점, 보완점, 다음 연습을 제안합니다. AI 요청 시 이 자료를 외부 AI에 보냅니다. 먼저 기본 보고서를 만든 뒤 요청해 주세요.</p>
+        <div class="practice-actions">
+          <button type="button" id="report-synthesis-prompt" class="btn-action btn-light" disabled>종합 평가 프롬프트 확인 · AI 미사용</button>
+          <button type="button" id="report-synthesis-mock" class="btn-action btn-light" disabled>종합 근거 저장 · AI 미사용</button>
+          <button type="button" id="report-synthesis-ai" class="btn-action btn-gradient" disabled>세 활동 종합 AI 평가 요청</button>
+        </div>
+        <div id="report-synthesis-preview"></div>
         <p id="report-completion" class="survey-help" role="status"></p>
         <div id="report-content" aria-live="polite"></div>
         <section id="aptitude-report" aria-label="추가 게임 수행 기록"></section>
@@ -354,15 +367,15 @@
   </footer>
 
   <!-- 외부 스크립트 연결 -->
-  <script src="/frontend/client.js?v=20261117"></script>
-  <script src="/frontend/auth.js?v=20261117"></script>
-  <script src="/frontend/script.js?v=20261117"></script>
-  <script src="/frontend/practice.js?v=20261117"></script>
-  <script src="/frontend/games.js?v=20261117"></script>
-  <script src="/frontend/interview.js?v=20261117"></script>
-  <script src="/frontend/report.js?v=20261117"></script>
-  <script src="/frontend/records.js?v=20261117"></script>
-  <script type="module" src="/frontend/appointment-games.js?v=20261117"></script>
-  <script src="/frontend/aptitude-games.js?v=20261117"></script>
+  <script src="/frontend/client.js?v=20261119-synthesis"></script>
+  <script src="/frontend/auth.js?v=20261119-synthesis"></script>
+  <script src="/frontend/script.js?v=20261119-synthesis"></script>
+  <script src="/frontend/practice.js?v=20261119-synthesis"></script>
+  <script src="/frontend/games.js?v=20261119-synthesis"></script>
+  <script src="/frontend/interview.js?v=20261119-synthesis"></script>
+  <script src="/frontend/report.js?v=20261119-synthesis"></script>
+  <script src="/frontend/records.js?v=20261119-synthesis"></script>
+  <script type="module" src="/frontend/appointment-games.js?v=20261119-synthesis"></script>
+  <script src="/frontend/aptitude-games.js?v=20261119-synthesis"></script>
 </body>
 </html>

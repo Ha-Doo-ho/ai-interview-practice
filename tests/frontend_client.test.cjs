@@ -4,6 +4,14 @@ const fs=require('node:fs');
 const path=require('node:path');
 const modulePath=path.resolve(__dirname,'../html/client.js');
 const C=fs.existsSync(modulePath)?require(modulePath):{};
+test('supplemental answers do not invalidate the legacy analysis snapshot',()=>{
+  const run={generation:0,game:{state_version:1},records:[{record_id:'wm-1',source_type:'typed_answer',
+    data:{question_mode:'supplemental'}}],analysis:{input_snapshot:{generation:0,game_state_version:1,
+      definitions_version:'v1',record_refs:[]}}};
+  assert.equal(C.analysisStale(run,{version:'v1'}),false);
+  run.records.push({record_id:'base-1',source_type:'typed_answer',data:{question_mode:'baseline'}});
+  assert.equal(C.analysisStale(run,{version:'v1'}),true);
+});
 
 test('cookie transport protects writes and preserves untrimmed data',async()=>{
   assert.equal(typeof C.createApi,'function');

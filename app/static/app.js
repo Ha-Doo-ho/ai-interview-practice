@@ -336,7 +336,7 @@
     const answered = answeredQuestionIds();
     const baseline = questions.filter((q) => !q.question_mode || q.question_mode === "baseline");
     if (baseline.some((q) => !answered.has(q.question_id))) return "baseline";
-    const conditioned = questions.filter((q) => q.question_mode && q.question_mode !== "baseline");
+    const conditioned = questions.filter((q) => q.question_mode === "adaptive_followup");
     const analysisReady = conditioned.length > 0 || state.run?.analysis || state.run?.report_draft;
     if (!analysisReady) return "analyze";
     if (conditioned.some((q) => !answered.has(q.question_id))) return "followup";
@@ -579,7 +579,7 @@
 
   function renderInterview(mode) {
     const answered = answeredQuestionIds();
-    const questions = allQuestions().filter((q) => mode === "baseline" ? (!q.question_mode || q.question_mode === "baseline") : (q.question_mode && q.question_mode !== "baseline"));
+    const questions = allQuestions().filter((q) => mode === "baseline" ? (!q.question_mode || q.question_mode === "baseline") : q.question_mode === "adaptive_followup");
     const question = questions.find((q) => !answered.has(q.question_id));
     if (!question) return renderRun();
     state.startedAt = performance.now();

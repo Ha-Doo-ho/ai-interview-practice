@@ -22,6 +22,33 @@ class Element {
 
 const criteria=['situation','role','other_information','action','reasoning','result','learning'];
 const answerText='앞🙂행동 뒤 <script>globalThis.pwned=true</script>';
+test('supplemental self-reports show saved answers and frozen final versions without AI attribution',async()=>{
+  const run=runWithReport();
+  run.questions.push({question_id:'wm-experience-0',question_text:'요청 변경 경험',
+    question_mode:'supplemental',question_group:'working-memory-interview-v1'});
+  run.records.push({source_type:'typed_answer',data:{question_id:'wm-experience-0',answer_id:'wm-a',
+    answer_version:'1.0.0',text:'<script>작업기억 답변</script>',status:'asked_answered'}});
+  for(const prefix of ['spatial-work','repeated-work']){
+    run.questions.push({question_id:prefix+'-experience-0',question_text:prefix+' 경험',
+      question_mode:'supplemental',question_group:prefix+'-interview-v1'});
+    run.records.push({source_type:'typed_answer',data:{question_id:prefix+'-experience-0',answer_id:prefix,
+      answer_version:'1.0.0',text:prefix+' 저장 원문',status:'asked_answered'}});
+  }
+  const preview=await setup({run});
+  assert.match(preview.roots['report-content'].textContent,/<script>작업기억 답변<\/script>/);
+  assert.match(preview.roots['report-content'].textContent,/spatial-work 저장 원문/);
+  assert.match(preview.roots['report-content'].textContent,/repeated-work 저장 원문/);
+  assert.match(preview.roots['report-content'].textContent,/능력 점수/);
+  run.status='completed';
+  run.report={...clone(run.interview_report),status:'finalized',
+    supplemental_answers:[{question_id:'wm-experience-0',question_text:'확정된 질문',status:'asked_answered',text:'확정된 답변'},
+      {question_id:'wm-experience-1',question_text:'미응답 질문',status:'not_answered',text:''}]};
+  const final=await setup({run});
+  assert.match(final.roots['report-content'].textContent,/확정된 답변/);
+  assert.match(final.roots['report-content'].textContent,/미응답/);
+  assert.doesNotMatch(final.roots['report-content'].textContent,/<script>작업기억 답변/);
+  assert.doesNotMatch(final.roots['report-content'].textContent,/spatial-work 저장 원문|repeated-work 저장 원문/);
+});
 test('feedback uses verified evidence and gives clearly labelled practice without a new AI request',async()=>{
   const run=runWithReport();
   const env=await setup({run}); const text=env.roots['report-content'].textContent;
@@ -74,6 +101,26 @@ test('each practice suggestion is visible while shared provenance is shown once'
   assert.equal((text.match(/근거 참조: answer-current@2.0.0/g)||[]).length,1);
   assert.match(text,/제안 버전: v2/);assert.match(text,/근거 참조: answer-other@1.0.0/);
 });
+test('synthesis preview is read only and AI is explicit with source details and stale handling',async()=>{
+  const run=runWithReport();run.flow_version='five-game-v2';run.interview_report.five_games={games:[]};
+  const prompt={prompt_text:'<script>원척도와 전체 답변</script>',evidence:[{id:'interview:a',text:'실제 원문'}]};
+  const result={provider_execution:'test_double',report:{prompt,feedback:{strengths:[{text:'기록된 행동',evidence_ids:['interview:a']}],gaps:[],practice_plan:[],clarifying_questions:[]}}};
+  const env=await setup({run,handler:call=>call.path.endsWith('/synthesis-prompt')?Response.json(prompt):call.path.endsWith('/synthesis-analysis')?Response.json({...run,revision:21,synthesis_analysis:result}):undefined});
+  assert.equal(env.calls.filter(c=>c.method==='POST').length,0);
+  await env.click('report-synthesis-prompt');
+  assert.equal(env.roots['report-synthesis-preview'].children[1].value,prompt.prompt_text);
+  assert.equal(env.calls.filter(c=>c.method==='POST').length,0);
+  await env.click('report-synthesis-ai');
+  const posted=env.calls.find(c=>c.method==='POST');
+  assert.equal(posted.path,'/runs/report-run/synthesis-analysis');assert.equal(posted.body.mode,'live');
+  assert.match(env.roots['report-content'].textContent,/기록된 행동/);
+  assert.match(env.roots['report-content'].textContent,/실제 원문/);
+  assert.equal(env.roots['report-synthesis-preview'].children.length,0);
+  const stale=await setup({run:{...run,synthesis_analysis:result,synthesis_analysis_stale:true}});
+  assert.match(stale.roots['report-content'].textContent,/이 종합 평가는 이전 입력 기준/);
+  assert.doesNotMatch(stale.roots['report-content'].textContent,/기록된 행동/);
+});
+
 test('game analysis is an explicit separate request after the baseline report',async()=>{
   const run=runWithReport();run.flow_version='five-game-v2';run.interview_report.five_games={version:'five-game-report-v1',source_digest:'digest',games:[]};
   const env=await setup({run,handler:call=>call.path.endsWith('/game-analysis')?Response.json({...run,revision:21}):undefined});
@@ -123,7 +170,7 @@ function runWithReport(options={}){
 }
 
 async function setup({run=runWithReport(),capabilities={live_available:true,reason:null,model_id:'model-approved',max_calls_per_run:3,max_cost_microusd:50000},storage=new Map(),handler,guest=false,legacyBridge=false,storageFails=false,initialBusy=false}={}){
-  const ids=['report-status','report-error','report-capability','report-refresh','report-mock','report-analyze','report-game-ai','report-game-mock','report-retry','report-content','report-linkage','report-finalize','report-followups','report-completion'];
+  const ids=['report-status','report-error','report-capability','report-refresh','report-mock','report-analyze','report-game-ai','report-game-mock','report-retry','report-content','report-linkage','report-finalize','report-followups','report-completion','report-synthesis-prompt','report-synthesis-preview','report-synthesis-mock','report-synthesis-ai'];
   const roots=Object.fromEntries(ids.map(id=>[id,new Element(id.includes('refresh')||id.includes('mock')||id.includes('analyze')||id.includes('retry')?'button':'div')]));
   const events={},calls=[],locks=[];let listener;let server=clone(run);
   let scope={user:guest?null:{user_id:run.user_id},run:guest?null:clone(run),authStatus:guest?'guest':'authenticated',ready:!guest,busy:initialBusy,locked:false,gameLocked:false,interviewLocked:false,reportLocked:false};
