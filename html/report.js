@@ -38,6 +38,7 @@
   function applyRun(run) {
     scopedRun(run);
     if (state.run && run.revision < state.run.revision) { state.loaded=true; render(); return false; }
+    if(state.run?.revision!==run.revision)state.synthesisPrompt=null;
     state.run=run; state.loaded=true; window.AstraPractice.updateRun(run); render(); return true;
   }
   function validPending(value) {
@@ -46,8 +47,8 @@
     const body=pending.body;
     const action=pending.action||'interview-analysis';
     return Number.isInteger(body.expected_revision) && typeof body.idempotency_key==='string' &&
-      ['interview-analysis','game-analysis','evidence-linkage','interview-finalize'].includes(action) &&
-      (!['interview-analysis','game-analysis'].includes(action)||['mock','live'].includes(body.mode)) ? {action,body:{...body}} : null;
+      ['interview-analysis','game-analysis','synthesis-analysis','evidence-linkage','interview-finalize'].includes(action) &&
+      (!['interview-analysis','game-analysis','synthesis-analysis'].includes(action)||['mock','live'].includes(body.mode)) ? {action,body:{...body}} : null;
   }
   function persist() {
     if (!state.scope) return false;
@@ -329,11 +330,56 @@
     const names={rsp:'가위바위보',card:'숫자 카드',day:'약속 요일',place:'약속 장소',bus:'버스 번호'};
     for(const game of advice.games||[]){const card=element('article',undefined,'report-source-card');card.append(element('h4',names[game.type]||game.type));for(const item of game.advice||[])card.append(element('p',item.text));section.append(card);}parent.append(section);
   }
+  function renderSupplemental(parent,report) {
+    const answers=report.status==='finalized'?(report.supplemental_answers||[]):
+      (state.run?.questions||[]).filter(q=>q.question_mode==='supplemental').map(q=>{
+        const answer=window.AstraClient.latestAnswer(state.run,q.question_id)?.data;
+        return {...q,text:answer?.text||'',status:answer?.status||'not_answered'};
+      });
+    if(!answers.length)return;
+    const section=element('section',undefined,'report-evidence-section');
+    section.append(element('h3','업무 경험 면접 · 저장된 자기보고','report-section-title'),
+      element('p','선택 면접 답변 원문입니다. 능력 점수나 기본 면접 AI 분석 결과가 아닙니다.'));
+    for(const answer of answers){
+      const card=element('article',undefined,'report-source-card');
+      card.append(element('h4',answer.question_text));
+      appendLine(card,'상태',({asked_answered:'답변 저장',asked_no_text:'답변 없음',skipped:'건너뜀',not_answered:'미응답'})[answer.status]||'미응답');
+      if(answer.status==='asked_answered')card.append(element('pre',answer.text,'interview-saved-text'));
+      section.append(card);
+    }
+    parent.append(section);
+  }
+  function renderSynthesis(parent,report) {
+    const analysis=state.run?.status==='completed'?report.synthesis_analysis:state.run?.synthesis_analysis;
+    if(!analysis)return;
+    const section=element('section',undefined,'report-evidence-section');
+    section.append(element('h3','세 활동 종합 피드백','report-section-title'));
+    if(state.run?.status!=='completed'&&state.run?.synthesis_analysis_stale){
+      section.append(element('p','이 종합 평가는 이전 입력 기준입니다. 최신 저장 자료로 다시 요청해 주세요.'));parent.append(section);return;
+    }
+    section.append(element('p',analysis.provider_execution==='provider_completed'?'AI가 작성한 연습 피드백 · 인용 근거와 함께 확인하세요.':analysis.provider_execution==='test_double'?'테스트 대역 · 실제 AI 미사용':'AI 미사용 · 종합 근거 저장'));
+    const result=analysis.report||{},sources=new Map((result.prompt?.evidence||[]).map(e=>[e.id,e]));
+    const labels={strengths:'잘한 점',gaps:'보완점과 비교 제한',practice_plan:'개선 계획',clarifying_questions:'추가 확인 질문'};
+    for(const [key,label] of Object.entries(labels)){
+      section.append(element('h4',label));
+      const items=result.feedback?.[key]||[];
+      if(!items.length)section.append(element('p','제시된 항목이 없습니다. 낮은 능력을 뜻하지 않습니다.'));
+      for(const item of items){
+        if(!item.evidence_ids?.length||item.evidence_ids.some(id=>!sources.has(id)))continue;
+        section.append(element('p',item.text));
+        for(const id of item.evidence_ids){const details=element('details');details.append(element('summary','인용 근거 확인: '+id),element('pre',JSON.stringify(sources.get(id),null,2),'interview-saved-text'));section.append(details);}
+      }
+    }
+    for(const limit of result.limitations||[])section.append(element('p',limit));
+    parent.append(section);
+  }
   function renderReport() {
     const root=$('report-content');root.replaceChildren();const report=state.run?.status==='completed'&&state.run?.report?.status==='finalized'?state.run.report:state.run?.interview_report;if(!report)return;
     const header=element('section',undefined,'report-summary');header.append(element('h3',report.status==='finalized'?'최종 보고서 · 확정됨':'현재 회차 근거 보고서','report-section-title'));appendLine(header,'보고서 ID',`${report.report_id}@${report.report_version}`);appendLine(header,'실행 구분',modeLabel(report));if(report.created_at)appendLine(header,'생성 시각',report.created_at);if(report.finalized_at)appendLine(header,'확정 시각',report.finalized_at);root.append(header);
     renderCards(root,report.cards);renderSurveys(root,report.surveys);if(report.five_games){renderFiveGames(root,report.five_games);renderGameAdvice(root,report);}else renderGames(root,report.rule_games);
     renderLinkage(root,report.evidence_linkage||state.run?.evidence_linkage);renderFinalFollowups(root,report);
+    renderSupplemental(root,report);
+    renderSynthesis(root,report);
     const limits=element('section',undefined,'report-limitations');limits.append(element('h3','해석 제한','report-section-title'));for(const item of Array.isArray(report.limitations)?report.limitations:[])limits.append(element('p',item));limits.append(element('p','게임 점수는 해당 규칙의 저장 결과이며 합격, 성향, B01/B02/B03의 점수가 아닙니다.'));root.append(limits);
   }
   function render() {
@@ -345,6 +391,13 @@
     const gameAvailable=state.run?.flow_version==='five-game-v2' && Boolean(state.run?.interview_report?.five_games) && !state.run?.interview_report_stale;
     if($('report-game-mock'))$('report-game-mock').disabled=!gameAvailable||requestBlocked('mock');
     if($('report-game-ai'))$('report-game-ai').disabled=!gameAvailable||requestBlocked('live');
+    if($('report-synthesis-mock'))$('report-synthesis-mock').disabled=!gameAvailable||requestBlocked('mock')||Boolean(state.context?.interviewDrafts);
+    if($('report-synthesis-ai'))$('report-synthesis-ai').disabled=!gameAvailable||requestBlocked('live')||Boolean(state.context?.interviewDrafts);
+    if($('report-synthesis-prompt'))$('report-synthesis-prompt').disabled=!state.scope||!state.loaded||state.busy||Boolean(state.pending)||otherWorkLocked();
+    if($('report-synthesis-preview')){
+      const panel=$('report-synthesis-preview');panel.replaceChildren();
+      if(state.scope&&state.synthesisPrompt){const area=element('textarea');area.readOnly=true;area.className='textarea-box';area.setAttribute('aria-label','AI에 전달할 종합 평가 프롬프트');area.value=state.synthesisPrompt.prompt_text;panel.append(element('p','현재 저장 자료로 만든 프롬프트입니다. 필요한 경우 선택하여 복사할 수 있습니다.'),area);}
+    }
     if($('report-linkage'))$('report-linkage').disabled=linkageBlocked();
     if($('report-finalize'))$('report-finalize').disabled=finalizeBlocked();
     if($('report-followups')){$('report-followups').hidden=!state.run?.evidence_linkage;$('report-followups').disabled=state.busy||Boolean(state.pending)||state.run?.status==='completed';}
@@ -384,6 +437,12 @@
     if(!persist()){state.pending=null;render();return;}
     return work(allow=>sendPending(allow,false));
   }
+  function requestSynthesis(mode) {
+    if(requestBlocked(mode)||state.context?.interviewDrafts||!state.run?.interview_report?.five_games||state.run?.interview_report_stale)return;
+    state.pending={action:'synthesis-analysis',body:{expected_revision:state.run.revision,idempotency_key:crypto.randomUUID(),mode}};
+    if(!persist()){state.pending=null;render();return;}
+    return work(allow=>sendPending(allow,false));
+  }
   function requestCompletion(action) {
     if(action==='evidence-linkage'?linkageBlocked():finalizeBlocked())return;
     state.pending={action,body:{expected_revision:state.run.revision,idempotency_key:crypto.randomUUID()}};
@@ -407,6 +466,7 @@
     const scope=context.user&&context.run?{user_id:context.user.user_id,run_id:context.run.run_id}:null;
     const same=scope&&state.scope&&scope.user_id===state.scope.user_id&&scope.run_id===state.scope.run_id;
     const changed=same&&(context.run.revision>(state.run?.revision??-1)||context.busy!==state.context?.busy||context.locked!==state.context?.locked||context.gameLocked!==state.context?.gameLocked||context.interviewLocked!==state.context?.interviewLocked||context.interviewDrafts!==state.context?.interviewDrafts||context.run.status!==state.run?.status);
+    if(!same||context.run?.revision!==state.run?.revision)state.synthesisPrompt=null;
     state.context=context;
     if(same){if(context.run.revision>=(state.run?.revision??-1))state.run=context.run;if(changed)render();if(!state.loaded&&!state.busy&&!otherWorkLocked())work(loadCurrent);return;}
     const previous=state.scope;state.epoch++;state.scope=scope;state.run=context.run;state.capabilities=null;state.loaded=false;state.loadFailed=false;state.busy=false;state.pending=null;state.storageOK=true;if(previous)state.lastScope=previous;
@@ -417,6 +477,11 @@
   window.AstraReport={};
   document.addEventListener('DOMContentLoaded',()=>{
     const bridge=window.AstraPractice;
+    $('report-synthesis-prompt')?.addEventListener('click',()=>work(async allow=>{
+      const prompt=await api(runPath()+'/synthesis-prompt');if(allow())state.synthesisPrompt=prompt;
+    }));
+    $('report-synthesis-mock')?.addEventListener('click',()=>requestSynthesis('mock'));
+    $('report-synthesis-ai')?.addEventListener('click',()=>requestSynthesis('live'));
     if(!['subscribe','updateRun','invalidateRun','setReportLock'].every(name=>typeof bridge?.[name]==='function')||!['createApi','verifyQuote'].every(name=>typeof window.AstraClient?.[name]==='function')){
       $('report-status').textContent='근거 보고서 화면을 불러오지 못했습니다.';$('report-refresh').disabled=true;$('report-mock').disabled=true;$('report-analyze').disabled=true;notice('화면 파일 일부가 이전 버전이거나 불러오지 못했습니다. Ctrl + F5로 화면을 새로고침해 주세요. 저장된 기록은 유지됩니다.');return;
     }

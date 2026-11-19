@@ -26,6 +26,73 @@ const questions=[
   {question_id:'followup-hidden',question_version:'1.0.0',question_text:'숨겨야 하는 후속 질문',question_mode:'adaptive_followup',conditioned_on_prior_evidence:true},
 ];
 const baseRun=()=>({run_id:'interview-run',user_id:'interview-user',revision:12,status:'in_progress',questions:clone(questions),records:[]});
+const wmQuestions=()=>['요청의 변경과 처리 경험','동시에 기억한 정보','변경과 유지 조건','혼동과 확인','메모와 도구'].map((text,i)=>({
+  question_id:'wm-experience-'+i,question_version:'1.0.0',question_text:text,
+  question_mode:'supplemental',question_group:'working-memory-interview-v1',
+  parent_question_id:i?'wm-experience-0':null,conditioned_on_prior_evidence:false
+}));
+const workQuestions=()=>['spatial-work','repeated-work'].flatMap(prefix=>Array.from({length:4},(_,i)=>({
+  question_id:prefix+'-experience-'+i,question_version:'1.0.0',question_text:prefix+' 업무 질문 '+i,
+  question_mode:'supplemental',question_group:prefix+'-interview-v1',
+  parent_question_id:i?prefix+'-experience-0':null,conditioned_on_prior_evidence:false
+})));
+
+test('working-memory-only run can add both work groups, save, and reload without replacing old answers',async()=>{
+  const run=baseRun();run.questions.push(...wmQuestions());
+  const env=await setup({run,handler(call,{server}){
+    if(call.path.endsWith('/supplemental-interview')){
+      server.questions.push(...workQuestions());server.revision++;
+      return Response.json(server);
+    }
+  }});
+  assert.equal(env.roots['interview-supplemental-add'].hidden,false);
+  await env.click('interview-supplemental-add');
+  assert.equal(env.roots['interview-supplemental'].children.length,13);
+  assert.equal(env.roots['interview-supplemental-add'].hidden,true);
+  assert.match(env.roots['interview-supplemental'].textContent,/공간 배치 경험 질문/);
+  assert.match(env.roots['interview-supplemental'].textContent,/반복 업무 후속 질문 3/);
+  for(let i=8;i<16;i++){
+    await env.input('interview-answer-'+i,'업무 답변 '+i);
+    await env.click('interview-save-'+i);
+  }
+  assert.equal(env.server().records.length,8);
+  assert.match(env.roots['interview-progress'].textContent,/0 \/ 3/);
+  const restored=await setup({run:env.server()});
+  assert.equal(restored.document.getElementById('interview-answer-15').value,'업무 답변 15');
+});
+
+test('supplemental questions save separately and remain editable when game linkage is stale',async()=>{
+  const run=baseRun();run.questions.push(...wmQuestions());run.evidence_linkage_stale=true;
+  const env=await setup({run});
+  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.roots['interview-items'].children.length,3);
+  assert.match(env.roots['interview-progress'].textContent,/0 \/ 3/);
+  for(let i=3;i<8;i++){
+    assert.equal(env.document.getElementById('interview-answer-'+i).disabled,false);
+    await env.input('interview-answer-'+i,'  개별 응답 '+i+' 🙂\n ');
+    await env.click('interview-save-'+i);
+  }
+  assert.equal(env.server().records.length,5);
+  assert.match(env.roots['interview-supplemental-progress'].textContent,/5 \/ 5/);
+  assert.match(env.roots['interview-progress'].textContent,/0 \/ 3/);
+  const restored=await setup({run:env.server()});
+  assert.equal(restored.document.getElementById('interview-answer-7').value,'  개별 응답 7 🙂\n ');
+  const completed=await setup({run:{...env.server(),status:'completed'}});
+  assert.equal(completed.document.getElementById('interview-answer-3').disabled,true);
+});
+
+test('existing runs can add optional questions without replacing baseline answers',async()=>{
+  const env=await setup({handler(call,{server}){
+    if(call.path.endsWith('/supplemental-interview')){
+      server.questions.push(...wmQuestions(),...workQuestions());server.revision++;
+      return Response.json(server);
+    }
+  }});
+  await env.click('interview-supplemental-add');
+  assert.equal(env.roots['interview-supplemental'].children.length,13);
+  assert.equal(env.roots['interview-supplemental-add'].hidden,true);
+  assert.equal(env.roots['interview-items'].children.length,3);
+});
 
 test('five-game run prevents interview editing until all games are complete',async()=>{
   const run=baseRun();run.flow_version='five-game-v2';run.rule_games={games:{rsp:{rounds:[]},card:{rounds:[]}}};
@@ -36,7 +103,7 @@ test('five-game run prevents interview editing until all games are complete',asy
 });
 
 async function setup({run=baseRun(),storage=new Map(),handler,afterCommit,replays=new Map(),guest=false,storageFails=false,legacyBridge=false}={}) {
-  const ids=['interview-status','interview-progress','interview-error','interview-refresh','interview-retry','interview-resolve','interview-items','interview-saved','interview-complete','interview-followups','interview-followup-progress'];
+  const ids=['interview-status','interview-progress','interview-error','interview-refresh','interview-retry','interview-resolve','interview-items','interview-saved','interview-complete','interview-followups','interview-followup-progress','interview-supplemental','interview-supplemental-progress','interview-supplemental-add'];
   const roots=Object.fromEntries(ids.map(id=>[id,new Element(id.includes('retry')||id.includes('refresh')||id.includes('resolve')||id.includes('complete')?'button':'div')]));
   const events={},calls=[],locks=[];let listener;let server=clone(run);let scope={user:guest?null:{user_id:'interview-user'},run:guest?null:clone(run),ready:!guest,busy:false,locked:false,gameLocked:false,interviewLocked:false,authStatus:guest?'guest':'authenticated'};
   const find=(node,id)=>node.attrs.id===id?node:node.children.map(child=>find(child,id)).find(Boolean);

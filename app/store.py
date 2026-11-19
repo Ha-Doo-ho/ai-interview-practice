@@ -313,8 +313,10 @@ class Store:
         }
         if flow_version == "five-game-v2":
             from .appointment_game import initial_appointment_games
+            from .supplemental_interview import add_questions
             snapshot["flow_version"] = flow_version
             snapshot["appointment_games"] = initial_appointment_games()
+            add_questions(snapshot)
         try:
             with Session(self.engine, expire_on_commit=False) as session, session.begin():
                 self._owned_user(session, user_id)
@@ -522,7 +524,7 @@ class Store:
 
     def complete_interview_analysis(self, user_id: str, request_id: str, result: dict, *, kind: str = "interview") -> dict:
         """Atomically publish the result and make its exact HTTP replay durable."""
-        if kind not in {"interview", "game"}:
+        if kind not in {"interview", "game", "synthesis"}:
             raise Validation("validation_error")
         with Session(self.engine, expire_on_commit=False) as session:
             try:
@@ -554,7 +556,7 @@ class Store:
                 if reservation.status != "running":
                     raise Conflict("analysis_request_failed")
                 updated = self._snapshot(row)
-                field = "interview_analysis" if kind == "interview" else "game_analysis"
+                field = {"interview":"interview_analysis", "game":"game_analysis", "synthesis":"synthesis_analysis"}[kind]
                 previous = updated.get(field)
                 if previous is not None and previous != result:
                     history = updated.setdefault(field + "_history", [])

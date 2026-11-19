@@ -133,6 +133,12 @@ def _public_snapshot(snapshot: dict, *, definition: bool = False) -> dict:
             public["game_analysis_stale"] = snapshot["game_analysis"].get("input_snapshot") != expected
         except Exception:
             public["game_analysis_stale"] = True
+    if isinstance(snapshot.get("synthesis_analysis"), dict):
+        try:
+            from .synthesis import build_prompt
+            public['synthesis_analysis_stale'] = snapshot['synthesis_analysis']['input_snapshot']['source_digest'] != build_prompt(snapshot)['source_digest']
+        except Exception:
+            public['synthesis_analysis_stale'] = True
     if snapshot.get("evidence_linkage") is not None:
         try:
             module = importlib.import_module("app.evidence_linkage")
@@ -164,6 +170,8 @@ def _analysis_input_snapshot(run_snapshot: dict) -> dict:
                 "status": record.get("status"),
             }
             for record in run_snapshot.get("records", [])
+            if not (record.get("source_type") == "typed_answer"
+                    and record.get("data", {}).get("question_mode") == "supplemental")
         ],
         "game_state_version": run_snapshot.get("game", {}).get("state_version"),
         "definitions_version": DEFINITIONS["version"],
@@ -614,6 +622,18 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
         return _public_snapshot(store.mutate(user["user_id"], run_id, expected, "game", key, body, apply))
 
+    @application.post("/api/runs/{run_id}/supplemental-interview")
+    async def add_supplemental_interview(run_id: str, request: Request):
+        _require_csrf(request)
+        user = current_user(request)
+        body = await json_body(request)
+        if set(body) != {"expected_revision", "idempotency_key"}:
+            raise Validation("validation_error")
+        expected, key = _body_common(body)
+        from .supplemental_interview import add_questions
+        return _public_snapshot(store.mutate(user["user_id"], run_id, expected,
+            "supplemental_interview", key, body, add_questions))
+
     @application.post("/api/runs/{run_id}/answers")
     async def submit_answer(run_id: str, request: Request):
         _require_csrf(request)
@@ -683,6 +703,8 @@ def create_app(database_url: str | None = None) -> FastAPI:
                         "question_id": question["question_id"],
                         "question_version": question["question_version"],
                         "question_text_snapshot": question["question_text"],
+                        "parent_question_id": question.get("parent_question_id"),
+                        "question_group": question.get("question_group"),
                         "behavior_id": question.get("behavior_id"),
                         "question_mode": question["question_mode"],
                         "conditioned_on_prior_evidence": question["conditioned_on_prior_evidence"],
@@ -789,6 +811,52 @@ def create_app(database_url: str | None = None) -> FastAPI:
             )
         except Exception as exc:
             store.fail_interview_analysis(user["user_id"], request_id, error_code=str(exc).split(':',1)[0])
+            _raise_interview_error(exc)
+        return _public_snapshot(updated)
+
+    @application.get('/api/runs/{run_id}/synthesis-prompt')
+    async def synthesis_prompt(run_id: str, request: Request):
+        from .synthesis import build_prompt
+        snapshot = store.get_run(current_user(request)['user_id'], run_id)
+        frozen = (snapshot.get('report') or {}).get('synthesis_prompt')
+        return frozen if snapshot['status'] == 'completed' and frozen else build_prompt(snapshot)
+
+    @application.post('/api/runs/{run_id}/synthesis-analysis')
+    async def create_synthesis_analysis(run_id: str, request: Request):
+        from . import synthesis, five_game_ai
+        _require_csrf(request)
+        user = current_user(request)
+        body = await json_body(request)
+        if set(body) != {'expected_revision','idempotency_key','mode'} or body.get('mode') not in ('mock','live'):
+            raise Validation('validation_error')
+        expected, key = _body_common(body)
+        tagged = {'operation':'synthesis-analysis','body':body}
+        replay = store.get_interview_analysis_replay(user['user_id'],run_id,key,tagged)
+        if replay is not None:
+            return _public_snapshot(replay)
+        snapshot = store.get_run(user['user_id'],run_id)
+        if snapshot['revision'] != expected: raise Conflict('revision_conflict')
+        if snapshot['status'] == 'completed': raise Finalized('stale_after_finalize')
+        _require_no_aptitude_active(snapshot)
+        _require_five_games(snapshot)
+        try:
+            # Existing baseline analysis and five required games must be current.
+            five_game_ai.prepare(snapshot,'mock')
+            prepared = synthesis.prepare(snapshot,body['mode'])
+        except Exception as exc:
+            _raise_interview_error(exc)
+        reservation = store.reserve_interview_analysis(user['user_id'],run_id,snapshot['attempt_id'],expected,key,
+            tagged,body['mode'],prepared['calls_required'],prepared['cost_microusd'],
+            prepared['max_calls_per_run'],prepared['max_cost_microusd'])
+        if reservation['state']=='replay':return _public_snapshot(reservation['response'])
+        request_id=reservation['request_id']
+        try:
+            result=await run_in_threadpool(synthesis.execute,prepared,
+                before_call=lambda:store.assert_interview_analysis_current(user['user_id'],request_id))
+            result=_safe_interview_analysis(result,prepared)
+            updated=store.complete_interview_analysis(user['user_id'],request_id,result,kind='synthesis')
+        except Exception as exc:
+            store.fail_interview_analysis(user['user_id'],request_id,error_code=str(exc).split(':',1)[0])
             _raise_interview_error(exc)
         return _public_snapshot(updated)
 
@@ -899,6 +967,11 @@ def create_app(database_url: str | None = None) -> FastAPI:
             module = importlib.import_module("app.evidence_linkage")
             _require_no_aptitude_active(snapshot)
             report = module.finalize_report(copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS))
+            from .synthesis import build_prompt
+            report['synthesis_prompt'] = build_prompt(snapshot)
+            synthesis_result = snapshot.get('synthesis_analysis')
+            if synthesis_result and synthesis_result['input_snapshot']['source_digest'] == report['synthesis_prompt']['source_digest']:
+                report['synthesis_analysis'] = copy.deepcopy(synthesis_result)
             if snapshot.get('aptitude_games'):
                 from .aptitude_games import public_state
                 report['aptitude_games'] = public_state(snapshot['aptitude_games'])
@@ -1023,6 +1096,9 @@ def create_app(database_url: str | None = None) -> FastAPI:
             run_snapshot["report_draft"] = copy.deepcopy(result["report"])
             run_snapshot["report"] = copy.deepcopy(result["report"])
             run_snapshot["report"]["runtime_mode"] = result["runtime_mode"]
+            from .supplemental_interview import export_answers
+            if supplementary := export_answers(run_snapshot):
+                run_snapshot["report"]["supplemental_answers"] = supplementary
             run_snapshot["status"] = "completed"
             run_snapshot["completed_at"] = datetime.now(timezone.utc).isoformat()
 

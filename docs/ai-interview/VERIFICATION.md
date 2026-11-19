@@ -1,5 +1,36 @@
 # Verification
 
+## 2026-11-19 — 세 활동 종합 평가 입력 및 별도 AI 요청
+
+- 최종 인용 계보 보완 후 / **passed**: 조건부 공개 인용의 span source_id/version/start/end/offset_unit을 중복 원문 없이 보존했다. 집중 10 passed, exit 0, 13.39초. `artifacts/synthesis-20261119/targeted-final.txt`. 독립 Astra 재실행은 8게임+보충13문항 각각148~155자에서 Gemini 보수입력59,227/64,000 및 완료/권한/금지출력 검사를 확인했다(인용계보 필드 보완 전 측정).
+
+- 자동 / 합성 자료·격리 SQLite·mock 공급자 / **passed**: `.venv/Scripts/python.exe -B -X utf8 -m pytest tests -q -p no:cacheprovider` → **511 passed**, exit 0, 212.80초. DATABASE_URL=artifacts/synthesis-20261119/full-import.db, AI_LIVE_ENABLED=false, PAID_AI_ENABLED=false. 공급자 테스트는 자체 transport 주입. 로그 `artifacts/synthesis-20261119/python-full.txt`. 기존 anyio 경고 1개.
+- 자동 / 합성 DOM·mock transport / **passed**: `node --test tests/frontend*.test.cjs` → **134 passed**, exit 0. 로그 `artifacts/synthesis-20261119/frontend-full.txt`.
+- 마지막 입력 압축/두 활동 비교 제한/영문 금지표현 보완 이후 자동 / **passed**: `pytest tests/test_synthesis.py tests/test_synthesis_flow.py -q -p no:cacheprovider` → **10 passed**, exit 0, 15.68초. 8종 전체 게임 완료와 보충13답변 각 한국어 100자 이상을 기본64k 종합 한도에서 Gemini 대역으로 전달했다. 실제 시도는 테스트 전용 DB/메모리에서만 생성했다.
+- 포함 범위: 원척도/질문 원문/최신 답변 버전/현재 유효 후속만 수집, 8종 결측 구분, practice 분리, 실제 추가 게임 엔진, active 숨김 정보 보호, 주제별 출처 및 관찰상태 검증, 미사용 GET, 소유권·CSRF·완료회차 보호, 동일 요청 재생, 변경 후 stale, 최종 원문 고정. UI는 프롬프트 원문, 명시 요청, 자료 인용과 stale 숨김.
+- 독립 / GPT-6.2 Astra high / 지적 후 수정: 12k/64k 입력 크기 문제를 종합기본한도 및 중복 제거로 보완; 과거 조건부 원문 재전송 차단; 라운드별 노출 누락/약속 실제 시간 보존; 숫자카드-WM 과잉 연결 제거; 단일활동 차이 주장 및 명시적 당락/백분위 출력 거부.
+- 한계: 자유문장 전체의 의미를 자동 검증하는 것은 아니다. 실제 외부 AI 응답의 품질 및 브라우저 육안 검증은 **not run**. 새 실제 유료 호출·배포·사용자 운영 DB 직접 변경은 없다.
+
+## 2026-11-19 — 공간 배치·반복 업무 면접 추가
+
+- 자동 / 합성 데이터·임시 SQLite·mock / **passed**: `.venv/Scripts/python.exe -B -X utf8 -m pytest tests/test_supplemental_interview.py tests/test_frontend_integration.py tests/test_interview_analysis_api.py tests/test_evidence_linkage.py tests/test_completion_policy.py -q -p no:cacheprovider` → **53 passed**, exit 0, 9.71초. 기존 anyio DeprecationWarning 1개. DATABASE_URL을 artifacts/work-interview-20261119/test-import.db로 분리하고 AI_LIVE_ENABLED=false, PAID_AI_ENABLED=false. 로그 python-tests.txt.
+- 자동 / 합성 DOM·mock transport / **passed**: `node --test tests/frontend*.test.cjs` → **133 passed**, exit 0. 로그 artifacts/work-interview-20261119/frontend-tests.txt.
+- TDD / **confirmed**: 수정 전 신규 그룹 추가·내보내기 부족으로 Python 4 failed / 1 passed, 기존 WM 회차 추가 버튼/신규 그룹 표시 대상 frontend 2 failed. 수정 후 통과. 최초 시스템 Python은 fastapi 미설치로 collection 실패했고 프로젝트 .venv로 재실행했다.
+- 독립 적대적 검토 / GPT-6.2 Astra high / **passed**: 기존 기본·WM 질문과 답변 보존, 반복 추가 멱등성, 새 8문항의 질문·그룹·보고서 원문 연결을 별도 메모리 실행과 코드 검토로 확인. 수정 필요한 결함 없음.
+- 실제 브라우저 / **not run**: 이번 검증은 API와 합성 DOM에 한정한다. 전체 Python 500개 재실행이나 실제 화면 확인을 이번 결과로 주장하지 않는다.
+
+## 2026-11-19 — 작업기억 선택 면접 추가
+
+- 자동 / synthetic SQLite + mock / **passed**: 전체 `python -B -X utf8 -m pytest -q -p no:cacheprovider --harness-report artifacts/wm-interview-20261119/harness-results.json` → **500 passed**, exit 0, 85.87초. 앱 import 전에 DATABASE_URL을 별도 `artifacts/wm-interview-20261119/test-import.db`로 지정하고 AI_LIVE_ENABLED=false / PAID_AI_ENABLED=false를 적용했다. 각 API 테스트는 pytest 임시 DB를 사용한다. 기존 Starlette/anyio DeprecationWarning 1건.
+- 자동 / 합성 DOM + mock transport / **passed**: `node --test tests/frontend*.test.cjs`에 해당하는 전체 파일 목록 실행 → **132 passed**, exit 0. 독립 답변 저장·복원, 기존3 진도 보존, 게임 조건부 근거가 stale이어도 선택 면접은 작성 가능, 완료 후 잠금, 보고서 확정 원문 및 HTML 이스케이프를 확인했다.
+- 자동 / 네트워크·외부DB 쓰기 가드 포함 / **passed**: `python -m tools.run_checks --output-root artifacts/wm-interview-20261119/guarded tests/test_supplemental_interview.py` 경로 실행 → **4 passed**, API 요청 56, 공급자 전송 0, 가드 위반 0. 실제 실행은 runpy로 같은 모듈/인자를 실행하고 5초 진단 타이머를 걸었으며 정상 종료했다. 근거: `artifacts/wm-interview-20261119/guarded/run-l8j6xqi5/RESULTS.json`, `EXECUTION.json`, `SOURCE_HASHES.json`.
+- TDD / **confirmed**: 새 문항 부재·추가 endpoint 부재, 합성 DOM의 문항 미표시·저장 버튼 부재, 보고서 미표시, 구 snapshot 오염을 수정 전 실패로 확인한 뒤 수정 후 통과했다.
+- 초기 전체 검사 / **failed then fixed**: 499 passed, 캐시 버전 통일 검사 1 failed. html/index.html의 모든 로컬 asset 버전을 20261119로 통일한 뒤 전체 500 passed를 재확인했다.
+- 실행기 시도 / **aborted, not counted**: 기본 output-root의 run_checks 두 실행이 무출력 장기 실행되어 해당 실행 프로세스만 중단했다. 명시 output-root의 가드 검증과 별도 DB를 지정한 전체 검사를 사용했다.
+- 독립 적대적 검토 / GPT-6.2 Astra high / **resolved**: 구 분석기의 supplemental 답변 오인과 구 정적 화면의 비baseline 전체를 필수 후속으로 간주하는 문제를 발견했다. 수정 후 메모리 내 실제 분석/화면 진행 함수에서 재현되지 않으며 API 회귀 테스트도 통과했다.
+- 실제 브라우저 / **blocked**: Playwright는 브라우저 세션 사용 중 오류, CUA IAB는 browser access host unavailable. 실제 화면·모바일 육안 검증을 했다고 주장하지 않는다. 전용 임시 DB를 사용하는 검증 서버는 종료했다.
+- 수용 시나리오: **66 passed / 2 pending_manual**, manifest 전체 상태는 incomplete. 외부 AI 실호출, 운영 배포, 측정 타당도 검증은 미실행.
+
 ## 2026-11-17 — GitHub 공개 소스 점검
 
 - 자동 / offline synthetic + mock / **passed**: `python -B -X utf8 -m tools.run_checks --output-root artifacts/github-publish-20261117/checks tests/test_aptitude_api.py tests/test_frontend_integration.py tests/test_baseline_configuration_guard.py -q` → **8 passed**, exit 0. 실행 근거 `artifacts/github-publish-20261117/checks/run-t13b_r_6/`. 전체 회귀를 다시 실행한 결과로 표시하지 않는다.

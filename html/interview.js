@@ -13,7 +13,21 @@
   const followupQuestions = () => (state.run?.evidence_linkage?.questions || []).filter(question =>
     question.question_mode === 'adaptive_followup' && question.conditioned_on_prior_evidence === true &&
     (state.run?.questions||[]).some(saved=>saved.question_id===question.question_id&&saved.question_version===question.question_version));
-  const displayedQuestions = () => [...baselineQuestions(),...followupQuestions()];
+  const supplementalQuestions = () => (state.run?.questions || []).filter(question =>
+    question.question_mode === 'supplemental');
+  const supplementalGroups = {
+    'working-memory-interview-v1': {label:'요청 변경',prefix:'wm-experience',count:5},
+    'spatial-work-interview-v1': {label:'공간 배치',prefix:'spatial-work-experience',count:4},
+    'repeated-work-interview-v1': {label:'반복 업무',prefix:'repeated-work-experience',count:4}
+  };
+  const supplementalMissing = () => {
+    const ids=new Set(supplementalQuestions().map(q=>q.question_id));
+    return Object.values(supplementalGroups).some(group=>
+      Array.from({length:group.count},(_,i)=>`${group.prefix}-${i}`).some(id=>!ids.has(id)));
+  };
+  const displayedQuestions = () => [...baselineQuestions(),...supplementalQuestions(),...followupQuestions()];
+  const staleQuestion = questionId => Boolean(state.run?.evidence_linkage_stale &&
+    (state.run?.questions||[]).some(q=>q.question_id===questionId&&q.question_mode==='adaptive_followup'));
   const latest = questionId => window.AstraClient.latestAnswer(state.run || {records: []}, questionId);
   const currentCount = () => baselineQuestions().filter(question => latest(question.question_id)).length;
   const gamesIncomplete = () => state.run?.flow_version === 'five-game-v2' && (
@@ -124,7 +138,7 @@
   function updateRow(index, questionId) {
     const textarea = $(`interview-answer-${index}`);
     if (!textarea) return;
-    const blocked = writeBlocked() || Boolean(index>=baselineQuestions().length && state.run?.evidence_linkage_stale);
+    const blocked = writeBlocked() || staleQuestion(questionId);
     const nonblank = Boolean(textarea.value.trim());
     textarea.disabled = blocked;
     $(`interview-save-${index}`).disabled = blocked || !nonblank;
@@ -137,11 +151,21 @@
   function renderQuestions() {
     $('interview-items').replaceChildren();
     $('interview-followups')?.replaceChildren();
+    $('interview-supplemental')?.replaceChildren();
     displayedQuestions().forEach((question, index) => {
       const conditioned=question.conditioned_on_prior_evidence===true;
+      const supplemental=question.question_mode==='supplemental';
       if(conditioned&&!$('interview-followups'))return;
+      if(supplemental&&!$('interview-supplemental'))return;
       const card = element('section', undefined, 'interview-q-group');
-      card.append(element('h3', `${conditioned?'조건부 후속 질문 '+(index-baselineQuestions().length+1):'질문 '+(index+1)}. ${question.question_text}`, 'q-label-title'));
+      const groupLabel=supplementalGroups[question.question_group]?.label||'업무';
+      const followupNumber=supplementalQuestions().filter(q=>q.parent_question_id===question.parent_question_id)
+        .findIndex(q=>q.question_id===question.question_id)+1;
+      const label=conditioned?'조건부 후속 질문 '+(followupQuestions().findIndex(q=>q.question_id===question.question_id)+1):
+        supplemental?(question.parent_question_id?groupLabel+' 후속 질문 '+followupNumber:groupLabel+' 경험 질문'):'질문 '+(index+1);
+      card.append(element('h3', `${label}. ${question.question_text}`, 'q-label-title'));
+      if(supplemental)card.append(element('p',question.parent_question_id?
+        '위 경험 질문에서 설명한 같은 사례를 이어서 답해 주세요.':'직장·학업·일상에서 경험한 사례로 답할 수 있습니다. 해당 경험이 없으면 건너뛸 수 있습니다.','survey-help'));
       if(conditioned){
         card.append(element('p','선택 후속 질문 · 사전 근거를 공개한 후의 답변은 중립 기본 면접 추출과 별도로 저장됩니다.','survey-help'));
         card.append(element('p',`질문 조건: ${question.question_mode} · conditioned_on_prior_evidence=true · ${question.question_id}@${question.question_version}`,'survey-help'));
@@ -176,7 +200,7 @@
       const skip = element('button', '이 문항 건너뛰기', 'btn-action btn-light');
       skip.setAttribute('id', `interview-skip-${index}`); skip.type = 'button';
       skip.addEventListener('click', () => submit(question.question_id, index, 'skipped'));
-      actions.append(save, empty, skip); card.append(actions); $(conditioned?'interview-followups':'interview-items').append(card);
+      actions.append(save, empty, skip); card.append(actions); $(conditioned?'interview-followups':supplemental?'interview-supplemental':'interview-items').append(card);
       updateRow(index, question.question_id);
     });
   }
@@ -189,6 +213,14 @@
     const count = state.loaded ? currentCount() : 0;
     const total = state.loaded ? baselineQuestions().length : 0;
     $('interview-progress').textContent = `서버 저장 ${count} / ${total}문항`;
+    const supplemental=state.loaded?supplementalQuestions():[];
+    if($('interview-supplemental-progress'))$('interview-supplemental-progress').textContent=supplemental.length?
+      `업무 경험 면접 저장 ${supplemental.filter(q=>latest(q.question_id)).length} / ${supplemental.length}문항 · 선택 답변`:
+      state.run?.status==='completed'?'이 회차에는 업무 경험 면접 문항이 없습니다. 새 회차에서 답할 수 있습니다.':'기존 회차에는 아래 버튼으로 업무 경험 면접 문항을 추가할 수 있습니다.';
+    if($('interview-supplemental-add')){
+      $('interview-supplemental-add').hidden=!supplementalMissing()||state.run?.status==='completed';
+      $('interview-supplemental-add').disabled=writeBlocked();
+    }
     if($('interview-followup-progress')){const followups=state.loaded?followupQuestions():[];const answered=followups.filter(q=>latest(q.question_id)).length;$('interview-followup-progress').textContent=followups.length?`조건부 후속 저장 ${answered} / ${followups.length}문항 · 미응답도 최종 보고서에 명시됩니다.`:'보고서에서 근거 연결·후속 질문 만들기를 요청하면 선택 질문이 표시됩니다.';}
     $('interview-refresh').disabled = !hasScope || state.busy || Boolean(state.context?.reportLocked);
     $('interview-retry').hidden = !state.journal.pending;
@@ -198,7 +230,7 @@
     $('interview-complete').hidden = !(state.loaded && total > 0 && count === total);
     $('interview-complete').textContent = count === total && total > 0 ? `기본 면접 ${total}문항이 모두 서버에 저장되었습니다.` : '';
     if (state.loaded) { renderQuestions(); renderSaved(); }
-    else { $('interview-items').replaceChildren(); $('interview-saved').replaceChildren();$('interview-followups')?.replaceChildren(); }
+    else { $('interview-items').replaceChildren(); $('interview-saved').replaceChildren();$('interview-followups')?.replaceChildren();$('interview-supplemental')?.replaceChildren(); }
     if (state.scope) window.AstraPractice.setInterviewLock({...state.scope, locked: state.busy || Boolean(state.journal.pending)});
     publishDrafts();
   }
@@ -257,7 +289,7 @@
     return window.AstraClient.answerPayload(state.run, questionId, draft.text, status);
   }
   function submit(questionId, index, status) {
-    if (writeBlocked() || (index>=baselineQuestions().length&&state.run?.evidence_linkage_stale)) return;
+    if (writeBlocked() || staleQuestion(questionId)) return;
     let payload;
     try { payload = buildPayload(questionId, index, status); }
     catch (error) {
@@ -353,6 +385,17 @@
     $('interview-refresh').addEventListener('click', () => work(fetchCurrent));
     $('interview-retry').addEventListener('click', () => work(allow => sendPending(allow, true)));
     $('interview-resolve').addEventListener('click', resolveRejected);
+    $('interview-supplemental-add')?.addEventListener('click', () => {
+      if(writeBlocked())return;
+      work(async allow=>{
+        // Reconcile a lost add response before retrying; adding is set-like on the server.
+        await fetchCurrent(allow);
+        if(!allow()||!supplementalMissing()||state.run?.status==='completed')return;
+        const run=await api(path()+'/supplemental-interview',{method:'POST',body:{
+          expected_revision:state.run.revision,idempotency_key:crypto.randomUUID()}});
+        if(allow())applyRun(run);
+      });
+    });
     window.AstraPractice.subscribe(contextChanged);
   });
 })();

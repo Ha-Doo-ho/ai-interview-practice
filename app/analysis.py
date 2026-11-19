@@ -991,6 +991,8 @@ def analyze_run(run: dict[str, Any], definitions: dict[str, Any]) -> dict[str, A
     for record in _current_answer_records(records):
         answer = _answer_from_record(record)
         question = _question_for_answer(answer, questions_by_id)
+        if question.get("question_mode") == "supplemental":
+            continue
         behavior_id = answer.get("behavior_id") or question.get("behavior_id")
         source_candidates = _mapping_candidates(definitions, str(behavior_id))
         default_interview_mapping = _source_mapping(source_candidates, source_kind="interview_rubric")

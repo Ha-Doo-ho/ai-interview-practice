@@ -94,7 +94,7 @@
   function analysisStale(run, definitions) {
     const saved = run.analysis?.input_snapshot;
     if (!saved) return true;
-    const refs = (run.records || []).map(r => ({record_id:r.record_id,record_version:r.record_version,source_type:r.source_type,source_version:r.source_version,status:r.status}));
+    const refs = (run.records || []).filter(r=>!(r.source_type==='typed_answer'&&r.data?.question_mode==='supplemental')).map(r => ({record_id:r.record_id,record_version:r.record_version,source_type:r.source_type,source_version:r.source_version,status:r.status}));
     return saved.generation !== run.generation || saved.game_state_version !== run.game.state_version || saved.definitions_version !== definitions.version ||
       saved.record_refs.length !== refs.length || refs.some((r,i) => Object.keys(r).some(k => r[k] !== saved.record_refs[i][k]));
   }

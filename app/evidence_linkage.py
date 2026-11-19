@@ -328,4 +328,7 @@ def finalize_report(run, definitions):
                    'finalized_at':datetime.now(timezone.utc).isoformat(),'completion_policy_version':COMPLETION_POLICY_VERSION,
                    'evidence_linkage':deepcopy(linkage),'followup_answers':followups})
     report['limitations'] = list(report.get('limitations', [])) + deepcopy(LIMITATIONS)
+    from .supplemental_interview import export_answers
+    if supplementary := export_answers(run):
+        report['supplemental_answers'] = supplementary
     return report
