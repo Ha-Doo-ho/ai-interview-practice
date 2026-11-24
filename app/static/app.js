@@ -359,6 +359,14 @@
   function renderRun() {
     clearError();
     if (!state.run) return runsView();
+    if (state.run.survey_set_version) {
+      replace(h('section', {className:'card'}, [
+        h('h1', {text:'이 회차는 새 화면에서 이어갈 수 있습니다.',tabIndex:-1}),
+        h('p', {text:'저장된 문항과 답변을 유지하려면 새 연습 화면에서 해당 회차를 선택해 주세요.'}),
+        h('a', {href:'/#survey',text:'새 화면으로 이동',className:'btn'}),
+      ]));
+      return;
+    }
     const stage = runStage();
     if (stage === "survey") renderSurvey();
     else if (stage === "game") renderGame();

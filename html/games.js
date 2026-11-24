@@ -5,7 +5,7 @@
   const hands = {rock: '✊', paper: '✋', scissors: '✌️'};
   const labels = {rock: '바위', paper: '보', scissors: '가위'};
   const titles = {rsp: '가위바위보', card: '카드'};
-  const surveyIds = ['O-B01', 'O-B02', 'O-B03', 'P-B01', 'S-B02', 'R-UNMAPPED'];
+  const surveyIds = () => window.AstraClient.requiredSurveyIds(state.run);
   const state = {scope: null, run: null, context: null, epoch: 0, loaded: false, busy: false, pending: null,
     type: 'rsp', definitions: null, serverAt: 0, clientAt: 0, timer: null, visibility: [], lastScope: null,
     gameTab: false, visibilityRound: null, lastVisibility: null};
@@ -16,7 +16,7 @@
   const active = () => ['rsp', 'card'].flatMap(type => rounds(type).map(round => ({type, round}))).find(({round}) => round.status === 'in_progress');
   const current = () => rounds(state.type).at(-1);
   const finished = type => rounds(type).filter(round => round.status === 'completed').length;
-  const surveysDone = () => surveyIds.every(id => state.run?.records.some(r => r.source_type === 'survey' && r.item_id === id && ['submitted', 'timed_out', 'skipped'].includes(r.status)));
+  const surveysDone = () => surveyIds().length>0 && surveyIds().every(id => state.run?.records.some(r => r.source_type === 'survey' && r.item_id === id && ['submitted', 'timed_out', 'skipped'].includes(r.status)));
   const serverNow = () => state.serverAt + performance.now() - state.clientAt;
   const gameHidden = () => !state.gameTab || document.visibilityState === 'hidden';
   const locked = () => !state.loaded || !state.scope || state.busy || Boolean(state.pending) || state.context?.busy || state.context?.locked || state.context?.appointmentGameLocked || state.context?.aptitudeGameLocked || state.context?.interviewLocked || state.context?.reportLocked || state.run?.status === 'completed';
@@ -94,7 +94,7 @@
     const due = round?.status === 'in_progress' && serverNow() >= Date.parse(round.deadline_at);
     const revealDue = round?.status === 'in_progress' && round.phase === 'initial' && serverNow() >= Date.parse(round.reveal_due_at);
     $('game-status').textContent = !state.scope ? '성향 설문에서 로그인한 계정의 연습 회차를 선택해 주세요.' :
-      !state.loaded ? '게임 기록을 불러오는 중입니다.' : !surveysDone() ? '현재 회차의 성향 설문 6문항을 먼저 저장해 주세요.' :
+      !state.loaded ? '게임 기록을 불러오는 중입니다.' : !surveysDone() ? `현재 회차의 성향 설문 ${surveyIds().length}문항을 먼저 저장해 주세요.` :
         `현재 회차: ${state.scope.run_id} · ${state.pending ? '제출 결과 확인 대기' : state.busy ? '서버 저장 확인 중' : '서버 기록 연결됨'}`;
     $('game-saved-count').textContent = `라운드 종료 서버 저장: 가위바위보 ${finished('rsp')} / 3 · 카드 ${finished('card')} / 3`;
     $('game-refresh').disabled = !state.scope || state.busy;
@@ -184,7 +184,7 @@
         const codes = {rule_game_round_expired: '선택이 서버에 도착했을 때 제한 시간이 끝나 채점하지 않았습니다.',
           rule_game_reveal_required: '규칙 변경 시간이 지나 이전 규칙의 선택을 채점하지 않았습니다. 변경된 규칙을 불러옵니다.',
           rule_game_duplicate_choice: '이미 저장된 카드 선택입니다.', rule_game_stale_stimulus: '문제가 변경되어 이전 선택을 채점하지 않았습니다.',
-          revision_conflict: '다른 화면에서 변경된 최신 게임 기록을 불러왔습니다.', survey_responses_required: '먼저 성향 설문 6문항을 저장해 주세요.'};
+          revision_conflict: '다른 화면에서 변경된 최신 게임 기록을 불러왔습니다.', survey_responses_required: `먼저 성향 설문 ${surveyIds().length}문항을 저장해 주세요.`};
         notice(codes[error.code] || '요청이 적용되지 않아 서버의 저장 상태를 다시 확인했습니다. 현재 상태에서 이어가 주세요.');
       } else throw error;
     }

@@ -70,6 +70,7 @@ async function loadSurveys() {
   document.getElementById('survey-progress').textContent = '문항을 불러오는 중입니다.';
   try {
     const definitions = await window.AstraClient.createApi()('/definitions');
+    if (Array.isArray(definitions.current_surveys)) definitions.surveys = definitions.current_surveys;
     if (!Array.isArray(definitions.surveys) || !definitions.surveys.length ||
         definitions.surveys.some(item => !surveyTypeNames[item.type])) throw Error('invalid_definitions');
     surveyState.definitions = definitions;
@@ -77,7 +78,12 @@ async function loadSurveys() {
       ? {value: item.initial_value, touched: false, changes: 0, confirmed: false}
       : item.type === 'top_k_rank' ? {selected_ids: Array(item.requested_k).fill(''), selection_events: []} : {}}));
     if (!window.AstraPractice?.active()) surveyState.drafts.forEach((draft, index) => items.append(renderSurveyItem(draft, index)));
-    document.getElementById('survey-title').textContent = `성향 파악 · ${surveyState.drafts.length}문항`;
+    if (!window.AstraPractice?.active()) {
+      document.getElementById('survey-title').textContent = `성향 파악 · ${surveyState.drafts.length}문항`;
+      const intro = document.getElementById('survey-intro');
+      if (intro && definitions.current_survey_set_version === 'work-behavior-v2') intro.textContent =
+        '업무 행동에 관한 5문항입니다. 각 문장의 동의 정도를 여섯 문구 중 하나로 선택합니다. 정답이나 성향 점수를 정하는 검사가 아닙니다.';
+    }
     submit.disabled = false;
     updateSurveyProgress();
   } catch (_) {
@@ -91,12 +97,13 @@ async function loadSurveys() {
   }
 }
 
-function renderSurveyItem(draft, index, changed = updateSurveyProgress, uniqueRanks = false, canChange = () => true) {
+function renderSurveyItem(draft, index, changed = updateSurveyProgress, uniqueRanks = false, canChange = () => true, onNonresponse = null) {
   const {item, values} = draft;
   const card = surveyElement('fieldset', 'survey-item');
   const legend = surveyElement('legend', 'survey-q', `${index + 1}. ${item.prompt}`);
   legend.id = `${item.item_id}-legend`;
   card.append(legend, surveyElement('p', 'survey-type', surveyTypeNames[item.type]));
+  let clearNonresponse = () => {};
   const agreement = (field, title) => {
     const group = surveyElement('fieldset', 'survey-perspective');
     group.append(surveyElement('legend', 'survey-group-label', title));
@@ -113,7 +120,9 @@ function renderSurveyItem(draft, index, changed = updateSurveyProgress, uniqueRa
           for (const choice of choices.querySelectorAll('input')) choice.checked = values[field] === Number(choice.value);
           return;
         }
-        values[field] = Number(input.value); changed();
+        values[field] = Number(input.value);
+        if (field === 'selected_position') {delete values.nonresponse_reason;clearNonresponse();}
+        changed();
       });
       label.append(input, surveyElement('span', '', option.label));
       choices.append(label);
@@ -195,13 +204,38 @@ function renderSurveyItem(draft, index, changed = updateSurveyProgress, uniqueRa
     }
     card.append(ranks);
   }
+  if (item.nonresponse_options?.length) {
+    const stateLabel=surveyElement('p','survey-help');stateLabel.setAttribute('role','status');
+    const buttons=[];
+    const update = () => {
+      const selected=item.nonresponse_options.find(o=>o.id===values.nonresponse_reason);
+      stateLabel.textContent=selected?`응답: ${selected.label}`:'경험이 없거나 판단하기 어려우면 동의 정도 대신 아래에서 선택해 주세요.';
+      for(const [button,option] of buttons)button.setAttribute('aria-pressed',String(option.id===values.nonresponse_reason));
+    };
+    clearNonresponse=update;
+    card.append(stateLabel);
+    for (const option of item.nonresponse_options) {
+      const button=surveyElement('button','btn-action btn-light',option.label);
+      button.type='button';button.id=`${onNonresponse?'survey':item.item_id}-nonresponse-${option.id}`;
+      button.addEventListener('click',()=>{
+        if(!canChange())return;
+        values.nonresponse_reason=option.id;delete values.selected_position;
+        for(const input of card.querySelectorAll('input'))input.checked=false;
+        update();
+        if(onNonresponse)onNonresponse(option.id);else changed();
+      });
+      buttons.push([button,option]);card.append(button);
+    }
+    update();
+  }
   draft.card = card;
   return card;
 }
 
 function surveyComplete({item, values}) {
   const validPosition = value => item.ordered_options.some(option => option.position === value);
-  if (item.type === 'ordinal_6') return validPosition(values.selected_position);
+  if (item.type === 'ordinal_6') return validPosition(values.selected_position) ||
+    (values.selected_position===undefined && item.nonresponse_options?.some(o=>o.id===values.nonresponse_reason));
   if (item.type === 'paired_perspective') return validPosition(values.self) && validPosition(values.imagined_others);
   if (item.type === 'bipolar_slider') return values.confirmed === true;
   if (item.type === 'top_k_rank') return values.selected_ids.length === item.requested_k &&
@@ -221,7 +255,10 @@ function submitSurveys() {
   if (!surveyState.drafts.length) return;
   const missing = surveyState.drafts.findIndex(draft => !surveyComplete(draft));
   if (missing !== -1) {
-    error.textContent = `${missing + 1}번 문항의 응답을 확인해 주세요. 두 관점은 각각 선택하고, 슬라이더는 위치를 확정하며, 순위는 서로 다른 항목으로 지정해 주세요.`;
+    error.textContent = `${missing + 1}번 문항의 응답을 확인해 주세요. `+
+      (surveyState.drafts[missing].item.type==='ordinal_6'?'여섯 문구 중 하나를 선택해 주세요.'+
+       (surveyState.drafts[missing].item.nonresponse_options?.length?' 경험이 없거나 판단하기 어려우면 해당 버튼으로 기록할 수 있습니다.':''):
+       '두 관점은 각각 선택하고, 슬라이더는 위치를 확정하며, 순위는 서로 다른 항목으로 지정해 주세요.');
     error.hidden = false;
     surveyState.drafts[missing].card.querySelector('input, select')?.focus();
     error.focus();
@@ -230,7 +267,9 @@ function submitSurveys() {
   currentRun.surveyPreview = {
     server_saved: false, context: 'untimed_screen_preview', definitions_version: surveyState.definitions.version,
     responses: surveyState.drafts.map(({item, values}) => ({item_id: item.item_id, item_version: item.item_version,
-      definition: structuredClone(item), status: 'submitted', response: window.AstraClient.buildSurveyResponse(item, 'submitted', values)}))
+      definition: structuredClone(item), status: values.nonresponse_reason?'skipped':'submitted',
+      ...(values.nonresponse_reason?{nonresponse_reason:values.nonresponse_reason}:{}),
+      response: values.nonresponse_reason?{}:window.AstraClient.buildSurveyResponse(item, 'submitted', values)}))
   };
   navigateTab('game');
 }

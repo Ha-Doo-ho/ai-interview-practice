@@ -37,9 +37,10 @@ async function setup({storage=new Map(), runs=[], handler, loggedIn=true, startT
     if(call.path==='/runs'&&call.method==='POST') {const run={run_id:'real-run-'+runs.length,user_id:user.user_id,attempt_id:'attempt',revision:0,status:'in_progress',records:[],questions:clone(questions),created_at:'2026-10-10T00:00:00Z'};runs.push(run);return Response.json(run,{status:201});}
     const changing=runs.find(r=>call.path==='/runs/'+r.run_id+'/surveys');
     if(changing) {
-      const b=call.body, item=definitions.surveys.find(x=>x.item_id===b.item_id), label=p=>item.ordered_options.find(o=>o.position===p)?.label;
+      const b=call.body, item=(changing.survey_definition_snapshot||definitions.surveys).find(x=>x.item_id===b.item_id), label=p=>item.ordered_options.find(o=>o.position===p)?.label;
       let data={...clone(b.response),prompt_snapshot:item.prompt};
       if(item.type==='ordinal_6') data.selected_label_snapshot=label(b.response?.selected_position);
+      if(b.nonresponse_reason) {data.nonresponse_reason=b.nonresponse_reason;data.nonresponse_label_snapshot=item.nonresponse_options.find(o=>o.id===b.nonresponse_reason).label;}
       if(item.type==='paired_perspective') for(const p of ['self','imagined_others'])data[p].selected_label_snapshot=label(data[p].selected_position);
       if(item.type==='bipolar_slider') Object.assign(data,{left_anchor_label:item.left_anchor.label,right_anchor_label:item.right_anchor.label});
       if(item.type==='top_k_rank') Object.assign(data,{candidate_snapshots:item.candidates,ranked_selection:b.response.ranked_selection});
@@ -64,6 +65,62 @@ async function setup({storage=new Map(), runs=[], handler, loggedIn=true, startT
   for(const f of events.DOMContentLoaded||[]) await f();await flush();
   return {roots,document,context,calls,runs,storage,navigation,async click(id){const el=document.getElementById(id);assert.ok(el?.events.click?.length,'Missing working control: '+id);await el.fire('click');},async choose(id,value,event='change'){const el=document.getElementById(id);assert.ok(el,'Missing '+id);if(['checkbox','radio'].includes(el.type))el.checked=!!value;else el.value=String(value);await el.fire(event);},advance(ms){now+=ms;},async tick(ms){now+=ms;for(const timer of [...timers])await timer();await flush();},async auth(state){listener(state);await flush();}};
 }
+
+test('new practice requests the approved set and resumes five six-label questions without changing legacy runs',async()=>{
+  const items=clone(require('./fixtures/work_survey_definitions.json'));
+  const current={run_id:'work-new',user_id:user.user_id,revision:0,status:'in_progress',records:[],questions:[],
+    survey_set_version:'work-behavior-v2',survey_definition_snapshot:items};
+  const legacy={run_id:'work-old',user_id:user.user_id,revision:0,status:'in_progress',records:[],questions:[]};
+  const env=await setup({runs:[current,legacy],handler:call=>call.path==='/runs'&&call.method==='POST'?Response.json(current,{status:201}):undefined});
+  await env.click('practice-new');
+  assert.equal(env.calls.find(c=>c.path==='/runs'&&c.method==='POST').body.survey_set_version,'work-behavior-v2');
+  assert.match(env.roots['practice-progress'].textContent,/0 \/ 5/);
+  for(const [index,item] of items.entries()) {
+    await env.click('practice-start-item');
+    const field=env.roots['practice-items'];
+    assert.ok(item.ordered_options.every(o=>field.textContent.includes(o.label)));
+    assert.equal(field.querySelectorAll('input').filter(x=>x.type==='range').length,0);
+    assert.equal(field.querySelectorAll('input').filter(x=>x.checked).length,0);
+    if(index<2)await env.click(index===0?'survey-nonresponse-no_experience':'survey-nonresponse-unsure');
+    else {await env.choose(item.item_id+'-selected_position-5',true);await env.click('practice-submit');}
+  }
+  assert.match(env.roots['practice-progress'].textContent,/5 \/ 5/);
+  assert.match(env.roots['practice-runs'].children.find(o=>o.value==='work-new').textContent,/5\/5/);
+  assert.match(env.roots['practice-saved'].textContent,/해당 경험 없음/);
+  assert.match(env.roots['practice-saved'].textContent,/판단하기 어려움/);
+  const sent=env.calls.filter(c=>c.path.endsWith('/surveys'));
+  assert.deepEqual(sent.slice(0,2).map(c=>c.body.nonresponse_reason),['no_experience','unsure']);
+  assert.ok(sent.slice(0,2).every(c=>c.body.status==='skipped'&&!('selected_position' in c.body.response)));
+  await env.choose('practice-runs','work-old');await env.click('practice-open');
+  assert.match(env.roots['practice-progress'].textContent,/0 \/ 6/);
+  await env.click('practice-start-item');assert.ok(env.document.getElementById('O-B01-selected_position-5'));
+  assert.equal(Boolean(env.document.getElementById('survey-nonresponse-no_experience')),false);
+});
+
+test('a nonresponse survives revision conflict and deadline without reviving an old agreement choice',async()=>{
+  const items=clone(require('./fixtures/work_survey_definitions.json'));
+  const current={run_id:'nonresponse-conflict',user_id:user.user_id,revision:0,status:'in_progress',records:[],questions:[],
+    survey_set_version:'work-behavior-v2',survey_definition_snapshot:items};
+  let conflict=true;
+  const env=await setup({runs:[current],handler:call=>{
+    if(call.path==='/runs'&&call.method==='POST')return Response.json(current,{status:201});
+    if(call.path.endsWith('/surveys')&&conflict){conflict=false;current.revision++;return Response.json({error:'revision_conflict'},{status:409});}
+  }});
+  await env.click('practice-new');await env.click('practice-start-item');
+  await env.choose('O-B01-selected_position-6',true);
+  await env.click('survey-nonresponse-unsure');
+  const first=env.calls.find(c=>c.path.endsWith('/surveys')).body;
+  await env.tick(31000);
+  assert.equal(env.calls.filter(c=>c.path.endsWith('/surveys')).length,1);
+  assert.equal(env.roots['practice-retry'].hidden,false);
+  await env.click('practice-retry');
+  const last=env.calls.filter(c=>c.path.endsWith('/surveys')).at(-1).body;
+  assert.equal(last.status,'skipped');assert.equal(last.nonresponse_reason,'unsure');
+  assert.deepEqual(last.response,{});assert.equal(last.elapsed_ms,first.elapsed_ms);
+  assert.notEqual(last.idempotency_key,first.idempotency_key);assert.equal(last.expected_revision,1);
+  assert.match(env.roots['practice-saved'].textContent,/판단하기 어려움/);
+  assert.doesNotMatch(env.roots['practice-saved'].textContent,/매우 그렇다/);
+});
 
 test('owned server records resume an existing run and confirmed delete clears every selected evidence pane',async()=>{
   assert.equal(fs.existsSync('html/records.js'),true,'server records adapter must exist');

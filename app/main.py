@@ -17,6 +17,7 @@ from .game import GameValidation, apply_game_action
 from .rule_games import RULE_GAME_DEFINITIONS, apply_rule_game_action, server_time, surveys_visited, validate_action_body
 from .store import Conflict, Deleted, Finalized, InvalidCredentials, NotFound, Store, StoreError, Validation
 from .survey import SurveyValidation, build_survey_record
+from .survey_sets import WORK_VERSION, survey_items, definitions_for_run
 
 
 COOKIE_NAME = "interview_session"
@@ -120,7 +121,7 @@ def _public_snapshot(snapshot: dict, *, definition: bool = False) -> dict:
     if isinstance(interview_analysis, dict) and isinstance(interview_analysis.get("input_snapshot"), dict):
         try:
             module = importlib.import_module("app.interview_analysis")
-            current_input = module.input_snapshot(copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS))
+            current_input = module.input_snapshot(copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS))
             public["interview_report_stale"] = interview_analysis["input_snapshot"] != current_input
         except (ImportError, AttributeError, TypeError, ValueError):
             # A stored report whose lineage cannot be recomputed is unsafe to
@@ -143,7 +144,7 @@ def _public_snapshot(snapshot: dict, *, definition: bool = False) -> dict:
         try:
             module = importlib.import_module("app.evidence_linkage")
             public["evidence_linkage_stale"] = not module.linkage_is_current(
-                copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS)
+                copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS)
             )
         except (ImportError, AttributeError, TypeError, ValueError, StoreError):
             public["evidence_linkage_stale"] = True
@@ -401,7 +402,11 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
     @application.get("/api/definitions")
     async def definitions():
-        return _public_snapshot(DEFINITIONS, definition=True)
+        from .survey_sets import create_snapshot
+        result = _public_snapshot(DEFINITIONS, definition=True)
+        result['current_survey_set_version'] = WORK_VERSION
+        result['current_surveys'] = create_snapshot(WORK_VERSION)
+        return result
 
     @application.post("/api/register", status_code=201)
     async def register(request: Request):
@@ -473,15 +478,17 @@ def create_app(database_url: str | None = None) -> FastAPI:
         _require_csrf(request)
         user = current_user(request)
         body = await json_body(request)
-        if set(body) - {"idempotency_key", "expected_user_id", "flow_version"}:
+        if set(body) - {"idempotency_key", "expected_user_id", "flow_version", "survey_set_version"}:
             raise Validation("validation_error")
         if body.get("flow_version") not in (None, "five-game-v2"):
             raise Validation("validation_error")
+        if body.get('survey_set_version') not in (None, WORK_VERSION):
+            raise Validation('validation_error')
         if "expected_user_id" in body and body["expected_user_id"] != user["user_id"]:
             raise Conflict("current_user_changed")
         if "idempotency_key" in body and body["idempotency_key"] is None:
             raise Validation("validation_error")
-        return JSONResponse(_public_snapshot(store.create_run(user["user_id"], body.get("idempotency_key"), body.get("flow_version"))), status_code=201)
+        return JSONResponse(_public_snapshot(store.create_run(user["user_id"], body.get("idempotency_key"), body.get("flow_version"), body.get('survey_set_version'))), status_code=201)
 
     @application.get("/api/runs")
     async def list_runs(request: Request):
@@ -536,7 +543,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         validate_action_body(body)
         if body["action"] == "start":
             current = store.get_run(user["user_id"], run_id)
-            survey_ids = {item["item_id"] for item in DEFINITIONS["surveys"]}
+            survey_ids = {item["item_id"] for item in survey_items(current)}
             if not surveys_visited(current, survey_ids):
                 raise Conflict("survey_responses_required")
 
@@ -587,7 +594,8 @@ def create_app(database_url: str | None = None) -> FastAPI:
         user = current_user(request)
         body = await json_body(request)
         expected, key = _body_common(body)
-        definition = next((item for item in DEFINITIONS["surveys"] if item["item_id"] == body.get("item_id")), None)
+        current = store.get_run(user['user_id'], run_id)
+        definition = next((item for item in survey_items(current) if item["item_id"] == body.get("item_id")), None)
         if definition is None or definition["item_version"] != body.get("item_version"):
             raise Validation("validation_error")
 
@@ -603,6 +611,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
                 response=body.get("response"),
                 status=body.get("status"),
                 elapsed_ms=body.get("elapsed_ms"),
+                nonresponse_reason=body.get('nonresponse_reason'),
             )
             snapshot["records"].append(record)
 
@@ -769,7 +778,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         module = importlib.import_module("app.interview_analysis")
         try:
             prepared = module.prepare_analysis(
-                copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS), body["mode"]
+                copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS), body["mode"]
             )
         except Exception as exc:
             _raise_interview_error(exc)
@@ -916,7 +925,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
         def apply(snapshot: dict) -> None:
             module = importlib.import_module("app.evidence_linkage")
-            linkage = module.build_linkage(copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS))
+            linkage = module.build_linkage(copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS))
             if not isinstance(linkage, dict) or not isinstance(linkage.get("questions"), list):
                 raise Validation("evidence_linkage_invalid")
             previous = snapshot.get("evidence_linkage")
@@ -946,7 +955,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         expected, key = _body_common(body)
 
         def apply(snapshot: dict) -> None:
-            survey_ids = {item["item_id"] for item in DEFINITIONS["surveys"]}
+            survey_ids = {item["item_id"] for item in survey_items(snapshot)}
             if not surveys_visited(snapshot, survey_ids):
                 raise Conflict("survey_responses_required")
             games = snapshot.get("rule_games", {}).get("games", {})
@@ -966,7 +975,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
                 raise Conflict("baseline_answers_required")
             module = importlib.import_module("app.evidence_linkage")
             _require_no_aptitude_active(snapshot)
-            report = module.finalize_report(copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS))
+            report = module.finalize_report(copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS))
             from .synthesis import build_prompt
             report['synthesis_prompt'] = build_prompt(snapshot)
             synthesis_result = snapshot.get('synthesis_analysis')
@@ -1011,7 +1020,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         job = store.begin_job(user["user_id"], run_id, snapshot["attempt_id"], expected, "analysis")
         try:
             analysis_module = importlib.import_module("app.analysis")
-            result = _safe_analysis(analysis_module.analyze_run(copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS)))
+            result = _safe_analysis(analysis_module.analyze_run(copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS)))
             result["input_snapshot"] = _analysis_input_snapshot(snapshot)
             _preserve_presented_questions(snapshot, result)
             store.complete_job(user["user_id"], job["job_id"], result)
@@ -1062,7 +1071,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             raise Conflict("baseline_answers_required")
         # Completion means every required stage was visited, not that every
         # prompt was answered. Preserve explicit missingness as valid progress.
-        survey_ids = {item["item_id"] for item in DEFINITIONS["surveys"]}
+        survey_ids = {item["item_id"] for item in survey_items(snapshot)}
         recorded_surveys = {
             record.get("item_id")
             for record in snapshot["records"]
@@ -1082,7 +1091,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             job = store.begin_job(user["user_id"], run_id, snapshot["attempt_id"], expected, "conditioned_analysis")
             try:
                 analysis_module = importlib.import_module("app.analysis")
-                result = _safe_analysis(analysis_module.analyze_run(copy.deepcopy(snapshot), copy.deepcopy(DEFINITIONS)))
+                result = _safe_analysis(analysis_module.analyze_run(copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS)))
                 result["input_snapshot"] = _analysis_input_snapshot(snapshot)
                 _reuse_immutable_baseline(snapshot["analysis"], result)
                 _preserve_presented_questions(snapshot, result)

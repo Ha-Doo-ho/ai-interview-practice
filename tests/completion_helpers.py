@@ -22,7 +22,7 @@ def missing_survey(item,status='skipped'):
 
 def finish_required_stages(client,run,*,monkeypatch=None,timeout=False):
     recorded={r['item_id'] for r in run['records'] if r['source_type']=='survey'}
-    for item in DEFINITIONS['surveys']:
+    for item in run.get('survey_definition_snapshot', DEFINITIONS['surveys']):
         if item['item_id'] not in recorded:run=send(client,run,'surveys',**missing_survey(item))
     while run['game']['phase']!='complete':
         phase=run['game']['phase']

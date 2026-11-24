@@ -68,8 +68,8 @@ def build_prompt(run):
     for record in run.get('records',[]):
         if record.get('source_type')=='survey':
             surveys[record['item_id']]=record
-    from .content import SURVEYS
-    for item in SURVEYS:
+    from .survey_sets import WORK_VERSION, PLAN_ID, LEARNING_ID, survey_items
+    for item in survey_items(run):
         record=surveys.get(item['item_id'])
         data=deepcopy((record or {}).get('data',{}))
         data.pop('respondent_user_id',None)
@@ -78,7 +78,7 @@ def build_prompt(run):
         evidence.append({'id':'survey:'+str((record or {}).get('record_id',item['item_id'])),
             'source':'survey','item_id':item['item_id'], 'item_version':(record or {}).get('item_version'),
             'record_version':(record or {}).get('record_version'), 'prompt':data.get('prompt_snapshot',item['prompt']),
-            'response_type':item['type'],
+            'response_type':(record or {}).get('context',{}).get('response_type',item['type']),
             'status':(record or {}).get('status','missing'), 'data':data,
             'interpretation':'context_only' if item['type'] in ('top_k_rank','bipolar_slider') else 'self_report_only'})
     answers=[r.get('data',{}) for r in run.get('records',[]) if r.get('source_type')=='typed_answer']
@@ -138,8 +138,16 @@ def build_prompt(run):
                 'mode':a['mode'],'difficulty':a['difficulty'],'conditions':a['config'],
                 'totals':_compact(a['summary']), 'official_upper_category':'분석력',
                 'classification_note':'공식 게임 계열의 분류를 참고한 자체 연습 과제; 표준화 능력 점수 아님'})
+    topic_definitions = deepcopy(TOPICS)
+    is_work_set = run.get('survey_set_version') == WORK_VERSION
+    if is_work_set:
+        topic_definitions = [t for t in topic_definitions if t[0] != 'preferences']
+        replacements = {'information':['O-B01'],'planning':['O-B02',PLAN_ID],
+                        'updating':['O-B03'],'learning':[LEARNING_ID]}
+        topic_definitions = [(ident,label,replacements.get(ident,sids),qids,games,upper)
+            for ident,label,sids,qids,games,upper in topic_definitions]
     topics=[]
-    for ident,label,survey_ids,question_ids,game_types,upper in TOPICS:
+    for ident,label,survey_ids,question_ids,game_types,upper in topic_definitions:
         refs=[e['id'] for e in evidence if e.get('item_id') in survey_ids or
             any(e.get('question_id','').startswith(q) for q in question_ids) or
             any(q=='baseline-'+str(e.get('behavior_id','')).lower() for q in question_ids) or e.get('game_type') in game_types]
@@ -152,6 +160,15 @@ def build_prompt(run):
             'strategy_components':['인지력','분석력'],
             'scope':'사례 연구에서 언급된 분류. 성향 전체 목록이나 개인 채점 공식이 아니다.'},
         'topics':topics,'evidence':evidence,'output_sections':FINDINGS}
+    if is_work_set:
+        result['survey_set_version'] = WORK_VERSION
+        result['question_design'] = [deepcopy(item['design_basis']) for item in survey_items(run) if item.get('design_basis')]
+        # prepare() strips instructions because providers already supply the
+        # common system policy. Put version-specific semantics in actual input.
+        result['survey_interpretation'] = {
+            'nonresponse':'경험 없음·판단 어려움은 비동의가 아닌 결측이다.',
+            'scope':'대안 비교와 반복 결과 활용 문항은 자체 업무 행동 자기보고이며 수행능력의 검증이 아니다.',
+        }
     result['source_digest']=hashlib.sha256(_json(result).encode()).hexdigest()
     result['prompt_text']=_json(result)
     return result

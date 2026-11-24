@@ -20,6 +20,19 @@ class Element {
 }
 const baseRun=()=>({run_id:'game-run',user_id:'game-user',revision:6,status:'in_progress',records:['O-B01','O-B02','O-B03','P-B01','S-B02','R-UNMAPPED'].map(item_id=>({item_id,source_type:'survey',status:'submitted'}))});
 const definition={version:'1.0.0',rounds_per_game:3,duration_ms:20000,reveal_after_ms:10000,games:{rsp:{title:'가위바위보 판단 게임'},card:{title:'카드 규칙 게임'}}};
+
+test('five work-survey visits unlock games without asking for legacy preference items',async()=>{
+  const run=baseRun();run.survey_set_version='work-behavior-v2';
+  run.survey_definition_snapshot=clone(require('./fixtures/work_survey_definitions.json'));
+  run.records=run.survey_definition_snapshot.map(q=>({item_id:q.item_id,source_type:'survey',status:'skipped'}));
+  const env=await setup({run});
+  assert.equal(env.roots.btnStartGame.disabled,false);
+  await env.click('btnStartGame');
+  assert.equal(env.calls.filter(c=>c.body?.action==='start').length,1);
+  const incomplete=clone(run);incomplete.records.pop();
+  const blocked=await setup({run:incomplete});assert.equal(blocked.roots.btnStartGame.disabled,true);
+  assert.match(blocked.roots['game-status'].textContent,/5문항/);
+});
 test('completed rule games leave space for the appointment games in new runs',async()=>{
   const run=baseRun();run.flow_version='five-game-v2';
   run.rule_games={games:{rsp:{rounds:Array.from({length:3},()=>({status:'completed',events:[],stimulus:{},rule:{label:'완료'}}))},card:{rounds:Array.from({length:3},()=>({status:'completed',events:[],stimulus:{},rule:{label:'완료'}}))}}};

@@ -15,7 +15,8 @@
   const clock = () => performance.timeOrigin + performance.now();
   const key = user => 'astra.practice.v1:' + user.user_id;
   const records = () => (state.run?.records || []).filter(r => r.source_type === 'survey');
-  const nextItem = () => state.definitions?.surveys.find(item => !records().some(r => r.item_id === item.item_id));
+  const runItems = () => state.run?.survey_definition_snapshot || state.definitions?.surveys || [];
+  const nextItem = () => runItems().find(item => !records().some(r => r.item_id === item.item_id));
   const stopTimer = () => { if (state.timer !== null) clearInterval(state.timer); state.timer = null; };
   function notice(text = '') { state.error=text;$('practice-error').textContent = text; $('practice-error').hidden = !text; }
   function persist() {
@@ -51,6 +52,9 @@
   function checkedRun(run) {
     if (!run || run.user_id !== state.user?.user_id || typeof run.run_id !== 'string' ||
         !Number.isInteger(run.revision) || !Array.isArray(run.records)) throw Error('wrong_owner');
+    if (run.survey_definition_snapshot !== undefined &&
+        (!Array.isArray(run.survey_definition_snapshot) || !run.survey_definition_snapshot.length)) throw Error('unreadable_response');
+    if (run.survey_set_version && window.AstraClient.requiredSurveyIds(run).length!==5) throw Error('unreadable_response');
     return run;
   }
   function recordsLocked() { return !state.user||state.busy||gameLocked()||state.interviewLocked||state.reportLocked||Boolean(state.journal.active||state.journal.pending||state.journal.create); }
@@ -86,8 +90,10 @@
   function runOptions() {
     $('practice-runs').replaceChildren();
     for (const run of state.runs) {
-      const count = run.records.filter(r => r.source_type === 'survey').length;
-      const option = surveyElement('option', '', `${new Date(run.created_at).toLocaleString('ko-KR')} · 설문 ${count}/6 · ${run.run_id.slice(0, 8)}`);
+      const ids = window.AstraClient.requiredSurveyIds(run,state.definitions);
+      const visited = new Set(run.records.filter(r => r.source_type === 'survey').map(r=>r.item_id));
+      const count = ids.filter(id=>visited.has(id)).length;
+      const option = surveyElement('option', '', `${new Date(run.created_at).toLocaleString('ko-KR')} · 설문 ${count}/${ids.length} · ${run.run_id.slice(0, 8)}`);
       option.value = run.run_id; $('practice-runs').append(option);
     }
     $('practice-runs').value = state.run?.run_id || state.runs[0]?.run_id || '';
@@ -95,6 +101,7 @@
   function savedText(record) {
     const d = record.data;
     const missing = value => value || '응답 없음';
+    if (d.nonresponse_label_snapshot) return d.nonresponse_label_snapshot;
     if (record.context.response_type === 'ordinal_6') return missing(d.selected_label_snapshot);
     if (record.context.response_type === 'paired_perspective') return `나의 관점: ${missing(d.self.selected_label_snapshot)} / 내가 상상한 타인의 관점: ${missing(d.imagined_others.selected_label_snapshot)}`;
     if (record.context.response_type === 'bipolar_slider') return d.final_value === null ? '응답 없음' :
@@ -110,7 +117,11 @@
     $('practice-status').textContent = `현재 회차: ${state.run.run_id}`;
     $('practice-items').replaceChildren(); $('practice-saved').replaceChildren();
     const saved = records();
-    $('practice-progress').textContent = `서버 저장 ${saved.length} / ${state.definitions.surveys.length}문항`;
+    $('practice-progress').textContent = `서버 저장 ${saved.length} / ${runItems().length}문항`;
+    $('survey-title').textContent = `성향 파악 · ${runItems().length}문항`;
+    if ($('survey-intro')) $('survey-intro').textContent = state.run.survey_set_version === 'work-behavior-v2' ?
+      '업무 행동에 관한 5문항입니다. 각 문장의 동의 정도를 선택해 주세요. 경험이 없거나 판단하기 어려우면 별도 버튼으로 기록할 수 있습니다.' :
+      '이 회차의 기존 6문항을 유지합니다. 동의 정도, 두 관점, 두 방향의 선호, 중요한 순서를 원래 방식으로 응답합니다.';
     for (const r of saved) {
       const detail = surveyElement('details');
       const status = {submitted: '응답 제출', timed_out: '시간 초과', skipped: '건너뜀'}[r.status] || r.status;
@@ -172,7 +183,7 @@
   function newPractice() {
     if (!state.ready || state.journal.active || state.journal.pending || state.journal.create || gameLocked() || state.interviewLocked) return;
     return work(async allow => {
-      state.journal.create = {idempotency_key: crypto.randomUUID(), expected_user_id: state.user.user_id, flow_version: 'five-game-v2'};
+      state.journal.create = {idempotency_key: crypto.randomUUID(), expected_user_id: state.user.user_id, flow_version: 'five-game-v2', survey_set_version:'work-behavior-v2'};
       if (!persist()) throw Error('storage_unavailable');
       await sendCreate(allow);
     });
@@ -205,11 +216,13 @@
   function showActive(item) {
     const active = state.journal.active;
     state.draft = {item, values: active.values};
-    const card = renderSurveyItem(state.draft, state.definitions.surveys.indexOf(item), changed, true, () => {
+    const canChange = () => {
       if (!state.journal.active || state.busy || state.journal.pending) return false;
       if (elapsed() >= item.time_limit_ms) { tick(); return false; }
       return true;
-    });
+    };
+    const card = renderSurveyItem(state.draft, runItems().indexOf(item), changed, true, canChange,
+      reason=>submitItem('skipped',reason));
     $('practice-items').replaceChildren(card);
     $('practice-start-item').hidden = true; $('practice-submit').hidden = false; $('practice-skip').hidden = false;
     stopTimer(); state.timer = setInterval(tick, 200); tick();
@@ -239,17 +252,22 @@
         ...(event.previous_option_id ? [{action: 'remove', option_id: event.previous_option_id, rank: event.rank, order: event.order}] : []),
         ...(event.option_id ? [{action: 'select', option_id: event.option_id, rank: event.rank, order: event.order}] : [])])};
   }
-  function submitItem(status) {
+  function submitItem(status, nonresponseReason = null) {
     if (!state.draft || state.busy || state.journal.pending) return;
     if (elapsed() >= state.draft.item.time_limit_ms) status = 'timed_out';
+    if (status !== 'skipped') nonresponseReason = null;
     if (status === 'submitted' && !surveyComplete(state.draft)) {
-      notice('응답을 확인해 주세요. 두 관점은 각각 선택하고, 슬라이더 위치를 확정하며, 순위는 서로 다른 항목으로 지정해 주세요.'); return;
+      notice(state.draft.item.type === 'ordinal_6' ? '여섯 문구 중 하나를 선택해 주세요.'+
+        (state.draft.item.nonresponse_options?.length?' 경험이 없거나 판단하기 어려우면 해당 버튼으로 기록할 수 있습니다.':'') :
+        '응답을 확인해 주세요. 두 관점은 각각 선택하고, 슬라이더 위치를 확정하며, 순위는 서로 다른 항목으로 지정해 주세요.'); return;
     }
     const {item, values} = state.draft;
     return work(async allow => {
       state.journal.pending = {path: `/runs/${encodeURIComponent(state.run.run_id)}/surveys`, body: {
         item_id: item.item_id, item_version: item.item_version, status, elapsed_ms: elapsed(),
-        response: surveyResponse(item, values, status), expected_revision: state.run.revision, idempotency_key: crypto.randomUUID()}};
+        response: nonresponseReason ? {} : surveyResponse(item, values, status),
+        ...(nonresponseReason ? {nonresponse_reason:nonresponseReason} : {}),
+        expected_revision: state.run.revision, idempotency_key: crypto.randomUUID()}};
       if (!persist()) throw Error('storage_unavailable');
       stopTimer(); controls(); await sendSurvey(allow);
     });
@@ -268,8 +286,15 @@
         checkedRun(current); state.journal.pending = null; state.journal.rejected = null;
         const exists = current.records.some(r => r.source_type === 'survey' && r.item_id === pending.body.item_id);
         if (exists || current.status === 'completed') state.journal.active = null;
+        else if (pending.body.nonresponse_reason) {
+          // A definitive conflict permits a fresh request, but the choice and
+          // original decision time remain frozen even if the timer has elapsed.
+          state.journal.pending = {...pending,body:{...pending.body,expected_revision:current.revision,idempotency_key:crypto.randomUUID()}};
+        }
         persist(); acceptRun(current);
-        notice(exists ? '이미 저장된 응답을 불러왔습니다. 서버의 원본을 확인해 주세요.' : '회차가 다른 화면에서 변경되었습니다. 입력을 유지했으니 응답을 확인하고 다시 저장해 주세요.');
+        notice(exists ? '이미 저장된 응답을 불러왔습니다. 서버의 원본을 확인해 주세요.' :
+          state.journal.pending?.body.nonresponse_reason ? '회차가 변경되었습니다. 선택한 결측 응답을 유지했습니다. 같은 요청 다시 시도로 최신 회차에 저장해 주세요.' :
+          '회차가 다른 화면에서 변경되었습니다. 입력을 유지했으니 응답을 확인하고 다시 저장해 주세요.');
       } else if (error.status === 404 || error.status === 410) {
         state.journal = {}; persist(); resetDisplay(); state.ready = false;
         notice('이 회차를 찾을 수 없습니다. 삭제되었을 수 있습니다. 저장된 회차를 다시 불러와 주세요.');

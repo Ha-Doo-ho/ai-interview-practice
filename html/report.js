@@ -84,17 +84,17 @@
   }
   function completionProgress() {
     const run=state.run||{}, records=run.records||[];
-    const surveys=['O-B01','P-B01','O-B02','S-B02','O-B03','R-UNMAPPED'];
+    const surveys=window.AstraClient.requiredSurveyIds(run);
     const visited=new Set(records.filter(r=>r.source_type==='survey'&&['submitted','timed_out','skipped'].includes(r.status)).map(r=>r.item_id));
     const baseline=(run.questions||[]).filter(q=>q.question_mode==='baseline'&&q.conditioned_on_prior_evidence===false);
     const answers=baseline.filter(q=>['asked_answered','asked_no_text','skipped'].includes(window.AstraClient.latestAnswer(run,q.question_id)?.data.status)).length;
     const rounds=type=>(run.rule_games?.games?.[type]?.rounds||[]).filter(r=>r.status==='completed').length;
-    return {surveys:surveys.filter(id=>visited.has(id)).length,answers,total:baseline.length,rsp:rounds('rsp'),card:rounds('card'),appointment:(run.appointment_games?.games||[]).filter(g=>g.status==='complete' && g.questions?.length===10).length};
+    return {surveys:surveys.filter(id=>visited.has(id)).length,surveyTotal:surveys.length,answers,total:baseline.length,rsp:rounds('rsp'),card:rounds('card'),appointment:(run.appointment_games?.games||[]).filter(g=>g.status==='complete' && g.questions?.length===10).length};
   }
   function linkageBlocked() { return requestBlocked('mock')||!state.run?.interview_report||Boolean(state.run?.interview_report_stale); }
   function finalizeBlocked() {
     const p=completionProgress();
-    return linkageBlocked()||Boolean(state.context?.interviewDrafts)||!state.run?.evidence_linkage||Boolean(state.run?.evidence_linkage_stale)||p.surveys!==6||p.total!==3||p.answers!==3||p.rsp!==3||p.card!==3||(state.run?.flow_version==='five-game-v2'&&p.appointment!==3);
+    return linkageBlocked()||Boolean(state.context?.interviewDrafts)||!state.run?.evidence_linkage||Boolean(state.run?.evidence_linkage_stale)||!p.surveyTotal||p.surveys!==p.surveyTotal||p.total!==3||p.answers!==3||p.rsp!==3||p.card!==3||(state.run?.flow_version==='five-game-v2'&&p.appointment!==3);
   }
   function modeLabel(report) {
     if (!report) return '보고서 없음';
@@ -220,6 +220,7 @@
   function renderSurveyValue(node,survey) {
     const data=survey.data||{}, type=data.response_type||data.definition_snapshot?.type;
     if(data.prompt_snapshot)appendLine(node,'제시 문항',data.prompt_snapshot);
+    if (data.nonresponse_label_snapshot) {appendLine(node,'응답 상태',data.nonresponse_label_snapshot);return;}
     if(type==='ordinal_6') appendLine(node,'선택',data.selected_label_snapshot?`${data.selected_label_snapshot} · 위치 ${data.selected_position}`:missingLabel(data,survey.status));
     else if(type==='paired_perspective'){
       appendLine(node,'나의 관점',data.self?.selected_label_snapshot?`${data.self.selected_label_snapshot} · 위치 ${data.self.selected_position}`:missingLabel(data.self,data.self?.status));
@@ -401,7 +402,7 @@
     if($('report-linkage'))$('report-linkage').disabled=linkageBlocked();
     if($('report-finalize'))$('report-finalize').disabled=finalizeBlocked();
     if($('report-followups')){$('report-followups').hidden=!state.run?.evidence_linkage;$('report-followups').disabled=state.busy||Boolean(state.pending)||state.run?.status==='completed';}
-    if($('report-completion')){const p=completionProgress();$('report-completion').textContent=state.scope?`최종 확정 준비: 설문 방문 ${p.surveys}/6 · 가위바위보 ${p.rsp}/3 · 카드 ${p.card}/3 · 기본 면접 ${p.answers}/3 · ${state.run?.evidence_linkage_stale?'근거 연결 갱신 필요':state.run?.evidence_linkage?'근거 연결 저장됨':'근거 연결 필요'} · 후속 답변은 선택입니다.${state.context?.interviewDrafts?` 미저장 면접 입력 ${state.context.interviewDrafts}개: 면접에서 입력을 저장하거나 정리한 뒤 확정해 주세요.`:''}`:'';}
+    if($('report-completion')){const p=completionProgress();$('report-completion').textContent=state.scope?`최종 확정 준비: 설문 방문 ${p.surveys}/${p.surveyTotal} · 가위바위보 ${p.rsp}/3 · 카드 ${p.card}/3 · 기본 면접 ${p.answers}/3 · ${state.run?.evidence_linkage_stale?'근거 연결 갱신 필요':state.run?.evidence_linkage?'근거 연결 저장됨':'근거 연결 필요'} · 후속 답변은 선택입니다.${state.context?.interviewDrafts?` 미저장 면접 입력 ${state.context.interviewDrafts}개: 면접에서 입력을 저장하거나 정리한 뒤 확정해 주세요.`:''}`:'';}
     $('report-retry').hidden=!state.pending; $('report-retry').disabled=!state.pending||state.busy||!state.storageOK||otherWorkLocked();
     if(state.loaded)renderReport();else $('report-content').replaceChildren();
     if(stale&&!state.pending)notice('이 보고서는 이전 입력 기준입니다. 현재 답변으로 바꾸려면 저장 근거 보고서 또는 새 분석을 명시적으로 요청해 주세요.');

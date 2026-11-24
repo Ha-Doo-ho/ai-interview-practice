@@ -20,7 +20,7 @@ class Element {
   querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
-async function setup({offline = false, icons = true} = {}) {
+async function setup({offline = false, icons = true, definitionPayload = definitions} = {}) {
   const roots = Object.fromEntries(['survey-title', 'survey-items', 'survey-progress', 'survey-error', 'survey-retry', 'survey-submit', 'cardTileGrid'].map(id => [id, new Element('div')]));
   const requests = [], navigation = [], alerts = [];
   let fail = offline;
@@ -31,7 +31,7 @@ async function setup({offline = false, icons = true} = {}) {
     assert.equal(url, '/api/definitions');
     assert.equal(options.method, 'GET');
     if (fail) throw Error('synthetic offline');
-    return Response.json(definitions);
+    return Response.json(definitionPayload);
   };
   const context = vm.createContext({document, window: {AstraClient: {...C, createApi: () => C.createApi(transport)}}, ...(icons ? {lucide: {createIcons() {}}} : {}), console, performance, structuredClone, setInterval, clearInterval, alert: text => alerts.push(text)});
   vm.runInContext(fs.readFileSync(require.resolve('../html/script.js'), 'utf8'), context);
@@ -59,6 +59,26 @@ function fill(env) {
   choose(env, 'R-UNMAPPED-rank-2', 'growth');
   choose(env, 'R-UNMAPPED-rank-3', 'autonomy');
 }
+
+test('five-item preview preserves no-experience and uncertainty separately from agreement',async()=>{
+  const items=structuredClone(require('./fixtures/work_survey_definitions.json'));
+  const env=await setup({definitionPayload:{...definitions,current_survey_set_version:'work-behavior-v2',current_surveys:items}});
+  choose(env,'O-B01-selected_position-6',true);
+  const absent=env.document.getElementById('O-B01-nonresponse-no_experience');assert.ok(absent);absent.events.click();
+  const unsure=env.document.getElementById('O-B02-nonresponse-unsure');assert.ok(unsure);unsure.events.click();
+  for(const item of items.slice(2))choose(env,item.item_id+'-selected_position-4',true);
+  env.context.submitSurveys();
+  let preview=vm.runInContext('currentRun.surveyPreview',env.context);
+  assert.equal(preview.server_saved,false);assert.equal(preview.responses.length,5);
+  assert.equal(preview.responses[0].status,'skipped');assert.equal(preview.responses[0].nonresponse_reason,'no_experience');
+  assert.deepEqual(Object.keys(preview.responses[0].response),[]);
+  assert.equal(preview.responses[1].nonresponse_reason,'unsure');
+  assert.equal(env.document.getElementById('O-B01-selected_position-6').checked,false);
+  choose(env,'O-B01-selected_position-3',true);env.context.submitSurveys();
+  preview=vm.runInContext('currentRun.surveyPreview',env.context);
+  assert.equal(preview.responses[0].status,'submitted');assert.equal(preview.responses[0].nonresponse_reason,undefined);
+  assert.equal(preview.responses[0].response.selected_position,3);
+});
 
 test('six canonical questions render with four input formats and no assumed answers [SCN-001,004,006,009]', async () => {
   const env = await setup();

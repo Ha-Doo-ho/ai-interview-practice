@@ -268,7 +268,8 @@ class Store:
         result.update(status=row.status, revision=row.revision, generation=row.generation)
         return result
 
-    def create_run(self, user_id: str, idempotency_key: str | None = None, flow_version: str | None = None) -> dict:
+    def create_run(self, user_id: str, idempotency_key: str | None = None, flow_version: str | None = None,
+                   survey_set_version: str | None = None) -> dict:
         from .content import DEFINITIONS
         from .game import initial_game_state
 
@@ -277,7 +278,11 @@ class Store:
         # Stable, user-scoped ID lets the existing primary key arbitrate concurrent
         # retries. Deleted run tombstones retain this ID and prevent resurrection.
         run_id = str(uuid5(NAMESPACE_URL, f"schoolcontest:create-run:{user_id}:{idempotency_key}")) if idempotency_key is not None else str(uuid4())
-        request_digest = _digest({"idempotency_key": idempotency_key, **({"flow_version": flow_version} if flow_version else {})})
+        from .survey_sets import WORK_VERSION, create_snapshot
+        if survey_set_version not in (None, WORK_VERSION):
+            raise Validation('validation_error')
+        request_digest = _digest({"idempotency_key": idempotency_key, **({"flow_version": flow_version} if flow_version else {}),
+                                 **({'survey_set_version':survey_set_version} if survey_set_version else {})})
 
         def replay(session: Session) -> dict | None:
             row = session.get(RunRow, run_id)
@@ -311,6 +316,9 @@ class Store:
             "created_at": now.isoformat(),
             "completed_at": None,
         }
+        if survey_set_version is not None:
+            snapshot['survey_set_version'] = survey_set_version
+            snapshot['survey_definition_snapshot'] = create_snapshot(survey_set_version)
         if flow_version == "five-game-v2":
             from .appointment_game import initial_appointment_games
             from .supplemental_interview import add_questions

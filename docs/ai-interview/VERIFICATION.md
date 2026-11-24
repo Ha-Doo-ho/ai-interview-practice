@@ -1,5 +1,14 @@
 # Verification
 
+## 2026-11-25 — GitHub 기록 전 전체 재검증
+
+- 범위: 승인한 새 5문항 업무 설문·6단계 동의형·별도 결측·기존 6문항 회차 호환·종합 입력과 화면. 실제 키가 있는 로컬 설정, 사용자 DB, 캡처, 로컬 산출물과 Word/PDF는 게시 대상에서 제외한다. 원격 기준 `main`은 `bd0d13e0f23a431c4905f3c7c3361b4ee5cbd28b`이며 그 위에 변경을 추가한다.
+- 자동 / 전체 Python / passed: `.venv/Scripts/python.exe -u -B -X utf8 artifacts/work-survey-20261124/guarded_checks.py --output-root artifacts/github-publish-20261125/checks tests -q` → **519 passed**, exit 0. ASGI 요청 5,235건, guard 위반 0, 공급자 전송 시도 0, 자격증명 상속 없음, 검사 시작 이후 소스 해시 변경 없음. 기존 UUID 부모 디렉터리 wrapper와 수정하지 않은 offline guard를 사용했다.
+- 자동 / 전체 frontend / passed: `node --test tests/frontend_*.test.cjs` → **141 passed / 0 failed**. 합성 DOM·transport 기반이며 실제 브라우저 육안 검사는 아니다.
+- 하네스 / 미완료: **66 passed / 2 pending_manual**. 사람 평가를 자동 통과로 간주하지 않는다.
+- 근거: 로컬 `artifacts/github-publish-20261125/verification-summary.json`, `checks/run-1607753f386e4e869df0b88ba6149201/RESULTS.json`, `SOURCE_HASHES.json`, `EXECUTION.json`, `harness-results.json` 및 `frontend-tests.txt`. 게시 후보는 텍스트 파일 허용 목록과 키 패턴 검사로 확인하고 변경 전후 내용을 비교했다. 로컬 `.env.example`을 읽거나 전송하지 않는다.
+- 미실행: 실제 Gemini 호출·응답 품질 평가, 사용자 서버 재시작·실제 브라우저 검증, NCS/JOBDA 출처 재감사와 보고서 편집. GitHub 코드 기록은 운영 서비스 배포나 심리측정 타당성 검증과 별개다.
+
 ## 2026-11-19 — 세 활동 종합 평가 입력 및 별도 AI 요청
 
 - 최종 인용 계보 보완 후 / **passed**: 조건부 공개 인용의 span source_id/version/start/end/offset_unit을 중복 원문 없이 보존했다. 집중 10 passed, exit 0, 13.39초. `artifacts/synthesis-20261119/targeted-final.txt`. 독립 Astra 재실행은 8게임+보충13문항 각각148~155자에서 Gemini 보수입력59,227/64,000 및 완료/권한/금지출력 검사를 확인했다(인용계보 필드 보완 전 측정).
@@ -810,4 +819,27 @@ The section above is the historical resume baseline, not the present application
 
 - Automated / local / passed: PowerShell parser reported no syntax errors in `tools/start_gemini_local.ps1`; inspection confirmed normal limits of 15 calls and 500000 micro USD and conditional temporary limits of 18 calls and 600000 micro USD.
 - Manual / live / not run: restarting the user's server and submitting a Gemini request with the temporary limits; no live provider request was made during this change.
+
+## 2026-11-23 나 알아보기 관련성 검토
+
+- 자동 / 정적 정의 대조 / passed: `.venv/Scripts/python.exe -X utf8 artifacts/report-audit-20261123/question-coverage/survey_relevance.py` 실행 성공. 설문 6개, 게임과 면접의 직접 주제 연결이 모두 없는 항목 `R-UNMAPPED` 1개, O-B01/P-B01 원문 동일을 확인했다. 문항별 게임·면접 연결과 원문 및 소스 해시를 `survey-relevance.json`에 저장했다. 실제 사용자 응답·DB·외부 AI 호출은 사용하지 않았다.
+- 자료 검토 / 완료: OPM 직무역량 정의와 직무 분석·평가 전략, O*NET 업무 기술 정의 원문을 웹 도구로 확인했다. 문항을 남길 이유는 내용상 업무 관련성과 면접 활용 가능성에 근거한 판단이다. 문항별 신뢰도, 변별도, 예측 타당도, 추가 정보의 통계적 가치를 측정한 것은 아니다.
+- 제품 변경 / 미적용: 문항 삭제·교체·선택 응답 전환과 게임 연결 표시는 아직 적용하지 않았다. 관련 기능 회귀 테스트나 실제 설문 응답 시간 측정은 이번에 수행하지 않았다.
+
+## 2026-11-24 대체 문항 적대적 검토
+
+- 독립 내용·코드 검토 / 완료: Astra 6.2 High의 문항별 반례·제안 문안·선호 정보 손실·회차 호환성 검토를 `artifacts/report-audit-20261124/replacement-adversarial-review.md`에 기록했다. 원안 세 문항의 일괄 교체를 타당화한 것은 아니다.
+- 합성 반례 / 예상 위험 재현: `.venv/Scripts/python.exe -X utf8 artifacts/report-audit-20261124/replacement_probe.py` exit 0. 메모리에서만 P/S/R의 정의를 새 동의형으로 바꿨을 때 과거 응답 형식과 종합 입력 표지가 세 건 모두 불일치했다. 새 ID만 등록하며 구 ID를 현행 목록에서 뺐을 때 과거 세 기록은 보존됐지만 종합 프롬프트에서 빠졌다. 이 위험은 현행 설문을 무대책으로 교체하는 가정의 결과이며 사용자 DB에서 손상을 재현한 것이 아니다.
+- 불변 확인 / passed: `app/content.py`, `app/synthesis.py`, `app/survey.py`의 실행 전후 SHA-256과 합성 응답 원문이 동일했다. 외부 AI·사용자 DB·브라우저·전체 회귀는 실행하지 않았다. 제품 구현은 미변경이다.
+- 공식 자료 / 확인: JOBDA 공식 게임 설명과 NCS 2025.12 문제해결능력 분권을 웹 도구로 확인했다. 통합 PDF는 이번 재조회에서 timeout이 발생하여 성공한 분권을 근거로 삼았다. 문항의 심리측정 타당도·실제 시간 절약·도입 효과는 이번 검토로 입증되지 않았다.
+
+## 2026-11-24 6단계 동의형 업무 설문 도입 검증
+
+- 사용자 승인 반영: 새 연습의 핵심 3문항과 승인한 대체 문항 ②③을 합쳐 5문항으로 구성했다. 여섯 문구를 모두 표시하고 초기 선택은 비워 두며, 경험 없음과 판단 어려움을 배타적 결측으로 저장한다. 기존 6문항 회차·구형 요청은 원래 형식과 응답을 유지한다.
+- TDD / 확인: 새 문항집 POST가 422를 반환하는 초기 실패 4건, 5문항 게임/확정 경계 실패 2건, 결측 표시·체험·409 충돌 및 형식 오류·공급자 입력 누락의 반례를 수정 전에 확인하고 수정 후 통과시켰다. 실패 로그와 격리 결과는 `artifacts/work-survey-20261124/`에 남겼다.
+- 자동 / 전체 Python / passed: `.venv/Scripts/python.exe -u -B -X utf8 artifacts/work-survey-20261124/guarded_checks.py --output-root artifacts/work-survey-20261124/final-checks tests -q` 결과 **519 passed**, exit 0. 실제 ASGI 요청 수, 공급자 전송 시도 0, guard 위반 0, 소스 해시 일치 여부는 `final-summary.json` 및 `final-checks/run-f62ee94655c24fecb8d81cbc81dd4916/RESULTS.json`에 기록했다. 합성 격리 SQLite만 사용했다.
+- 실행 환경: 표준 launcher의 `tempfile` 후보 이름 생성이 정체돼 UUID로 부모의 새 attempt 디렉터리만 생성하는 로컬 wrapper를 사용했다. 자식 프로세스의 원래 DB·네트워크·공급자·쓰기 차단 guard와 canary는 변경하지 않았다. 일반 pytest로 확보한 초기 RED/GREEN을 외부 호출 차단 검증으로 잘못 집계하지 않는다.
+- 자동 / 전체 frontend / passed: `node --test tests/frontend_*.test.cjs` 결과 **141 passed, 0 failed**. 실제 프런트엔드 스크립트와 합성 DOM/transport에서 라벨·무기본선택·결측·5/6 회차 전환·게임 진입·최종 확정·저장 충돌·기존 화면 안내를 확인했다. 로그 `node-tests-final.txt`.
+- 독립 / 적대적 재검토 / 완료: Astra 6.2 High가 최초 6개 문제를 지적했고 수정 후 지원하는 생성·재개·제출·보고서 경로에서 중요/중대 잔여 결함을 발견하지 못했다. 409 후 45초·새로고침·재시도에서도 원래 결측과 결정 시각이 보존되고, 로그아웃 뒤 늦은 성공 응답이 개인 화면을 복원하지 않는 추가 반례를 검사했다. 기존 6형식 설문의 종합 입력 JSON과 digest는 변경 전과 일치했다. `implementation-review.md`.
+- 검증 한계: 실제 브라우저의 시각적 화면·키보드 조작, 실제 응답자 인지 면접·시간 절약·신뢰도/변별도·공급자 live 실행은 미실행이다. 서버 재시작, 원격 GitHub 게시, Word/PDF 갱신도 이번에 수행하지 않았다. 자동 검사는 설문 도입의 심리측정 타당도를 증명하지 않는다.
 

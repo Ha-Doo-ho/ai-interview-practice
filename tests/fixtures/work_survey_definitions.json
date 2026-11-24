@@ -1,0 +1,297 @@
+[
+  {
+    "item_id": "O-B01",
+    "item_version": "1.0.0",
+    "instructions_version": "work-behavior-v2",
+    "type": "ordinal_6",
+    "prompt": "공동 결정을 내리기 전에 팀원이 알고 있는 정보를 확인한다.",
+    "behavior_id": "B01",
+    "scale_id": "agreement-6",
+    "scale_version": "1.0.0",
+    "ordered_options": [
+      {
+        "option_id": "agreement-1",
+        "label": "전혀 그렇지 않다",
+        "position": 1
+      },
+      {
+        "option_id": "agreement-2",
+        "label": "그렇지 않다",
+        "position": 2
+      },
+      {
+        "option_id": "agreement-3",
+        "label": "그렇지 않은 편이다",
+        "position": 3
+      },
+      {
+        "option_id": "agreement-4",
+        "label": "그런 편이다",
+        "position": 4
+      },
+      {
+        "option_id": "agreement-5",
+        "label": "그렇다",
+        "position": 5
+      },
+      {
+        "option_id": "agreement-6",
+        "label": "매우 그렇다",
+        "position": 6
+      }
+    ],
+    "time_limit_ms": 30000,
+    "nonresponse_options": [
+      {
+        "id": "no_experience",
+        "label": "해당 경험 없음"
+      },
+      {
+        "id": "unsure",
+        "label": "판단하기 어려움"
+      }
+    ]
+  },
+  {
+    "item_id": "O-B02",
+    "item_version": "1.0.0",
+    "instructions_version": "work-behavior-v2",
+    "type": "ordinal_6",
+    "prompt": "개인 과제와 팀 과제가 겹치면 목표와 제약을 확인한 뒤 시간을 배분한다.",
+    "behavior_id": "B02",
+    "scale_id": "agreement-6",
+    "scale_version": "1.0.0",
+    "ordered_options": [
+      {
+        "option_id": "agreement-1",
+        "label": "전혀 그렇지 않다",
+        "position": 1
+      },
+      {
+        "option_id": "agreement-2",
+        "label": "그렇지 않다",
+        "position": 2
+      },
+      {
+        "option_id": "agreement-3",
+        "label": "그렇지 않은 편이다",
+        "position": 3
+      },
+      {
+        "option_id": "agreement-4",
+        "label": "그런 편이다",
+        "position": 4
+      },
+      {
+        "option_id": "agreement-5",
+        "label": "그렇다",
+        "position": 5
+      },
+      {
+        "option_id": "agreement-6",
+        "label": "매우 그렇다",
+        "position": 6
+      }
+    ],
+    "time_limit_ms": 30000,
+    "nonresponse_options": [
+      {
+        "id": "no_experience",
+        "label": "해당 경험 없음"
+      },
+      {
+        "id": "unsure",
+        "label": "판단하기 어려움"
+      }
+    ]
+  },
+  {
+    "item_id": "O-B03",
+    "item_version": "1.0.0",
+    "instructions_version": "work-behavior-v2",
+    "type": "ordinal_6",
+    "prompt": "새 정보가 들어오면 처음 세운 계획을 다시 검토한다.",
+    "behavior_id": "B03",
+    "scale_id": "agreement-6",
+    "scale_version": "1.0.0",
+    "ordered_options": [
+      {
+        "option_id": "agreement-1",
+        "label": "전혀 그렇지 않다",
+        "position": 1
+      },
+      {
+        "option_id": "agreement-2",
+        "label": "그렇지 않다",
+        "position": 2
+      },
+      {
+        "option_id": "agreement-3",
+        "label": "그렇지 않은 편이다",
+        "position": 3
+      },
+      {
+        "option_id": "agreement-4",
+        "label": "그런 편이다",
+        "position": 4
+      },
+      {
+        "option_id": "agreement-5",
+        "label": "그렇다",
+        "position": 5
+      },
+      {
+        "option_id": "agreement-6",
+        "label": "매우 그렇다",
+        "position": 6
+      }
+    ],
+    "time_limit_ms": 30000,
+    "nonresponse_options": [
+      {
+        "id": "no_experience",
+        "label": "해당 경험 없음"
+      },
+      {
+        "id": "unsure",
+        "label": "판단하기 어려움"
+      }
+    ]
+  },
+  {
+    "item_id": "O-PLAN-COMPARE",
+    "item_version": "1.0.0",
+    "instructions_version": "work-behavior-v2",
+    "type": "ordinal_6",
+    "prompt": "처리 방법을 선택해야 하는 업무에서는, 방법별로 예상되는 결과를 비교한다.",
+    "behavior_id": null,
+    "scale_id": "agreement-6",
+    "scale_version": "1.0.0",
+    "ordered_options": [
+      {
+        "option_id": "agreement-1",
+        "label": "전혀 그렇지 않다",
+        "position": 1
+      },
+      {
+        "option_id": "agreement-2",
+        "label": "그렇지 않다",
+        "position": 2
+      },
+      {
+        "option_id": "agreement-3",
+        "label": "그렇지 않은 편이다",
+        "position": 3
+      },
+      {
+        "option_id": "agreement-4",
+        "label": "그런 편이다",
+        "position": 4
+      },
+      {
+        "option_id": "agreement-5",
+        "label": "그렇다",
+        "position": 5
+      },
+      {
+        "option_id": "agreement-6",
+        "label": "매우 그렇다",
+        "position": 6
+      }
+    ],
+    "time_limit_ms": 30000,
+    "design_basis": {
+      "topic_id": "planning",
+      "validity_status": "unvalidated_practice_item",
+      "ncs": {
+        "url": "https://www.ncs.go.kr/web/job/contents/3.%20직업공통능력-문제해결능력.pdf",
+        "edition": "2025.12",
+        "component": "대안 비교 및 평가",
+        "printed_page": 38
+      },
+      "jobda": {
+        "url": "https://www.jobda.im/info/406",
+        "related_game_type": "path"
+      },
+      "scope": "업무 행동 자기보고; 공식 검사 문항이나 게임 수행능력 점수가 아님"
+    },
+    "nonresponse_options": [
+      {
+        "id": "no_experience",
+        "label": "해당 경험 없음"
+      },
+      {
+        "id": "unsure",
+        "label": "판단하기 어려움"
+      }
+    ]
+  },
+  {
+    "item_id": "O-RESULT-LEARNING",
+    "item_version": "1.0.0",
+    "instructions_version": "work-behavior-v2",
+    "type": "ordinal_6",
+    "prompt": "비슷한 업무를 반복할 때, 여러 차례의 결과를 비교해 다음 처리 방법을 선택한다.",
+    "behavior_id": null,
+    "scale_id": "agreement-6",
+    "scale_version": "1.0.0",
+    "ordered_options": [
+      {
+        "option_id": "agreement-1",
+        "label": "전혀 그렇지 않다",
+        "position": 1
+      },
+      {
+        "option_id": "agreement-2",
+        "label": "그렇지 않다",
+        "position": 2
+      },
+      {
+        "option_id": "agreement-3",
+        "label": "그렇지 않은 편이다",
+        "position": 3
+      },
+      {
+        "option_id": "agreement-4",
+        "label": "그런 편이다",
+        "position": 4
+      },
+      {
+        "option_id": "agreement-5",
+        "label": "그렇다",
+        "position": 5
+      },
+      {
+        "option_id": "agreement-6",
+        "label": "매우 그렇다",
+        "position": 6
+      }
+    ],
+    "time_limit_ms": 30000,
+    "design_basis": {
+      "topic_id": "learning",
+      "validity_status": "unvalidated_practice_item",
+      "ncs": {
+        "url": "https://www.ncs.go.kr/web/job/contents/3.%20직업공통능력-문제해결능력.pdf",
+        "edition": "2025.12",
+        "component": "성찰 및 피드백",
+        "printed_page": 41
+      },
+      "jobda": {
+        "url": "https://www.jobda.im/info/406",
+        "related_game_type": "potion"
+      },
+      "scope": "업무 행동 자기보고; 공식 검사 문항이나 게임 수행능력 점수가 아님"
+    },
+    "nonresponse_options": [
+      {
+        "id": "no_experience",
+        "label": "해당 경험 없음"
+      },
+      {
+        "id": "unsure",
+        "label": "판단하기 어려움"
+      }
+    ]
+  }
+]

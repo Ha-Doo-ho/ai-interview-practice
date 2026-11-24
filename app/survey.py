@@ -173,6 +173,7 @@ def build_survey_record(
     response: object,
     status: str,
     elapsed_ms: int | None,
+    nonresponse_reason: str | None = None,
 ) -> dict:
     if not isinstance(status, str) or status not in {"submitted", "timed_out", "skipped"}:
         raise SurveyValidation("validation_error")
@@ -188,6 +189,14 @@ def build_survey_record(
         data = builders[definition["type"]](definition, response, status)
     except KeyError as exc:
         raise SurveyValidation("validation_error") from exc
+    if nonresponse_reason is not None:
+        option = next((o for o in definition.get('nonresponse_options',[])
+                       if o['id'] == nonresponse_reason), None)
+        if (status != 'skipped' or option is None or definition['type'] != 'ordinal_6'
+                or data.get('selected_position') is not None):
+            raise SurveyValidation('validation_error')
+        data['nonresponse_reason'] = option['id']
+        data['nonresponse_label_snapshot'] = option['label']
     if definition["type"] == "paired_perspective":
         data["respondent_user_id"] = user_id
     data.update(

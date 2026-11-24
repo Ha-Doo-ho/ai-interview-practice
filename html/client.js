@@ -78,18 +78,30 @@
     return {question_id: questionId, text: status === 'asked_answered' ? text : '', status,
       ...(previous ? {replaces_answer_id: previous.answer_id, expected_answer_version: previous.answer_version} : {})};
   }
+  function requiredSurveyIds(run, definitions) {
+    if (run?.survey_set_version && !run.survey_definition_snapshot) return [];
+    const items = run?.survey_definition_snapshot || definitions?.surveys;
+    if (!items) return ['O-B01','O-B02','O-B03','P-B01','S-B02','R-UNMAPPED'];
+    if (!Array.isArray(items) || !items.length || items.some(i=>!i||typeof i.item_id!=='string'||!i.item_id)) return [];
+    const ids = items.map(i=>i.item_id);
+    if (run?.survey_set_version && (run.survey_set_version!=='work-behavior-v2' ||
+        ids.join(',')!=='O-B01,O-B02,O-B03,O-PLAN-COMPARE,O-RESULT-LEARNING' ||
+        items.some(i=>i.type!=='ordinal_6'||i.ordered_options?.length!==6))) return [];
+    return new Set(ids).size===ids.length ? ids : [];
+  }
   function progress(run, definitions) {
     const records = run.records || [], rounds = run.game?.rounds || [];
     const surveyIds = new Set(records.filter(r => r.source_type === 'survey' && ['submitted','timed_out','skipped'].includes(r.status)).map(r => r.item_id));
     const answerIds = new Set(records.filter(r => r.source_type === 'typed_answer' && ['asked_answered','asked_no_text','skipped'].includes(r.data.status)).map(r => r.data.question_id));
     const base = (run.questions || []).filter(q => q.question_mode === 'baseline');
     const mainDone = rounds.filter(r => r.practice_or_main === 'main' && r.status === 'completed').length;
-    const surveysDone = definitions.surveys.filter(s => surveyIds.has(s.item_id)).length;
+    const required = requiredSurveyIds(run, definitions);
+    const surveysDone = required.filter(id => surveyIds.has(id)).length;
     const answersDone = base.filter(q => answerIds.has(q.question_id)).length;
     const gameDone = rounds.length > 0 && run.game.phase === 'complete' && rounds.every(r => r.status === 'completed');
     const editable = run.status !== 'completed';
     return {mainDone, surveysDone, answersDone, gameDone, canAnalyze: editable && mainDone > 0,
-      canFinalize: editable && gameDone && surveysDone === definitions.surveys.length && answersDone === base.length && Boolean(run.analysis && run.report_draft)};
+      canFinalize: editable && gameDone && required.length>0 && surveysDone === required.length && answersDone === base.length && Boolean(run.analysis && run.report_draft)};
   }
   function analysisStale(run, definitions) {
     const saved = run.analysis?.input_snapshot;
@@ -106,5 +118,5 @@
     const quote = points.slice(span.start,span.end).join('');
     return {valid:quote === span.quote,quote,source};
   }
-  return {createApi, createMutation, buildSurveyResponse, latestAnswer, answerPayload, progress, analysisStale, verifyQuote};
+  return {createApi, createMutation, buildSurveyResponse, latestAnswer, answerPayload, progress, analysisStale, verifyQuote, requiredSurveyIds};
 });

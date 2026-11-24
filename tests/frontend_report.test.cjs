@@ -22,6 +22,17 @@ class Element {
 
 const criteria=['situation','role','other_information','action','reasoning','result','learning'];
 const answerText='앞🙂행동 뒤 <script>globalThis.pwned=true</script>';
+
+test('survey nonresponse reasons remain visible without an agreement position',async()=>{
+  const run=runWithReport();
+  run.interview_report.surveys=['no_experience','unsure'].map((reason,i)=>({
+    item_id:'new-'+i,item_version:'1.0.0',record_id:'nonresponse-'+i,record_version:'1.0.0',source_version:'1.0.0',status:'skipped',
+    data:{definition_snapshot:{type:'ordinal_6'},prompt_snapshot:'업무 행동',nonresponse_reason:reason,
+      nonresponse_label_snapshot:i===0?'해당 경험 없음':'판단하기 어려움'}}));
+  const env=await setup({run});
+  assert.match(env.roots['report-content'].textContent,/해당 경험 없음/);
+  assert.match(env.roots['report-content'].textContent,/판단하기 어려움/);
+});
 test('supplemental self-reports show saved answers and frozen final versions without AI attribution',async()=>{
   const run=runWithReport();
   run.questions.push({question_id:'wm-experience-0',question_text:'요청 변경 경험',
@@ -205,6 +216,18 @@ function completeRun() {
   return run;
 }
 const linkageFixture=()=>({linkage_id:'link-1',version:'1.0.0',source_report_id:'report-1',input_snapshot:{},limitations:['설문은 자기보고입니다.'],links:[{behavior_id:'B01',behavior_name:'정보 요청',summary:'원본 연결',comparison_status:'insufficient_evidence',survey_refs:[{record_id:'s1',record_version:1,item_id:'O-B01',item_version:'1.0.0',response_text:'매우 그렇다',perspective:'self',use:'question_context'}],interview_refs:[{answer_id:'answer-current',answer_version:'2.0.0',question_id:'baseline-b01',question_version:'1.0.0',criterion:'action',status:'explicit',evidence_spans:[{source_id:'answer-current',source_version:'2.0.0',start:1,end:4,quote:'🙂행동',offset_unit:'unicode_code_point'}]}],limitations:['비교 제한']}],observations:[{game_type:'rsp',game_id:'rule-rsp',game_version:'1.0.0',round_id:'round-1',round_index:1,status:'completed',before:{accepted_count:1,correct_count:1,event_refs:['event-before']},after:{accepted_count:0,correct_count:0,event_refs:[]},overlap:{new_only:0,old_only:0,both:0,neither:0},disclosure_status:'recorded',missing_reason:'no_accepted_response_after_disclosure',event_refs:['event-before'],limitations:['행동 B03 비교 제외']}],questions:[]});
+
+test('final readiness uses five work-survey visits and still blocks a missing new question',async()=>{
+  const run=completeRun();run.survey_set_version='work-behavior-v2';
+  run.survey_definition_snapshot=clone(require('./fixtures/work_survey_definitions.json'));
+  run.records=run.records.filter(r=>r.source_type!=='survey').concat(run.survey_definition_snapshot.map(q=>({source_type:'survey',item_id:q.item_id,status:'skipped'})));
+  run.evidence_linkage=linkageFixture();
+  const env=await setup({run});
+  assert.equal(env.roots['report-finalize'].disabled,false);
+  assert.match(env.roots['report-completion'].textContent,/설문 방문 5\/5/);
+  const missing=clone(run);missing.records.pop();
+  const blocked=await setup({run:missing});assert.equal(blocked.roots['report-finalize'].disabled,true);
+});
 
 test('completion actions use frozen endpoint/body retries and final gate tracks visited surveys, both games and baseline only',async()=>{
   let lose=true;
