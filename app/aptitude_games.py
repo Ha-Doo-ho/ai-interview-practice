@@ -213,8 +213,8 @@ def apply_action(snapshot: dict, body: dict) -> None:
         raise Conflict('aptitude_invalid_state')
     if _total_remaining(attempt, now) == 0:
         if q is not None:
-            _settle(attempt, now, 'timeout')
-        _finish(attempt, now, 'complete')
+            _settle(attempt, now, 'interrupted' if action == 'stop' else 'timeout')
+        _finish(attempt, now, 'interrupted' if action == 'stop' else 'complete')
         return
     if q is not None and _question_remaining(attempt, q, now) == 0:
         _settle(attempt, now, 'timeout')

@@ -70,3 +70,33 @@ def assert_public_matches_storage(stored,public):
                 target[key]=deepcopy(source[key])
     assert reconstructed==stored
     return True
+
+def finish_all_main_games(client,app,owner,run,monkeypatch):
+    """Complete three genuine main attempts by authoritative total expiry.
+
+    Timeout/unasked outcomes are intentional in this report fixture. They are
+    not manual stops, practice or quick attempts. Separate journey tests exercise
+    answering all questions and exact score computation.
+    """
+    from app import aptitude_games
+    clock=[1000000]
+    monkeypatch.setattr(aptitude_games,'_now',lambda:clock[0])
+    for kind in ('rotation','path','potion'):
+        run=send(client,run,'aptitude-games',action='start',game_type=kind,mode='main',difficulty='easy')
+        attempt=run['aptitude_games']['attempts'][-1]
+        duration=attempt['config']['total_duration_ms']
+        if duration is not None:
+            clock[0]+=duration
+            run=send(client,run,'aptitude-games',action='timeout',attempt_id=attempt['id'],question_id=attempt['current_question']['id'])
+        else:
+            # Potion main has individual questions and no overall deadline.
+            # Actually submit all 100 synthetic predictions through its API.
+            for index in range(attempt['question_limit']):
+                attempt=run['aptitude_games']['attempts'][-1]
+                run=send(client,run,'aptitude-games',action='submit',attempt_id=attempt['id'],
+                         question_id=attempt['current_question']['id'],choice='red')
+                if index+1<attempt['question_limit']:
+                    attempt=run['aptitude_games']['attempts'][-1]
+                    run=send(client,run,'aptitude-games',action='next',attempt_id=attempt['id'],question_id=attempt['questions'][-1]['id'])
+        assert run['aptitude_games']['attempts'][-1]['status']=='complete'
+    return run

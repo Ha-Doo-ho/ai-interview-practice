@@ -69,4 +69,5 @@ def test_new_flow_cannot_bypass_games_through_legacy_or_interview_api(api, opera
     run = create(client, flow_version='five-game-v2').json()
     response = client.post(f"/api/runs/{run['run_id']}/{operation}", headers=HEADERS,
         json={'expected_revision':run['revision'],'idempotency_key':str(uuid4()), **extra})
-    assert response.status_code == 409 and response.json()['error'] == 'game_order_required'
+    expected_error = 'all_games_completion_required' if operation == 'interview-analysis' else 'game_order_required'
+    assert response.status_code == 409 and response.json()['error'] == expected_error

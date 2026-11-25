@@ -18,6 +18,7 @@ from .rule_games import RULE_GAME_DEFINITIONS, apply_rule_game_action, server_ti
 from .store import Conflict, Deleted, Finalized, InvalidCredentials, NotFound, Store, StoreError, Validation
 from .survey import SurveyValidation, build_survey_record
 from .survey_sets import WORK_VERSION, survey_items, definitions_for_run
+from .game_completion import require_all_games, hide_partial_results
 
 
 COOKIE_NAME = "interview_session"
@@ -48,6 +49,7 @@ def _error_status(code: str) -> int:
     if code.startswith('aptitude_'):
         return 409
     if code in {
+        "all_games_completion_required",
         "idempotency_conflict",
         "current_user_changed",
         "revision_conflict",
@@ -100,7 +102,7 @@ def _error_status(code: str) -> int:
     return 422
 
 
-def _public_snapshot(snapshot: dict, *, definition: bool = False) -> dict:
+def _public_snapshot(snapshot: dict, *, definition: bool = False, visibility_snapshot: dict | None = None) -> dict:
     """Filter response copies only; retain full immutable server evidence.
 
     Replay responses use their own recorded reveal state, not the latest run.
@@ -155,6 +157,7 @@ def _public_snapshot(snapshot: dict, *, definition: bool = False) -> dict:
             new_information.pop("updated_requirements", None)
             round_state.pop("final_requirements", None)
             round_state.pop("reward_table_final", None)
+    hide_partial_results(public, visibility_snapshot=visibility_snapshot)
     return public
 
 
@@ -345,6 +348,14 @@ def create_app(database_url: str | None = None) -> FastAPI:
     application = FastAPI(title="AI interview practice", docs_url=None, redoc_url=None)
     application.state.store = store
 
+    def public_snapshot(snapshot: dict, *, definition: bool = False) -> dict:
+        # A historical idempotent receipt may predate a new unfinished attempt.
+        # Preserve its original evidence, but apply current owned-run visibility.
+        current = snapshot
+        if snapshot.get('user_id') and snapshot.get('run_id'):
+            current = store.get_run(snapshot['user_id'], snapshot['run_id'])
+        return _public_snapshot(snapshot, definition=definition, visibility_snapshot=current)
+
     @application.exception_handler(PermissionError)
     async def permission_error(_request: Request, exc: PermissionError):
         return JSONResponse({"error": str(exc)}, status_code=403)
@@ -403,7 +414,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
     @application.get("/api/definitions")
     async def definitions():
         from .survey_sets import create_snapshot
-        result = _public_snapshot(DEFINITIONS, definition=True)
+        result = public_snapshot(DEFINITIONS, definition=True)
         result['current_survey_set_version'] = WORK_VERSION
         result['current_surveys'] = create_snapshot(WORK_VERSION)
         return result
@@ -488,17 +499,17 @@ def create_app(database_url: str | None = None) -> FastAPI:
             raise Conflict("current_user_changed")
         if "idempotency_key" in body and body["idempotency_key"] is None:
             raise Validation("validation_error")
-        return JSONResponse(_public_snapshot(store.create_run(user["user_id"], body.get("idempotency_key"), body.get("flow_version"), body.get('survey_set_version'))), status_code=201)
+        return JSONResponse(public_snapshot(store.create_run(user["user_id"], body.get("idempotency_key"), body.get("flow_version"), body.get('survey_set_version'))), status_code=201)
 
     @application.get("/api/runs")
     async def list_runs(request: Request):
         user = current_user(request)
-        return {"runs": [_public_snapshot(run) for run in store.list_runs(user["user_id"])]}
+        return {"runs": [public_snapshot(run) for run in store.list_runs(user["user_id"])]}
 
     @application.get("/api/runs/{run_id}")
     async def get_run(run_id: str, request: Request):
         user = current_user(request)
-        return _public_snapshot(store.get_run(user["user_id"], run_id))
+        return public_snapshot(store.get_run(user["user_id"], run_id))
 
     @application.get("/api/rule-game-definitions")
     async def rule_game_definitions():
@@ -508,7 +519,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
     async def get_rule_games(run_id: str, request: Request):
         user = current_user(request)
         return {
-            "run": _public_snapshot(store.get_run(user["user_id"], run_id)),
+            "run": public_snapshot(store.get_run(user["user_id"], run_id)),
             "server_time": server_time(),
         }
 
@@ -521,7 +532,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
     async def get_aptitude_games(run_id: str, request: Request):
         from .aptitude_games import _now
         user = current_user(request)
-        return {'run': _public_snapshot(store.get_run(user['user_id'], run_id)), 'server_time_ms': _now()}
+        return {'run': public_snapshot(store.get_run(user['user_id'], run_id)), 'server_time_ms': _now()}
 
     @application.post('/api/runs/{run_id}/aptitude-games')
     async def aptitude_action(run_id: str, request: Request):
@@ -535,7 +546,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             if values.get('action') == 'start':
                 _require_five_games(snapshot)
             apply_action(snapshot, values)
-        return _public_snapshot(store.mutate(user['user_id'], run_id, expected, 'aptitude_game', key, body, apply))
+        return public_snapshot(store.mutate(user['user_id'], run_id, expected, 'aptitude_game', key, body, apply))
 
     @application.post("/api/runs/{run_id}/rule-games")
     async def rule_game_action(run_id: str, request: Request):
@@ -558,12 +569,12 @@ def create_app(database_url: str | None = None) -> FastAPI:
             _require_no_aptitude_active(snapshot)
             apply_rule_game_action(snapshot, body)
 
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected, "rule_game", key, body, apply))
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected, "rule_game", key, body, apply))
 
     @application.get("/api/runs/{run_id}/appointment-games")
     async def get_appointment_games(run_id: str, request: Request):
         user = current_user(request)
-        return {"run": _public_snapshot(store.get_run(user["user_id"], run_id)), "server_time": server_time()}
+        return {"run": public_snapshot(store.get_run(user["user_id"], run_id)), "server_time": server_time()}
 
     @application.post("/api/runs/{run_id}/appointment-games")
     async def appointment_game_action(run_id: str, request: Request):
@@ -582,7 +593,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
                     raise Conflict("game_order_required")
             _require_no_aptitude_active(snapshot)
             apply_appointment_action(snapshot, {k: v for k, v in body.items() if k not in {"expected_revision", "idempotency_key"}})
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected, "appointment_game", key, body, apply))
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected, "appointment_game", key, body, apply))
 
     @application.delete("/api/runs/{run_id}", status_code=204)
     async def delete_run(run_id: str, request: Request):
@@ -618,7 +629,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             )
             snapshot["records"].append(record)
 
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected, "survey", key, body, apply))
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected, "survey", key, body, apply))
 
     @application.post("/api/runs/{run_id}/game")
     async def game_action(run_id: str, request: Request):
@@ -632,7 +643,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
                 raise Conflict("game_order_required")
             apply_game_action(snapshot["game"], body.get("action"), personal=body.get("personal"), reason=body.get("reason"))
 
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected, "game", key, body, apply))
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected, "game", key, body, apply))
 
     @application.post("/api/runs/{run_id}/supplemental-interview")
     async def add_supplemental_interview(run_id: str, request: Request):
@@ -643,7 +654,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             raise Validation("validation_error")
         expected, key = _body_common(body)
         from .supplemental_interview import add_questions
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected,
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected,
             "supplemental_interview", key, body, add_questions))
 
     @application.post("/api/runs/{run_id}/answers")
@@ -735,7 +746,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
                 }
             )
 
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected, "answer", key, body, apply))
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected, "answer", key, body, apply))
 
     @application.post("/api/runs/{run_id}/interview-analysis")
     async def create_interview_analysis(run_id: str, request: Request):
@@ -752,14 +763,14 @@ def create_app(database_url: str | None = None) -> FastAPI:
             user["user_id"], run_id, key, body
         )
         if replay is not None:
-            return _public_snapshot(replay)
+            return public_snapshot(replay)
 
         snapshot = store.get_run(user["user_id"], run_id)
         if snapshot["revision"] != expected:
             raise Conflict("revision_conflict")
         if snapshot["status"] == "completed":
             raise Finalized("stale_after_finalize")
-        _require_five_games(snapshot)
+        require_all_games(snapshot)
         baseline_ids = {
             question["question_id"]
             for question in snapshot.get("questions", [])
@@ -807,7 +818,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             prepared["max_cost_microusd"],
         )
         if reservation["state"] == "replay":
-            return _public_snapshot(reservation["response"])
+            return public_snapshot(reservation["response"])
         request_id = reservation["request_id"]
 
         def before_call() -> None:
@@ -824,13 +835,15 @@ def create_app(database_url: str | None = None) -> FastAPI:
         except Exception as exc:
             store.fail_interview_analysis(user["user_id"], request_id, error_code=str(exc).split(':',1)[0])
             _raise_interview_error(exc)
-        return _public_snapshot(updated)
+        return public_snapshot(updated)
 
     @application.get('/api/runs/{run_id}/synthesis-prompt')
     async def synthesis_prompt(run_id: str, request: Request):
         from .synthesis import build_prompt
         snapshot = store.get_run(current_user(request)['user_id'], run_id)
         frozen = (snapshot.get('report') or {}).get('synthesis_prompt')
+        if snapshot['status'] != 'completed':
+            require_all_games(snapshot)
         return frozen if snapshot['status'] == 'completed' and frozen else build_prompt(snapshot)
 
     @application.post('/api/runs/{run_id}/synthesis-analysis')
@@ -845,10 +858,11 @@ def create_app(database_url: str | None = None) -> FastAPI:
         tagged = {'operation':'synthesis-analysis','body':body}
         replay = store.get_interview_analysis_replay(user['user_id'],run_id,key,tagged)
         if replay is not None:
-            return _public_snapshot(replay)
+            return public_snapshot(replay)
         snapshot = store.get_run(user['user_id'],run_id)
         if snapshot['revision'] != expected: raise Conflict('revision_conflict')
         if snapshot['status'] == 'completed': raise Finalized('stale_after_finalize')
+        require_all_games(snapshot)
         _require_no_aptitude_active(snapshot)
         _require_five_games(snapshot)
         try:
@@ -860,7 +874,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         reservation = store.reserve_interview_analysis(user['user_id'],run_id,snapshot['attempt_id'],expected,key,
             tagged,body['mode'],prepared['calls_required'],prepared['cost_microusd'],
             prepared['max_calls_per_run'],prepared['max_cost_microusd'])
-        if reservation['state']=='replay':return _public_snapshot(reservation['response'])
+        if reservation['state']=='replay':return public_snapshot(reservation['response'])
         request_id=reservation['request_id']
         try:
             result=await run_in_threadpool(synthesis.execute,prepared,
@@ -870,7 +884,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         except Exception as exc:
             store.fail_interview_analysis(user['user_id'],request_id,error_code=str(exc).split(':',1)[0])
             _raise_interview_error(exc)
-        return _public_snapshot(updated)
+        return public_snapshot(updated)
 
     @application.post("/api/runs/{run_id}/game-analysis")
     async def create_game_analysis(run_id: str, request: Request):
@@ -886,7 +900,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         tagged = {"operation": "five-game-analysis", "body": body}
         replay = store.get_interview_analysis_replay(user["user_id"], run_id, key, tagged)
         if replay is not None:
-            return _public_snapshot(replay)
+            return public_snapshot(replay)
         snapshot = store.get_run(user["user_id"], run_id)
         if snapshot["revision"] != expected:
             raise Conflict("revision_conflict")
@@ -894,7 +908,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             raise Finalized("stale_after_finalize")
         if snapshot.get("flow_version") != "five-game-v2":
             raise Conflict("game_order_required")
-        _require_five_games(snapshot)
+        require_all_games(snapshot)
         try:
             prepared = five_game_ai.prepare(copy.deepcopy(snapshot), body["mode"])
         except Exception as exc:
@@ -904,7 +918,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             prepared["calls_required"], prepared["cost_microusd"],
             prepared["max_calls_per_run"], prepared["max_cost_microusd"])
         if reservation["state"] == "replay":
-            return _public_snapshot(reservation["response"])
+            return public_snapshot(reservation["response"])
         request_id = reservation["request_id"]
         try:
             result = await run_in_threadpool(
@@ -915,7 +929,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         except Exception as exc:
             store.fail_interview_analysis(user["user_id"], request_id, error_code=str(exc).split(':',1)[0])
             _raise_interview_error(exc)
-        return _public_snapshot(updated)
+        return public_snapshot(updated)
 
     @application.post("/api/runs/{run_id}/evidence-linkage")
     async def create_evidence_linkage(run_id: str, request: Request):
@@ -928,6 +942,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
         def apply(snapshot: dict) -> None:
             module = importlib.import_module("app.evidence_linkage")
+            require_all_games(snapshot)
             linkage = module.build_linkage(copy.deepcopy(snapshot), definitions_for_run(snapshot, DEFINITIONS))
             if not isinstance(linkage, dict) or not isinstance(linkage.get("questions"), list):
                 raise Validation("evidence_linkage_invalid")
@@ -945,7 +960,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
                 snapshot["questions"].append(copy.deepcopy(question))
                 existing[question["question_id"]] = question
 
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected,
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected,
                                              "evidence_linkage", key, body, apply))
 
     @application.post("/api/runs/{run_id}/interview-finalize")
@@ -958,6 +973,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         expected, key = _body_common(body)
 
         def apply(snapshot: dict) -> None:
+            require_all_games(snapshot)
             survey_ids = {item["item_id"] for item in survey_items(snapshot)}
             if not surveys_visited(snapshot, survey_ids):
                 raise Conflict("survey_responses_required")
@@ -995,7 +1011,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             snapshot["status"] = "completed"
             snapshot["completed_at"] = datetime.now(timezone.utc).isoformat()
 
-        return _public_snapshot(store.mutate(user["user_id"], run_id, expected,
+        return public_snapshot(store.mutate(user["user_id"], run_id, expected,
                                              "interview_finalize", key, body, apply))
 
     @application.post("/api/runs/{run_id}/analyze")
@@ -1006,7 +1022,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         expected, key = _body_common(body)
         prior = store.get_idempotent_result(user["user_id"], run_id, "analyze", key, body)
         if prior is not None:
-            return _public_snapshot(prior)
+            return public_snapshot(prior)
         snapshot = store.get_run(user["user_id"], run_id)
         if snapshot.get("flow_version") == "five-game-v2":
             raise Conflict("game_order_required")
@@ -1042,7 +1058,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
         updated = store.mutate(user["user_id"], run_id, expected, "analyze", key, body, apply)
         cache_derivations(user["user_id"], snapshot, result)
-        return _public_snapshot(updated)
+        return public_snapshot(updated)
 
     @application.post("/api/runs/{run_id}/finalize")
     async def finalize(run_id: str, request: Request):
@@ -1052,7 +1068,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         expected, key = _body_common(body)
         prior = store.get_idempotent_result(user["user_id"], run_id, "finalize", key, body)
         if prior is not None:
-            return _public_snapshot(prior)
+            return public_snapshot(prior)
         snapshot = store.get_run(user["user_id"], run_id)
         _require_no_aptitude_active(snapshot)
         if snapshot.get("flow_version") == "five-game-v2":
@@ -1117,7 +1133,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         updated = store.mutate(user["user_id"], run_id, expected, "finalize", key, body, apply)
         if analysis_stale:
             cache_derivations(user["user_id"], snapshot, result)
-        return _public_snapshot(updated)
+        return public_snapshot(updated)
 
     static_dir = Path(__file__).with_name("static")
     application.mount("/static", StaticFiles(directory=static_dir), name="static")

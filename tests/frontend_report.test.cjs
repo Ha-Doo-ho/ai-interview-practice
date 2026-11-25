@@ -5,6 +5,20 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const {webcrypto}=require('node:crypto');
 const C=require('../html/client.js');
+function completeGameStages(run){
+  run.rule_games={games:Object.fromEntries(['rsp','card'].map(k=>[k,{rounds:Array.from({length:3},()=>({status:'completed'}))}]))};
+  run.appointment_games={games:['day','place','bus'].map(type=>({type,status:'complete',questions:Array.from({length:10},()=>({}))}))};
+  run.aptitude_games={attempts:['rotation','path','potion'].map(type=>({type,mode:'main',status:'complete'}))};
+}
+test('partial eight-game runs hide cached report and all result controls',async()=>{
+  const run=runWithReport();run.flow_version='five-game-v2';
+  const env=await setup({run});
+  assert.doesNotMatch(env.roots['report-content'].textContent,/report-1|저장 근거 보고서/);
+  assert.match(env.roots['report-content'].textContent,/8종|8개/);
+  for(const id of ['report-mock','report-analyze','report-synthesis-prompt','report-synthesis-mock','report-finalize'])assert.equal(env.roots[id].disabled,true,id);
+  await env.click('report-synthesis-prompt');
+  assert.equal(env.calls.filter(c=>c.path.endsWith('/synthesis-prompt')).length,0);
+});
 const clone=value=>JSON.parse(JSON.stringify(value));
 const flush=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setImmediate(resolve));};
 
@@ -113,7 +127,7 @@ test('each practice suggestion is visible while shared provenance is shown once'
   assert.match(text,/제안 버전: v2/);assert.match(text,/근거 참조: answer-other@1.0.0/);
 });
 test('synthesis preview is read only and AI is explicit with source details and stale handling',async()=>{
-  const run=runWithReport();run.flow_version='five-game-v2';run.interview_report.five_games={games:[]};
+  const run=runWithReport();run.flow_version='five-game-v2';completeGameStages(run);run.interview_report.five_games={games:[]};
   const prompt={prompt_text:'<script>원척도와 전체 답변</script>',evidence:[{id:'interview:a',text:'실제 원문'}]};
   const result={provider_execution:'test_double',report:{prompt,feedback:{strengths:[{text:'기록된 행동',evidence_ids:['interview:a']}],gaps:[],practice_plan:[],clarifying_questions:[]}}};
   const env=await setup({run,handler:call=>call.path.endsWith('/synthesis-prompt')?Response.json(prompt):call.path.endsWith('/synthesis-analysis')?Response.json({...run,revision:21,synthesis_analysis:result}):undefined});
@@ -133,7 +147,7 @@ test('synthesis preview is read only and AI is explicit with source details and 
 });
 
 test('game analysis is an explicit separate request after the baseline report',async()=>{
-  const run=runWithReport();run.flow_version='five-game-v2';run.interview_report.five_games={version:'five-game-report-v1',source_digest:'digest',games:[]};
+  const run=runWithReport();run.flow_version='five-game-v2';completeGameStages(run);run.interview_report.five_games={version:'five-game-report-v1',source_digest:'digest',games:[]};
   const env=await setup({run,handler:call=>call.path.endsWith('/game-analysis')?Response.json({...run,revision:21}):undefined});
   assert.equal(env.calls.filter(c=>c.method==='POST').length,0);
   await env.click('report-game-ai');

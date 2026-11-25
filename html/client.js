@@ -89,6 +89,14 @@
         items.some(i=>i.type!=='ordinal_6'||i.ordered_options?.length!==6))) return [];
     return new Set(ids).size===ids.length ? ids : [];
   }
+  function allGamesComplete(run) {
+    if(run?.flow_version!=='five-game-v2')return true;
+    if(['rsp','card'].some(k=>{const rounds=run.rule_games?.games?.[k]?.rounds||[];return rounds.length!==3||rounds.some(r=>r.status!=='completed');}))return false;
+    const appointments=run.appointment_games?.games||[];
+    if(appointments.map(g=>g.type).join(',')!=='day,place,bus'||appointments.some(g=>g.status!=='complete'||g.questions?.length!==10))return false;
+    const attempts=run.aptitude_games?.attempts||[];
+    return !attempts.some(a=>a.status==='active')&&['rotation','path','potion'].every(kind=>attempts.some(a=>a.type===kind&&a.mode==='main'&&a.status==='complete'));
+  }
   function progress(run, definitions) {
     const records = run.records || [], rounds = run.game?.rounds || [];
     const surveyIds = new Set(records.filter(r => r.source_type === 'survey' && ['submitted','timed_out','skipped'].includes(r.status)).map(r => r.item_id));
@@ -118,5 +126,5 @@
     const quote = points.slice(span.start,span.end).join('');
     return {valid:quote === span.quote,quote,source};
   }
-  return {createApi, createMutation, buildSurveyResponse, latestAnswer, answerPayload, progress, analysisStale, verifyQuote, requiredSurveyIds};
+  return {createApi, createMutation, buildSurveyResponse, latestAnswer, answerPayload, progress, analysisStale, verifyQuote, requiredSurveyIds, allGamesComplete};
 });

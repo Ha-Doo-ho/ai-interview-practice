@@ -58,6 +58,8 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
     assert all(g['difficulty'] == 'easy' for g in restored['appointment_games']['games'])
     for question in DEFINITIONS['questions']:
         run = ok(client, run, 'answers', question_id=question['question_id'], text='합성 면접 답변입니다.')
+    from completion_helpers import finish_all_main_games
+    run = finish_all_main_games(client,app,owner,run,monkeypatch)
     run = ok(client, run, 'interview-analysis', mode='mock')
     report = run['interview_report']['five_games']
     assert [g['type'] for g in report['games']] == ['rsp','card','day','place','bus']
@@ -130,6 +132,8 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
     from test_aptitude_state import start,solve,act
     def complete_additional_games(snapshot):
         for kind in ('rotation','path','potion'):
+            if any(a['type']==kind and a['mode']=='main' and a['status']=='complete' for a in snapshot.get('aptitude_games',{}).get('attempts',[])):
+                continue
             _,attempt=start(aptitude_games,kind=kind,snapshot=snapshot)
             while attempt['status']=='active':
                 solve(aptitude_games,snapshot,attempt)

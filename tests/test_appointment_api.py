@@ -58,6 +58,8 @@ def test_real_api_30_questions_survive_reload_and_preserve_retry(api, monkeypatc
     assert all(g['difficulty'] == 'easy' for g in restored['appointment_games']['games'])
     for question in DEFINITIONS['questions']:
         run = ok(client, run, 'answers', question_id=question['question_id'], text='합성 면접 답변입니다.')
+    from completion_helpers import finish_all_main_games
+    run = finish_all_main_games(client,app,owner,run,monkeypatch)
     run = ok(client, run, 'interview-analysis', mode='mock')
     report = run['interview_report']['five_games']
     assert [g['type'] for g in report['games']] == ['rsp','card','day','place','bus']

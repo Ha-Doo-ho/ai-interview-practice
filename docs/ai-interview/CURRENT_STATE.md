@@ -1,5 +1,14 @@
 # Current state
 
+## 2026-11-25 — 사용자 정정: 전체 8종 본게임 완료 후 결과 공개
+
+- 사용자는 "도중 중단은 가능하지만 결과는 모든 게임 완료 후"라고 명확히 정정했다. 이전 게시본은 앞의 5종만 필수이고 뒤의 3종을 선택으로 취급했으므로 이 조건을 충족하지 않았다.
+- 새 조건: five-game-v2 회차는 기존 5종 완료와 rotation/path/potion 각각 mode=main,status=complete 기록이 필요하다. 연습·quick·interrupted·같은 종류의 중복 완료는 빠진 종류를 대체하지 못한다. 진행 중인 추가 시도가 있으면 결과를 잠근다. 본게임의 서버 시간초과 종료는 규칙상 complete가 될 수 있으나 명시적 stop은 전체 기한 경계에서도 interrupted로 보존한다.
+- 결과 범위: 보고서 본문·완료 게임 종합 카드·분석 생성·근거 연결·프롬프트 미리보기·최종 확정. 각 게임의 진행 피드백과 입력 원문은 유지한다. 기본 면접 작성은 앞의 5종 후 허용한다. 구형 흐름과 이미 확정된 과거 보고서는 보존한다.
+- 서버는 저장 원본을 바꾸지 않고 현재 회차의 완료 상태로 결과와 과거 분석 이력·조건부 질문을 응답에서 가린다. 과거 멱등성 응답의 재전달도 최신 소유 회차 상태로 공개 여부를 검사한다. 앱 전체 public projection wrapper에서 처리하므로 개별 GET·목록·변경 응답에도 적용한다.
+- 코드 기준 경로는 계속 `E:/Scoolcontest2/game-flow-fix-20261125`다. 설계와 검증 계획은 `docs/superpowers/plans/2026-11-25-all-games-results.md`; 검사 완료 및 게시 확인은 VERIFICATION.md와 로컬 산출물에 기록한다.
+- 최종 검증: 전체 Python 528 passed, frontend 149 passed, guard 위반·실제 공급자 전송·검사 중 소스 변경 0. 실제 브라우저에서 7/8 잠금 → 마법약 main 100문항 실제 API 제출 → 8/8 결과 공개와 새 시도 중 과거 응답 재전달 차단을 확인했다. 독립 Astra 재검증은 Python 9/9, frontend 35/35다. `artifacts/all-games-verification-summary.json`, `artifacts/all-games-browser-verification.json`, `artifacts/tester-all-games-review.md`.
+
 ## 2026-11-25 — 약속 게임 전 선택 게임 진입과 면접 차단 수정
 
 - 사용자 증상: 약속 게임 대신 추가 3종이 표시되고 텍스트 면접을 진행할 수 없다는 제보. root의 실제 브라우저와 독립 Astra 6.2 high 테스터가 카드 종료 경계에서 재현했다. 약속 모듈의 정상 초기화는 확인했으며, 원래 제보 기기의 자산 로딩 상태는 확인하지 않았다. 클릭 없는 자동 건너뛰기가 입증된 것은 아니다.
