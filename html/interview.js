@@ -18,14 +18,18 @@
   const supplementalGroups = {
     'working-memory-interview-v1': {label:'요청 변경',prefix:'wm-experience',count:5},
     'spatial-work-interview-v1': {label:'공간 배치',prefix:'spatial-work-experience',count:4},
-    'repeated-work-interview-v1': {label:'반복 업무',prefix:'repeated-work-experience',count:4}
+    'repeated-work-interview-v1': {label:'반복 업무'},
+    'repeated-work-interview-v2': {label:'반복 업무'}
   };
+  const currentSetVersion='curated-work-interview-v2';
+  const currentSupplementalIds=['wm-experience-0','wm-experience-3','spatial-work-experience-0',
+    'repeated-work-experience-v2-0','repeated-work-experience-v2-1'];
   const supplementalMissing = () => {
     const ids=new Set(supplementalQuestions().map(q=>q.question_id));
-    return Object.values(supplementalGroups).some(group=>
-      Array.from({length:group.count},(_,i)=>`${group.prefix}-${i}`).some(id=>!ids.has(id)));
+    return state.run?.supplemental_interview_set_version!==currentSetVersion || currentSupplementalIds.some(id=>!ids.has(id));
   };
   const displayedQuestions = () => [...baselineQuestions(),...supplementalQuestions(),...followupQuestions()];
+  const questionUpgradePending=()=>state.run?.status!=='completed'&&supplementalQuestions().length>0&&state.run?.supplemental_interview_set_version!==currentSetVersion;
   const staleQuestion = questionId => Boolean(state.run?.evidence_linkage_stale &&
     (state.run?.questions||[]).some(q=>q.question_id===questionId&&q.question_mode==='adaptive_followup'));
   const latest = questionId => window.AstraClient.latestAnswer(state.run || {records: []}, questionId);
@@ -35,7 +39,7 @@
     (state.run?.appointment_games?.games || []).filter(g=>g.status==='complete' && g.questions?.length===10).length!==3);
   const writeBlocked = () => !state.loaded || !state.scope || state.busy || Boolean(state.journal.pending) ||
     Boolean(state.journal.rejected) || !state.storageOK || state.context?.busy || state.context?.locked ||
-    state.context?.gameLocked || state.context?.reportLocked || gamesIncomplete() || state.run?.status === 'completed';
+    state.context?.gameLocked || state.context?.reportLocked || gamesIncomplete() || questionUpgradePending() || state.run?.status === 'completed';
 
   function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -108,16 +112,25 @@
   }
   function renderSaved() {
     $('interview-saved').replaceChildren();
-    const questionById = new Map((state.run?.questions||[]).map(question => [question.question_id, question]));
+    const archived=(state.run?.interview_question_history||[]).flatMap(item=>item.questions||[]);
+    const questionById = new Map([...archived,...(state.run?.questions||[])].map(question => [question.question_id, question]));
+    const activeIds=new Set((state.run?.questions||[]).map(q=>q.question_id));
     for (const record of state.run?.records || []) {
       if (record.source_type !== 'typed_answer' || !questionById.has(record.data?.question_id)) continue;
       const detail = element('details');
       const question = questionById.get(record.data.question_id);
       const questionText = record.data.question_text_snapshot || question.question_text;
-      detail.append(element('summary', `${questionText} · ${statusLabel(record.data.status)} · 버전 ${record.data.answer_version}`));
+      detail.append(element('summary', `${activeIds.has(question.question_id)?'':'이전 문항 기록 · '}${questionText} · ${statusLabel(record.data.status)} · 버전 ${record.data.answer_version}`));
       const body = element('pre', record.data.status === 'asked_answered' ? record.data.text : statusLabel(record.data.status), 'interview-saved-text');
       detail.append(body);
       if(question.conditioned_on_prior_evidence===true)detail.append(element('p','조건부 후속 자기보고 · 중립 기본 면접과 별도','survey-help'));
+      $('interview-saved').append(detail);
+    }
+    for(const [id,draft] of Object.entries(state.journal.drafts)){
+      if(activeIds.has(id)||!String(draft.text??''))continue;
+      const detail=element('details');
+      detail.append(element('summary','이전 문항의 임시 입력 · '+(questionById.get(id)?.question_text||'보존된 입력')));
+      detail.append(element('pre',String(draft.text),'interview-saved-text'));
       $('interview-saved').append(detail);
     }
   }
@@ -127,7 +140,8 @@
   }
   function publishDrafts() {
     if(!state.scope)return;
-    const count=Object.entries(state.journal.drafts).filter(([questionId,draft])=>String(draft.text??'')!==(latest(questionId)?.data.text||'')).length;
+    const activeIds=new Set(displayedQuestions().map(q=>q.question_id));
+    const count=Object.entries(state.journal.drafts).filter(([questionId,draft])=>activeIds.has(questionId)&&String(draft.text??'')!==(latest(questionId)?.data.text||'')).length;
     window.AstraPractice.setInterviewDraftState?.({...state.scope,count});
   }
   function sameBase(draft, record) {
@@ -162,7 +176,8 @@
       const followupNumber=supplementalQuestions().filter(q=>q.parent_question_id===question.parent_question_id)
         .findIndex(q=>q.question_id===question.question_id)+1;
       const label=conditioned?'조건부 후속 질문 '+(followupQuestions().findIndex(q=>q.question_id===question.question_id)+1):
-        supplemental?(question.parent_question_id?groupLabel+' 후속 질문 '+followupNumber:groupLabel+' 경험 질문'):'질문 '+(index+1);
+        supplemental&&state.run?.supplemental_interview_set_version!==currentSetVersion?
+          (question.parent_question_id?groupLabel+' 후속 질문 '+followupNumber:groupLabel+' 경험 질문'):'질문 '+(index+1);
       card.append(element('h3', `${label}. ${question.question_text}`, 'q-label-title'));
       if(supplemental)card.append(element('p',question.parent_question_id?
         '위 경험 질문에서 설명한 같은 사례를 이어서 답해 주세요.':'직장·학업·일상에서 경험한 사례로 답할 수 있습니다. 해당 경험이 없으면 건너뛸 수 있습니다.','survey-help'));
@@ -209,6 +224,7 @@
     $('interview-status').textContent = !hasScope ? '설문 화면에서 로그인한 계정의 연습 회차를 선택해 주세요.' :
       !state.loaded ? (state.loadFailed ? '기본 면접 질문을 불러오지 못했습니다.' : '기본 면접 질문과 저장 기록을 불러오는 중입니다.') :
       gamesIncomplete() ? '다섯 게임을 모두 완료한 뒤 기본 면접을 시작해 주세요.' :
+      questionUpgradePending() ? '면접 질문 목록을 갱신하고 있습니다. 완료되지 않으면 저장된 면접 다시 불러오기를 눌러 주세요.' :
       `현재 회차: ${state.scope.run_id} · ${state.journal.pending ? '제출 결과 확인 대기' : state.busy ? '서버 저장 확인 중' : '서버 기록 연결됨'}`;
     const count = state.loaded ? currentCount() : 0;
     const total = state.loaded ? baselineQuestions().length : 0;
@@ -264,9 +280,20 @@
     }
   }
   async function fetchCurrent(allow) {
-    const run = await api(path());
+    let run = await api(path());
     if (!allow()) return;
     checkedRun(run);
+    for(let attempt=0;attempt<2 && run.status!=='completed' && run.supplemental_interview_set_version!==currentSetVersion &&
+        run.questions.some(q=>q.question_mode==='supplemental') && !state.journal.pending && !state.journal.rejected &&
+        !state.context?.reportLocked && !state.context?.gameLocked && !state.context?.locked && !state.context?.busy;attempt++){
+      try{
+        run=await api(path()+'/supplemental-interview',{method:'POST',body:{expected_revision:run.revision,idempotency_key:crypto.randomUUID()}});
+      }catch(error){
+        if(error.status!==409||error.code!=='revision_conflict'||attempt===1)throw error;
+        run=await api(path());
+      }
+      if(!allow())return;checkedRun(run);
+    }
     state.loaded = true; applyRun(run);
   }
   function draftFor(questionId, index) {
@@ -313,7 +340,8 @@
       state.journal.pending = null; state.journal.rejected = null;
       delete state.journal.drafts[pending.question_id];
       persist(); applyRun(run);
-      if (retrying) await fetchCurrent(allow);
+      if (retrying || (run.status!=='completed'&&run.supplemental_interview_set_version!==currentSetVersion&&
+          run.questions.some(q=>q.question_mode==='supplemental'))) await fetchCurrent(allow);
     } catch (error) {
       if (!allow()) return;
       const definitive = error.status >= 400 && error.status < 500 && ![401,404,410].includes(error.status);
@@ -337,7 +365,12 @@
     if (!state.journal.rejected || state.busy || !state.storageOK) return;
     const rejected = {...state.journal.rejected};
     const questionIndex = displayedQuestions().findIndex(question => question.question_id === rejected.question_id);
-    if (questionIndex < 0) return;
+    if (questionIndex < 0) {
+      state.journal.rejected=null;
+      if(!persist())return;
+      render();notice('이전 문항의 입력을 저장 기록 아래에 보존했습니다. 현재 질문에 이어서 답할 수 있습니다.');
+      return;
+    }
     const draft = draftFor(rejected.question_id, questionIndex);
     const base = baseFor(rejected.question_id);
     draft.base_answer_id = base?.answer_id ?? null;
@@ -346,8 +379,11 @@
     if (!persist()) return;
     render();
     notice('최신 서버 저장본을 기준으로 보존된 입력을 이어갑니다. 내용을 확인한 뒤 저장 버튼을 눌러 주세요.');
+    if(questionUpgradePending())work(fetchCurrent);
   }
   function contextChanged(context) {
+    const wasExternallyLocked=Boolean(state.context?.busy||state.context?.locked||state.context?.gameLocked||state.context?.reportLocked);
+    const externallyUnlocked=wasExternallyLocked&&!context.busy&&!context.locked&&!context.gameLocked&&!context.reportLocked;
     const scope = context.user && context.run ? {user_id: context.user.user_id, run_id: context.run.run_id} : null;
     const same = scope && state.scope && scope.user_id === state.scope.user_id && scope.run_id === state.scope.run_id;
     const changed = same && (context.run.revision > (state.run?.revision ?? -1) || context.busy !== state.context?.busy ||
@@ -356,6 +392,10 @@
     if (same) {
       if (context.run.revision >= (state.run?.revision ?? -1)) state.run = context.run;
       if (changed) render();
+      if(externallyUnlocked&&state.loaded&&!state.busy&&!state.journal.pending&&!state.journal.rejected&&
+          context.run.status!=='completed'&&context.run.supplemental_interview_set_version!==currentSetVersion&&
+          context.run.questions.some(q=>q.question_mode==='supplemental')&&
+          !context.busy&&!context.locked&&!context.gameLocked&&!context.reportLocked)work(fetchCurrent);
       return;
     }
     const previous = state.scope;

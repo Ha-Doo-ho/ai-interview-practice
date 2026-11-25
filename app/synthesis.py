@@ -236,6 +236,8 @@ def _config():
 
 def prepare(run,mode):
     if mode not in ('mock','live'):raise ProviderError('mode_invalid')
+    from .supplemental_interview import require_current_questions
+    require_current_questions(run)
     prompt=build_prompt(run)
     # The same instructions are delivered through the provider system role;
     # do not duplicate them (or a stringified copy of the report) in user data.

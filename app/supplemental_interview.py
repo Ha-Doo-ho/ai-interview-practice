@@ -54,11 +54,57 @@ for group, prefix, prompts in WORK_GROUPS:
         "parent_question_id": f"{prefix}-0" if index else None,
     } for index, text in enumerate(prompts))
 
+# Keep v1 definitions available for immutable saved history. Current interviews
+# use three baseline questions plus these five optional work questions.
+CURRENT_VERSION = 'curated-work-interview-v2'
+_old = {q['question_id']: q for q in QUESTIONS}
+CURRENT_QUESTIONS = [deepcopy(_old[key]) for key in (
+    'wm-experience-0', 'wm-experience-3', 'spatial-work-experience-0')]
+for index, text in enumerate((
+    '비슷한 업무를 같은 방식으로 진행했는데도 결과가 달랐던 경험을 말씀해 주세요. '
+    '다음 업무에서는 어떤 방식을 선택했나요? 기존 방식을 유지하거나 바꾸기로 한 기준은 무엇이었나요?',
+    _old['repeated-work-experience-3']['question_text'],
+)):
+    CURRENT_QUESTIONS.append({**deepcopy(_old['repeated-work-experience-0']),
+        'question_id': f'repeated-work-experience-v2-{index}',
+        'question_version': '2.0.0', 'question_prompt_version': 'repeated-work-interview-v2',
+        'question_text': text, 'question_group': 'repeated-work-interview-v2',
+        'parent_question_id': 'repeated-work-experience-v2-0' if index else None})
+
 
 def add_questions(run):
-    """Append missing questions without rewriting an existing question or answer."""
-    existing = {q["question_id"] for q in run["questions"]}
-    run["questions"].extend(deepcopy(q) for q in QUESTIONS if q["question_id"] not in existing)
+    """Curate an active interview once; never rewrite prior question/answer evidence."""
+    if run.get('status') == 'completed':
+        return
+    version = run.get('supplemental_interview_set_version')
+    if version not in (None, CURRENT_VERSION):
+        from .store import Validation
+        raise Validation('validation_error')
+    previous = run.get('questions', [])
+    existing = {q['question_id']: q for q in previous}
+    if version is None and any(q.get('question_mode') == 'supplemental' for q in previous):
+        run.setdefault('interview_question_history', []).append({
+            'version': 'legacy-work-interview-v1',
+            'questions': deepcopy([q for q in previous if q.get('question_mode') == 'supplemental'])})
+    run['questions'] = [deepcopy(q) for q in previous if q.get('question_mode') != 'supplemental'] + [
+        deepcopy(existing.get(q['question_id'], q)) for q in CURRENT_QUESTIONS]
+    run['supplemental_interview_set_version'] = CURRENT_VERSION
+
+
+def questions_need_update(run):
+    if run.get('status') == 'completed' or run.get('supplemental_interview_set_version') == CURRENT_VERSION:
+        return False
+    groups={q['question_group'] for q in QUESTIONS}
+    return run.get('flow_version') == 'five-game-v2' or any(
+        q.get('question_mode') == 'supplemental' and q.get('question_group') in groups
+        for q in run.get('questions', []))
+
+
+def require_current_questions(run):
+    """Modern in-progress results must not regenerate a retired question set."""
+    if questions_need_update(run):
+        from .store import Conflict
+        raise Conflict('interview_question_update_required')
 
 
 def export_answers(run):

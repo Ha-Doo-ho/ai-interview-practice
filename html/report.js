@@ -17,6 +17,7 @@
 
   function notice(text='') { $('report-error').textContent=text; $('report-error').hidden=!text; }
   const analysisErrors = {
+    interview_question_update_required:'면접 화면에서 저장된 면접을 다시 불러와 8문항 목록으로 갱신한 뒤 평가를 요청해 주세요.',
     gemini_auth_failed:'Gemini API 키 인증에 실패했습니다. 키를 새로 확인해 주세요.',
     gemini_access_denied:'Gemini가 이 계정의 요청을 거절했습니다. API 키 권한과 프로젝트 설정을 확인해 주세요.',
     gemini_model_unavailable:'Gemini 모델을 찾을 수 없거나 사용할 수 없습니다. 모델 ID와 계정 접근 권한을 확인해 주세요.',

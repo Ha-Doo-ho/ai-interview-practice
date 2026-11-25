@@ -36,33 +36,121 @@ const workQuestions=()=>['spatial-work','repeated-work'].flatMap(prefix=>Array.f
   question_mode:'supplemental',question_group:prefix+'-interview-v1',
   parent_question_id:i?prefix+'-experience-0':null,conditioned_on_prior_evidence:false
 })));
+const curatedQuestions=()=>[
+  wmQuestions()[0],wmQuestions()[3],workQuestions()[0],
+  ...[0,1].map(i=>({...workQuestions()[4],question_id:'repeated-work-experience-v2-'+i,
+    question_group:'repeated-work-interview-v2',question_version:'2.0.0',
+    parent_question_id:i?'repeated-work-experience-v2-0':null,
+    question_text:i?'예상과 실제 결과':'다음 업무에서는 어떤 방식을 선택했나요? 기존 방식을 유지하거나 바꾸기로 한 기준은 무엇이었나요?'}))
+];
 
-test('working-memory-only run can add both work groups, save, and reload without replacing old answers',async()=>{
-  const run=baseRun();run.questions.push(...wmQuestions());
+test('current eight fixed questions never offer the retired thirteen-question expansion',async()=>{
+  const run=baseRun();run.supplemental_interview_set_version='curated-work-interview-v2';run.questions.push(...curatedQuestions());
+  const env=await setup({run});
+  assert.equal(env.roots['interview-items'].children.length+env.roots['interview-supplemental'].children.length,8);
+  assert.equal(env.roots['interview-supplemental-add'].hidden,true);
+  assert.match(env.roots['interview-supplemental'].textContent,/질문 4/);
+  assert.match(env.roots['interview-supplemental'].textContent,/질문 8/);
+});
+
+test('active sixteen-question legacy run upgrades once before rendering and preserves history',async()=>{
+  const run=baseRun();run.questions.push(...wmQuestions(),...workQuestions());
   const env=await setup({run,handler(call,{server}){
     if(call.path.endsWith('/supplemental-interview')){
-      server.questions.push(...workQuestions());server.revision++;
+      server.interview_question_history=[{questions:clone(server.questions)}];
+      server.questions=[...clone(questions),...curatedQuestions()];
+      server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
       return Response.json(server);
     }
   }});
-  assert.equal(env.roots['interview-supplemental-add'].hidden,false);
-  await env.click('interview-supplemental-add');
-  assert.equal(env.roots['interview-supplemental'].children.length,13);
+  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.calls.filter(c=>c.path.endsWith('/supplemental-interview')).length,1);
+  await env.click('interview-refresh');
+  assert.equal(env.calls.filter(c=>c.path.endsWith('/supplemental-interview')).length,1);
+});
+
+test('retired draft and rejected request remain readable without locking current questions or report',async()=>{
+  const run=baseRun();run.supplemental_interview_set_version='curated-work-interview-v2';run.questions.push(...curatedQuestions());
+  run.interview_question_history=[{questions:wmQuestions()}];
+  const storage=new Map([['astra.interview.v1:interview-user:interview-run',JSON.stringify({drafts:{
+    'wm-experience-1':{text:'퇴역 문항에 작성 중이던 원문',base_answer_id:null,base_answer_version:null}},
+    pending:null,rejected:{question_id:'wm-experience-1',status:'asked_answered'}})]]);
+  const env=await setup({run,storage});
+  await env.click('interview-resolve');
+  assert.equal(env.document.getElementById('interview-answer-0').disabled,false);
+  assert.match(env.roots['interview-saved'].textContent,/퇴역 문항에 작성 중이던 원문/);
+  assert.equal(env.draftStates.at(-1).count,0);
+  assert.match(storage.get('astra.interview.v1:interview-user:interview-run'),/퇴역 문항에 작성 중이던 원문/);
+});
+
+test('legacy curation waits for the game mutation lock and resumes when it clears',async()=>{
+  const run=baseRun();run.questions.push(...wmQuestions(),...workQuestions());
+  const env=await setup({run,gameLocked:true,handler(call,{server}){
+    if(call.path.endsWith('/supplemental-interview')){
+      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      return Response.json(server);
+    }
+  }});
+  assert.equal(env.calls.filter(c=>c.method==='POST').length,0);
+  await env.changeScope({user:{user_id:'interview-user'},run:clone(env.server()),busy:false,locked:false,gameLocked:false,reportLocked:false,authStatus:'authenticated'});
+  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.calls.filter(c=>c.method==='POST').length,1);
+});
+
+test('legacy curation reconciles a competing revision once instead of leaving an unusable interview',async()=>{
+  const run=baseRun();run.questions.push(...wmQuestions(),...workQuestions());let attempts=0;
+  const env=await setup({run,handler(call,{server}){
+    if(call.path.endsWith('/supplemental-interview')){
+      if(attempts++===0){server.revision++;return Response.json({error:'revision_conflict'},{status:409});}
+      assert.equal(call.body.expected_revision,server.revision);
+      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      return Response.json(server);
+    }
+  }});
+  assert.equal(attempts,2);
+  assert.equal(env.roots['interview-supplemental'].children.length,5);
+});
+
+test('own interview lock notifications cannot restart a twice-conflicted curation request',async()=>{
+  const run=baseRun();run.questions.push(...wmQuestions(),...workQuestions());let attempts=0;
+  const env=await setup({run,gameLocked:true,notifyLocks:true,handler(call,{server}){
+    if(call.path.endsWith('/supplemental-interview')){
+      if(attempts++<6){server.revision++;return Response.json({error:'revision_conflict'},{status:409});}
+      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      return Response.json(server);
+    }
+  }});
+  await env.changeScope({user:{user_id:'interview-user'},run:clone(env.server()),busy:false,locked:false,gameLocked:false,reportLocked:false,interviewLocked:false,authStatus:'authenticated'});
+  assert.equal(attempts,2);
+  assert.equal(env.document.getElementById('interview-answer-0').disabled,true);
+});
+
+test('working-memory-only run upgrades to five work questions and can save and reload',async()=>{
+  const run=baseRun();run.questions.push(...wmQuestions());
+  const env=await setup({run,handler(call,{server}){
+    if(call.path.endsWith('/supplemental-interview')){
+      server.interview_question_history=[{questions:clone(server.questions)}];
+      server.questions=[...clone(questions),...curatedQuestions()];
+      server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      return Response.json(server);
+    }
+  }});
+  assert.equal(env.roots['interview-supplemental'].children.length,5);
   assert.equal(env.roots['interview-supplemental-add'].hidden,true);
-  assert.match(env.roots['interview-supplemental'].textContent,/공간 배치 경험 질문/);
-  assert.match(env.roots['interview-supplemental'].textContent,/반복 업무 후속 질문 3/);
-  for(let i=8;i<16;i++){
+  assert.match(env.roots['interview-supplemental'].textContent,/질문 6/);
+  assert.match(env.roots['interview-supplemental'].textContent,/질문 8/);
+  for(let i=3;i<8;i++){
     await env.input('interview-answer-'+i,'업무 답변 '+i);
     await env.click('interview-save-'+i);
   }
-  assert.equal(env.server().records.length,8);
+  assert.equal(env.server().records.length,5);
   assert.match(env.roots['interview-progress'].textContent,/0 \/ 3/);
   const restored=await setup({run:env.server()});
-  assert.equal(restored.document.getElementById('interview-answer-15').value,'업무 답변 15');
+  assert.equal(restored.document.getElementById('interview-answer-7').value,'업무 답변 7');
 });
 
 test('supplemental questions save separately and remain editable when game linkage is stale',async()=>{
-  const run=baseRun();run.questions.push(...wmQuestions());run.evidence_linkage_stale=true;
+  const run=baseRun();run.questions.push(...curatedQuestions());run.supplemental_interview_set_version='curated-work-interview-v2';run.evidence_linkage_stale=true;
   const env=await setup({run});
   assert.equal(env.roots['interview-supplemental'].children.length,5);
   assert.equal(env.roots['interview-items'].children.length,3);
@@ -84,12 +172,12 @@ test('supplemental questions save separately and remain editable when game linka
 test('existing runs can add optional questions without replacing baseline answers',async()=>{
   const env=await setup({handler(call,{server}){
     if(call.path.endsWith('/supplemental-interview')){
-      server.questions.push(...wmQuestions(),...workQuestions());server.revision++;
+      server.questions.push(...curatedQuestions());server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
       return Response.json(server);
     }
   }});
   await env.click('interview-supplemental-add');
-  assert.equal(env.roots['interview-supplemental'].children.length,13);
+  assert.equal(env.roots['interview-supplemental'].children.length,5);
   assert.equal(env.roots['interview-supplemental-add'].hidden,true);
   assert.equal(env.roots['interview-items'].children.length,3);
 });
@@ -102,10 +190,10 @@ test('five-game run prevents interview editing until all games are complete',asy
   assert.equal(env.document.getElementById('interview-answer-0').disabled,true);
 });
 
-async function setup({run=baseRun(),storage=new Map(),handler,afterCommit,replays=new Map(),guest=false,storageFails=false,legacyBridge=false}={}) {
+async function setup({run=baseRun(),storage=new Map(),handler,afterCommit,replays=new Map(),guest=false,storageFails=false,legacyBridge=false,gameLocked=false,notifyLocks=false}={}) {
   const ids=['interview-status','interview-progress','interview-error','interview-refresh','interview-retry','interview-resolve','interview-items','interview-saved','interview-complete','interview-followups','interview-followup-progress','interview-supplemental','interview-supplemental-progress','interview-supplemental-add'];
   const roots=Object.fromEntries(ids.map(id=>[id,new Element(id.includes('retry')||id.includes('refresh')||id.includes('resolve')||id.includes('complete')?'button':'div')]));
-  const events={},calls=[],locks=[];let listener;let server=clone(run);let scope={user:guest?null:{user_id:'interview-user'},run:guest?null:clone(run),ready:!guest,busy:false,locked:false,gameLocked:false,interviewLocked:false,authStatus:guest?'guest':'authenticated'};
+  const events={},calls=[],locks=[],draftStates=[];let listener;let server=clone(run);let scope={user:guest?null:{user_id:'interview-user'},run:guest?null:clone(run),ready:!guest,busy:false,locked:false,gameLocked,interviewLocked:false,authStatus:guest?'guest':'authenticated'};
   const find=(node,id)=>node.attrs.id===id?node:node.children.map(child=>find(child,id)).find(Boolean);
   const document={getElementById:id=>roots[id]||Object.values(roots).map(node=>find(node,id)).find(Boolean),createElement:tag=>new Element(tag),addEventListener(type,fn){(events[type]||=[]).push(fn);}};
   const transport=async(url,options)=>{
@@ -133,14 +221,16 @@ async function setup({run=baseRun(),storage=new Map(),handler,afterCommit,replay
     throw Error('Unexpected request '+call.path);
   };
   const bridge={subscribe(fn){listener=fn;fn(clone(scope));},updateRun(value){if(!scope.run||value.run_id!==scope.run.run_id||value.user_id!==scope.user?.user_id||value.revision<scope.run.revision)return false;scope.run=clone(value);listener(clone(scope));return true;},setInterviewLock(value){locks.push(value);scope.interviewLocked=value.locked;},invalidateRun(){scope.run=null;listener(clone(scope));return true;}};
+  if(notifyLocks)bridge.setInterviewLock=value=>{locks.push(value);scope.interviewLocked=value.locked;listener(clone(scope));};
   if(legacyBridge)delete bridge.setInterviewLock;
+  bridge.setInterviewDraftState=value=>draftStates.push(value);
   const sessionStorage={getItem:key=>storage.get(key)||null,setItem(key,value){if(storageFails)throw Error('quota');storage.set(key,value);},removeItem:key=>storage.delete(key)};
   const window={AstraPractice:bridge,AstraClient:{...C,createApi:()=>C.createApi(transport)},AstraAuth:{recheck(){}},sessionStorage};
   const context=vm.createContext({window,document,crypto:webcrypto,structuredClone,console});
   assert.equal(fs.existsSync('html/interview.js'),true,'html/interview.js must exist');
   vm.runInContext(fs.readFileSync('html/interview.js','utf8'),context);
   for(const fn of events.DOMContentLoaded||[])await fn();await flush();
-  return {roots,document,window,context,calls,locks,storage,server:()=>server,async click(id){const el=document.getElementById(id);assert.ok(el?.events.click?.length,'Missing control '+id);await el.fire('click');},async input(id,value){const el=document.getElementById(id);assert.ok(el?.events.input?.length,'Missing input '+id);el.value=value;await el.fire('input');},async changeScope(value){scope=value;listener(clone(scope));await flush();}};
+  return {roots,document,window,context,calls,locks,storage,draftStates,server:()=>server,async click(id){const el=document.getElementById(id);assert.ok(el?.events.click?.length,'Missing control '+id);await el.fire('click');},async input(id,value){const el=document.getElementById(id);assert.ok(el?.events.input?.length,'Missing input '+id);el.value=value;await el.fire('input');},async changeScope(value){scope=value;listener(clone(scope));await flush();}};
 }
 
 test('renders only neutral baseline questions and saves exact whitespace/Unicode from server-confirmed response',async()=>{

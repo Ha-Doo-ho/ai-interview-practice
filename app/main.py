@@ -19,6 +19,7 @@ from .store import Conflict, Deleted, Finalized, InvalidCredentials, NotFound, S
 from .survey import SurveyValidation, build_survey_record
 from .survey_sets import WORK_VERSION, survey_items, definitions_for_run
 from .game_completion import require_all_games, hide_partial_results
+from .supplemental_interview import require_current_questions, questions_need_update
 
 
 COOKIE_NAME = "interview_session"
@@ -50,6 +51,7 @@ def _error_status(code: str) -> int:
         return 409
     if code in {
         "all_games_completion_required",
+        "interview_question_update_required",
         "idempotency_conflict",
         "current_user_changed",
         "revision_conflict",
@@ -139,7 +141,8 @@ def _public_snapshot(snapshot: dict, *, definition: bool = False, visibility_sna
     if isinstance(snapshot.get("synthesis_analysis"), dict):
         try:
             from .synthesis import build_prompt
-            public['synthesis_analysis_stale'] = snapshot['synthesis_analysis']['input_snapshot']['source_digest'] != build_prompt(snapshot)['source_digest']
+            lineage = visibility_snapshot if visibility_snapshot is not None and snapshot.get('status') != 'completed' else snapshot
+            public['synthesis_analysis_stale'] = snapshot['synthesis_analysis']['input_snapshot']['source_digest'] != build_prompt(lineage)['source_digest']
         except Exception:
             public['synthesis_analysis_stale'] = True
     if snapshot.get("evidence_linkage") is not None:
@@ -158,6 +161,10 @@ def _public_snapshot(snapshot: dict, *, definition: bool = False, visibility_sna
             round_state.pop("final_requirements", None)
             round_state.pop("reward_table_final", None)
     hide_partial_results(public, visibility_snapshot=visibility_snapshot)
+    if questions_need_update(visibility_snapshot or snapshot):
+        public['interview_question_update_required'] = True
+        if public.get('synthesis_analysis'):
+            public['synthesis_analysis_stale'] = True
     return public
 
 
@@ -672,6 +679,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             raise Validation("validation_error")
 
         def apply(snapshot: dict) -> None:
+            require_current_questions(snapshot)
             _require_five_games(snapshot)
             question = next((item for item in snapshot["questions"] if item["question_id"] == body.get("question_id")), None)
             if question is None:
@@ -844,6 +852,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         frozen = (snapshot.get('report') or {}).get('synthesis_prompt')
         if snapshot['status'] != 'completed':
             require_all_games(snapshot)
+            require_current_questions(snapshot)
         return frozen if snapshot['status'] == 'completed' and frozen else build_prompt(snapshot)
 
     @application.post('/api/runs/{run_id}/synthesis-analysis')
@@ -856,13 +865,15 @@ def create_app(database_url: str | None = None) -> FastAPI:
             raise Validation('validation_error')
         expected, key = _body_common(body)
         tagged = {'operation':'synthesis-analysis','body':body}
+        snapshot = store.get_run(user['user_id'],run_id)
+        require_current_questions(snapshot)
         replay = store.get_interview_analysis_replay(user['user_id'],run_id,key,tagged)
         if replay is not None:
             return public_snapshot(replay)
-        snapshot = store.get_run(user['user_id'],run_id)
         if snapshot['revision'] != expected: raise Conflict('revision_conflict')
         if snapshot['status'] == 'completed': raise Finalized('stale_after_finalize')
         require_all_games(snapshot)
+        require_current_questions(snapshot)
         _require_no_aptitude_active(snapshot)
         _require_five_games(snapshot)
         try:
@@ -974,6 +985,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
         def apply(snapshot: dict) -> None:
             require_all_games(snapshot)
+            require_current_questions(snapshot)
             survey_ids = {item["item_id"] for item in survey_items(snapshot)}
             if not surveys_visited(snapshot, survey_ids):
                 raise Conflict("survey_responses_required")
@@ -1070,6 +1082,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         if prior is not None:
             return public_snapshot(prior)
         snapshot = store.get_run(user["user_id"], run_id)
+        require_current_questions(snapshot)
         _require_no_aptitude_active(snapshot)
         if snapshot.get("flow_version") == "five-game-v2":
             raise Conflict("game_order_required")
