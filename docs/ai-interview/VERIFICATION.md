@@ -1,5 +1,15 @@
 # Verification
 
+## 2026-11-25 — 게임 순서 및 면접 진입 결함 교차 검증
+
+- RED / root 및 독립 테스터: 가위바위보·카드 종료 직후 약속 게임과 함께 선택 게임 입구가 활성화됐다. root는 실제 브라우저에서 도형 회전 연습 시작 → `.aptitude-playing`으로 약속 영역 가림 → 면접 입력 비활성화를 재현했다. 같은 회차의 기록으로 상태를 대조했으며 실제 제보 기기의 자동 건너뛰기 여부는 미확인이다.
+- RED / 자동: `tests/frontend_five_game_handoff.test.cjs`가 전체 페이지 스크립트와 실제 appointment/town ES 모듈을 결합해 조기 선택 게임 진입을 검출했다. `tests/test_aptitude_sequence.py`는 조기 start가 409 대신 200을 반환해 실패했다. 수정 전 실패를 확인한 뒤 구현했다.
+- GREEN / 관련 API / passed: 순서·소유권·멱등성·약속 30문항·면접 저장 및 과거 활성 선택 게임 중단 검사 **15 passed**, exit 0. 경로 `E:/Scoolcontest2/game-flow-fix-20261125/artifacts/green-api/run-e6e679ad799b48329c1bfc0cb297b93b/RESULTS.json`. 원래의 offline guard와 격리 합성 SQLite를 사용했다.
+- GREEN / 독립 Astra 6.2 high / passed: 수정 사본 전체 frontend **146 passed / 0 failed**. 예전 활성 시도 중단, 미확인 요청 재시도, 선택 게임 완료 기록이 있는 회차의 약속 순서, 다섯 게임 완료 후 선택 3종 이용을 확인했다. 근거는 원본 프로젝트의 `artifacts/game-flow-20261125/tester-review.md`, `tester-checkout-handoff.txt`, `tester-checkout-suite.txt`다. 테스터 검사는 합성 DOM·transport이며 root의 실제 브라우저 검증과 구분한다.
+- GREEN / 실제 브라우저 / passed: 키·사용자 DB를 상속하지 않는 임시 서버에서 필수 카드 종료 경계의 약속 게임 표시/선택 입구 숨김, 요일·장소·버스 각 10문항, 면접 이동과 비어 있지 않은 답변 1건의 서버 저장, 필수 완료 후 추가 3종 표시를 확인했다. 테스트 시계로 제시 대기를 가속했고 실제 UI 이벤트와 실제 API를 사용했다. 예상되는 로그인 전 `/api/me` 401과 favicon 404 외에 게임 스크립트 오류는 관찰하지 않았다.
+- GREEN / root 전체 재검증 / passed: 수정 사본에서 offline guard로 전체 Python **521 passed**, exit 0, ASGI **5,421**건, guard 위반·공급자 전송·검사 시작 후 소스 변경 모두 **0**. 전체 frontend **146 passed / 0 failed**. 하네스 **66 passed / 2 pending_manual**. 근거는 `E:/Scoolcontest2/game-flow-fix-20261125/artifacts/verification-summary.json`, `artifacts/full-checks/run-0e56b7fcd239434684afc8d44c5adce2/RESULTS.json`과 `artifacts/frontend-full.txt`다.
+- 환경 구분: 원본 선택 게임 JS의 OS 쓰기 거절 때문에 공개 소스만 짧은 격리 사본 `E:/Scoolcontest2/game-flow-fix-20261125`에 복사해 수정했다. 최초 중첩 경로 검사에서 SQLite unable-to-open 오류가 났고 짧은 경로의 동일 소스·동일 guard 검사로 재실행했다. 키·사용자 DB·실제 AI·운영 서버를 사용하지 않았다.
+
 ## 2026-11-25 — GitHub 기록 전 전체 재검증
 
 - 범위: 승인한 새 5문항 업무 설문·6단계 동의형·별도 결측·기존 6문항 회차 호환·종합 입력과 화면. 실제 키가 있는 로컬 설정, 사용자 DB, 캡처, 로컬 산출물과 Word/PDF는 게시 대상에서 제외한다. 원격 기준 `main`은 `bd0d13e0f23a431c4905f3c7c3361b4ee5cbd28b`이며 그 위에 변경을 추가한다.

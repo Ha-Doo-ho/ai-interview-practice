@@ -531,8 +531,11 @@ def create_app(database_url: str | None = None) -> FastAPI:
         body = await json_body(request)
         expected, key = _body_common(body)
         values = {k: v for k, v in body.items() if k not in {'expected_revision', 'idempotency_key'}}
-        return _public_snapshot(store.mutate(user['user_id'], run_id, expected, 'aptitude_game', key, body,
-                                             lambda snapshot: apply_action(snapshot, values)))
+        def apply(snapshot: dict) -> None:
+            if values.get('action') == 'start':
+                _require_five_games(snapshot)
+            apply_action(snapshot, values)
+        return _public_snapshot(store.mutate(user['user_id'], run_id, expected, 'aptitude_game', key, body, apply))
 
     @application.post("/api/runs/{run_id}/rule-games")
     async def rule_game_action(run_id: str, request: Request):
