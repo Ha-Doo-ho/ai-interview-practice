@@ -55,21 +55,19 @@ for group, prefix, prompts in WORK_GROUPS:
     } for index, text in enumerate(prompts))
 
 # Keep v1 definitions available for immutable saved history. Current interviews
-# use three baseline questions plus these five optional work questions.
-CURRENT_VERSION = 'curated-work-interview-v2'
+# use three baseline questions plus these four optional work questions.
+CURRENT_VERSION = 'curated-work-interview-v3'
+PREVIOUS_VERSION = 'curated-work-interview-v2'
 _old = {q['question_id']: q for q in QUESTIONS}
 CURRENT_QUESTIONS = [deepcopy(_old[key]) for key in (
     'wm-experience-0', 'wm-experience-3', 'spatial-work-experience-0')]
-for index, text in enumerate((
-    '비슷한 업무를 같은 방식으로 진행했는데도 결과가 달랐던 경험을 말씀해 주세요. '
-    '다음 업무에서는 어떤 방식을 선택했나요? 기존 방식을 유지하거나 바꾸기로 한 기준은 무엇이었나요?',
-    _old['repeated-work-experience-3']['question_text'],
-)):
-    CURRENT_QUESTIONS.append({**deepcopy(_old['repeated-work-experience-0']),
-        'question_id': f'repeated-work-experience-v2-{index}',
-        'question_version': '2.0.0', 'question_prompt_version': 'repeated-work-interview-v2',
-        'question_text': text, 'question_group': 'repeated-work-interview-v2',
-        'parent_question_id': 'repeated-work-experience-v2-0' if index else None})
+CURRENT_QUESTIONS.append({**deepcopy(_old['repeated-work-experience-0']),
+    'question_id': 'repeated-work-experience-v2-0',
+    'question_version': '2.0.0', 'question_prompt_version': 'repeated-work-interview-v2',
+    'question_text': ('비슷한 업무를 같은 방식으로 진행했는데도 결과가 달랐던 경험을 말씀해 주세요. '
+        '다음 업무에서는 어떤 방식을 선택했나요? 기존 방식을 유지하거나 바꾸기로 한 기준은 무엇이었나요?'),
+    'question_group': 'repeated-work-interview-v2',
+})
 
 
 def add_questions(run):
@@ -77,14 +75,14 @@ def add_questions(run):
     if run.get('status') == 'completed':
         return
     version = run.get('supplemental_interview_set_version')
-    if version not in (None, CURRENT_VERSION):
+    if version not in (None, PREVIOUS_VERSION, CURRENT_VERSION):
         from .store import Validation
         raise Validation('validation_error')
     previous = run.get('questions', [])
     existing = {q['question_id']: q for q in previous}
-    if version is None and any(q.get('question_mode') == 'supplemental' for q in previous):
+    if version != CURRENT_VERSION and any(q.get('question_mode') == 'supplemental' for q in previous):
         run.setdefault('interview_question_history', []).append({
-            'version': 'legacy-work-interview-v1',
+            'version': version or 'legacy-work-interview-v1',
             'questions': deepcopy([q for q in previous if q.get('question_mode') == 'supplemental'])})
     run['questions'] = [deepcopy(q) for q in previous if q.get('question_mode') != 'supplemental'] + [
         deepcopy(existing.get(q['question_id'], q)) for q in CURRENT_QUESTIONS]

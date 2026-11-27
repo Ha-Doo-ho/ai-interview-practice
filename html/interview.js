@@ -13,17 +13,18 @@
   const followupQuestions = () => (state.run?.evidence_linkage?.questions || []).filter(question =>
     question.question_mode === 'adaptive_followup' && question.conditioned_on_prior_evidence === true &&
     (state.run?.questions||[]).some(saved=>saved.question_id===question.question_id&&saved.question_version===question.question_version));
+  const removedQuestionIds=new Set(['repeated-work-experience-v2-1','repeated-work-experience-3']);
   const supplementalQuestions = () => (state.run?.questions || []).filter(question =>
-    question.question_mode === 'supplemental');
+    question.question_mode === 'supplemental' && !removedQuestionIds.has(question.question_id));
   const supplementalGroups = {
     'working-memory-interview-v1': {label:'요청 변경',prefix:'wm-experience',count:5},
     'spatial-work-interview-v1': {label:'공간 배치',prefix:'spatial-work-experience',count:4},
     'repeated-work-interview-v1': {label:'반복 업무'},
     'repeated-work-interview-v2': {label:'반복 업무'}
   };
-  const currentSetVersion='curated-work-interview-v2';
+  const currentSetVersion='curated-work-interview-v3';
   const currentSupplementalIds=['wm-experience-0','wm-experience-3','spatial-work-experience-0',
-    'repeated-work-experience-v2-0','repeated-work-experience-v2-1'];
+    'repeated-work-experience-v2-0'];
   const supplementalMissing = () => {
     const ids=new Set(supplementalQuestions().map(q=>q.question_id));
     return state.run?.supplemental_interview_set_version!==currentSetVersion || currentSupplementalIds.some(id=>!ids.has(id));
@@ -113,7 +114,7 @@
     $('interview-saved').replaceChildren();
     const archived=(state.run?.interview_question_history||[]).flatMap(item=>item.questions||[]);
     const questionById = new Map([...archived,...(state.run?.questions||[])].map(question => [question.question_id, question]));
-    const activeIds=new Set((state.run?.questions||[]).map(q=>q.question_id));
+    const activeIds=new Set((state.run?.questions||[]).map(q=>q.question_id).filter(id=>!removedQuestionIds.has(id)));
     for (const record of state.run?.records || []) {
       if (record.source_type !== 'typed_answer' || !questionById.has(record.data?.question_id)) continue;
       const detail = element('details');

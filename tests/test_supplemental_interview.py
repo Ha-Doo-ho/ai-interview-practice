@@ -24,12 +24,12 @@ def test_existing_working_memory_run_curates_questions_and_preserves_original_ev
     assert run['questions'][0] == before['questions'][0]
     assert run['questions'][1] == before['questions'][3]
     assert run["records"] == before["records"]
-    assert len(run["questions"]) == 5
+    assert len(run["questions"]) == 4
     added = run["questions"][2:]
     assert len({q["question_group"] for q in added}) == 2
     assert all(q["behavior_id"] is None and not q["required_for_completion"] for q in added)
     add_questions(run)
-    assert len(run["questions"]) == 5
+    assert len(run["questions"]) == 4
     for q in added:
         run["records"].append({"source_type": "typed_answer", "data": {
             "question_id": q["question_id"], "answer_id": q["question_id"],
@@ -37,15 +37,15 @@ def test_existing_working_memory_run_curates_questions_and_preserves_original_ev
     exported = export_answers(run)
     assert exported[0]["text"] == "기존 답변"
     assert all(a["text"] == "업무 경험" for a in exported[2:])
-    assert len(exported) == 5
+    assert len(exported) == 4
 
 
 def test_new_flow_has_three_experience_groups_without_changing_baseline(api):
     client, _, _, legacy, _ = api
     run = client.post("/api/runs", headers=HEADERS, json={"flow_version": "five-game-v2"}).json()
-    assert len(extra_questions(run)) == 5
+    assert len(extra_questions(run)) == 4
     assert [q for q in run["questions"] if q["question_mode"] == "baseline"] == legacy["questions"]
-    assert len({q["question_id"] for q in run["questions"]}) == 8
+    assert len({q["question_id"] for q in run["questions"]}) == 7
     roots = [q for q in extra_questions(run) if q["parent_question_id"] is None]
     assert len(roots) == 3
     for root in roots:
@@ -72,10 +72,10 @@ def test_existing_run_add_save_revise_reload_and_access_protection(api):
     assert response.status_code == 200, response.text
     run = response.json()
     assert run["questions"][:3] == original_questions
-    assert len(extra_questions(run)) == 5
+    assert len(extra_questions(run)) == 4
     assert client.post(url, headers=HEADERS, json=body).json() == run
     run, _ = mutate(client, run, "supplemental-interview")
-    assert len(extra_questions(run)) == 5
+    assert len(extra_questions(run)) == 4
     for index, question in enumerate(extra_questions(run)):
         run, _ = mutate(client, run, "answers", question_id=question["question_id"],
             text=f"  응답 {index} 🙂\n유지한 조건과 바뀐 조건  ", status="asked_answered")
@@ -85,7 +85,7 @@ def test_existing_run_add_save_revise_reload_and_access_protection(api):
         replaces_answer_id=previous["answer_id"], expected_answer_version=previous["answer_version"])
     restored = client.get(f"/api/runs/{run['run_id']}").json()
     assert restored == run
-    assert len(restored["records"]) == 6
+    assert len(restored["records"]) == 5
     assert restored["records"][-1]["data"]["text"] == "  수정한 답변\n "
     assert restored["records"][-1]["data"]["answer_version"] == "2.0.0"
 
@@ -109,7 +109,7 @@ def test_supplemental_answers_do_not_contaminate_baseline_and_are_frozen_in_repo
     assert input_snapshot(run, DEFINITIONS) == before
     assert linkage_is_current(run, DEFINITIONS)
     final = finalize_report(run, DEFINITIONS)
-    assert len(final["supplemental_answers"]) == 5
+    assert len(final["supplemental_answers"]) == 4
     assert final["supplemental_answers"][0]["text"] == "원문 🙂"
     assert final["supplemental_answers"][1]["status"] == "not_answered"
     assert final["cards"] == run["interview_report"]["cards"]

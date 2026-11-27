@@ -187,7 +187,6 @@ _INTERVIEW_GUIDANCE = {
     'wm-experience-3':'누락이나 혼동을 어떻게 확인했고 어떤 조치를 했는지 설명해 보세요.',
     'spatial-work-experience-0':'배치안을 정할 때 고려한 조건과 실제 설치 과정을 설명해 보세요.',
     'repeated-work-experience-v2-0':'어떤 결과를 비교했고 방법을 유지하거나 바꾸기로 한 기준은 무엇이었는지 설명해 보세요.',
-    'repeated-work-experience-v2-1':'예상한 결과와 실제로 확인한 결과를 구분해 설명해 보세요.',
 }
 
 

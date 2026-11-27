@@ -7,19 +7,42 @@ from test_rule_games import api, HEADERS
 TEXT = ('비슷한 업무를 같은 방식으로 진행했는데도 결과가 달랐던 경험을 말씀해 주세요. '
         '다음 업무에서는 어떤 방식을 선택했나요? 기존 방식을 유지하거나 바꾸기로 한 기준은 무엇이었나요?')
 
-def test_new_run_contains_eight_fixed_questions_and_merged_criterion(api):
+def test_new_run_contains_seven_fixed_questions_and_merged_criterion(api):
     client, *_ = api
     run = client.post('/api/runs', headers=HEADERS, json={'flow_version':'five-game-v2'}).json()
-    assert len(run['questions']) == 8
+    assert len(run['questions']) == 7
     assert [q['question_text'] for q in run['questions'] if q['question_text']==TEXT] == [TEXT]
-    assert run['supplemental_interview_set_version']=='curated-work-interview-v2'
+    assert run['supplemental_interview_set_version']=='curated-work-interview-v3'
+
+
+def test_v2_upgrade_archives_removed_followup_and_excludes_its_answer_from_synthesis():
+    from app.synthesis import build_prompt
+
+    original = deepcopy(extra.CURRENT_QUESTIONS)
+    question_id = 'repeated-work-experience-v2-1'
+    retired = deepcopy(next(q for q in extra.QUESTIONS if q['question_id']=='repeated-work-experience-3'))
+    retired['question_id'] = question_id
+    questions = [q for q in original if q['question_id'] != question_id] + [retired]
+    record = {'source_type':'typed_answer','data':{'question_id':question_id,'answer_id':'retired',
+        'text':'보관할 과거 답변','status':'asked_answered'}}
+    run = {'status':'in_progress','supplemental_interview_set_version':'curated-work-interview-v2',
+        'questions':questions,'records':[record]}
+    assert extra.questions_need_update(run)
+    extra.add_questions(run)
+    assert run['records'] == [record]
+    assert run['interview_question_history'] == [{'version':'curated-work-interview-v2','questions':questions}]
+    assert [q['question_id'] for q in run['questions']] == [q['question_id'] for q in questions[:-1]]
+    assert '보관할 과거 답변' not in build_prompt(run)['prompt_text']
+    assert not extra.questions_need_update(run)
+    extra.add_questions(run)
+    assert len(run['interview_question_history']) == 1
 
 def test_active_legacy_upgrade_preserves_original_questions_answers_and_is_idempotent():
     run={'status':'in_progress','questions':deepcopy(extra.QUESTIONS),'records':[{'source_type':'typed_answer','data':{
         'question_id':'wm-experience-1','answer_id':'a1','text':'  original 🙂  ','answer_version':'1.0.0'}}]}
     before=deepcopy(run)
     extra.add_questions(run)
-    assert len(run['questions'])==5
+    assert len(run['questions'])==4
     assert run['records']==before['records']
     assert run['interview_question_history'][0]['questions']==before['questions']
     assert not any(q['question_id']=='wm-experience-1' for q in run['questions'])
@@ -27,16 +50,14 @@ def test_active_legacy_upgrade_preserves_original_questions_answers_and_is_idemp
     extra.add_questions(run)
     assert run==after
 
-def test_reworded_root_and_child_have_new_ids_and_preserve_old_answer_identity():
+def test_reworded_repeated_work_root_keeps_its_existing_identity():
     run={'questions':[],'records':[]}
     extra.add_questions(run)
     group=[q for q in run['questions'] if q['question_group']=='repeated-work-interview-v2']
-    assert len(group)==2
-    root,child=group
+    assert len(group)==1
+    root,=group
     assert root['question_text']==TEXT
-    assert root['question_id']!='repeated-work-experience-0'
-    assert child['question_id']!='repeated-work-experience-3'
-    assert child['parent_question_id']==root['question_id']
+    assert root['question_id']=='repeated-work-experience-v2-0'
 
 def test_completed_question_snapshot_is_not_upgraded():
     run={'status':'completed','questions':deepcopy(extra.QUESTIONS),'records':[],
@@ -61,7 +82,7 @@ def test_retired_answers_stay_in_history_but_not_current_prompt():
         'answer_id':'retired','text':'retired unique answer','status':'asked_answered'}})
     extra.add_questions(run)
     prompt=build_prompt(run)
-    assert len([e for e in prompt['evidence'] if e['source']=='interview' and e['mode'] in ('baseline','supplemental')])==8
+    assert len([e for e in prompt['evidence'] if e['source']=='interview' and e['mode'] in ('baseline','supplemental')])==7
     assert 'retired unique answer' not in prompt['prompt_text']
     assert run['records'][-1]['data']['text']=='retired unique answer'
 

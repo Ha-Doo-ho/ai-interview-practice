@@ -38,19 +38,31 @@ const workQuestions=()=>['spatial-work','repeated-work'].flatMap(prefix=>Array.f
 })));
 const curatedQuestions=()=>[
   wmQuestions()[0],wmQuestions()[3],workQuestions()[0],
-  ...[0,1].map(i=>({...workQuestions()[4],question_id:'repeated-work-experience-v2-'+i,
+  {...workQuestions()[4],question_id:'repeated-work-experience-v2-0',
     question_group:'repeated-work-interview-v2',question_version:'2.0.0',
-    parent_question_id:i?'repeated-work-experience-v2-0':null,
-    question_text:i?'예상과 실제 결과':'다음 업무에서는 어떤 방식을 선택했나요? 기존 방식을 유지하거나 바꾸기로 한 기준은 무엇이었나요?'}))
+    parent_question_id:null,
+    question_text:'다음 업무에서는 어떤 방식을 선택했나요? 기존 방식을 유지하거나 바꾸기로 한 기준은 무엇이었나요?'}
 ];
 
-test('current eight fixed questions never offer the retired thirteen-question expansion',async()=>{
-  const run=baseRun();run.supplemental_interview_set_version='curated-work-interview-v2';run.questions.push(...curatedQuestions());
+test('old question 8 is hidden even before a blocked migration can run',async()=>{
+  const run=baseRun();run.supplemental_interview_set_version='curated-work-interview-v2';
+  run.questions.push(...curatedQuestions(),{...curatedQuestions()[3],question_id:'repeated-work-experience-v2-1',
+    question_text:'예상과 실제 결과',parent_question_id:'repeated-work-experience-v2-0'});
+  run.records.push({source_type:'typed_answer',data:{question_id:'repeated-work-experience-v2-1',
+    answer_id:'old-8',answer_version:'1.0.0',status:'asked_answered',text:'보관된 답변'}});
+  const env=await setup({run,gameLocked:true});
+  assert.doesNotMatch(env.roots['interview-supplemental'].textContent,/예상과 실제 결과/);
+  assert.equal(env.roots['interview-supplemental'].children.length,4);
+  assert.match(env.roots['interview-saved'].textContent,/이전 문항 기록 · 예상과 실제 결과.*보관된 답변/);
+});
+
+test('current seven fixed questions never offer the retired thirteen-question expansion',async()=>{
+  const run=baseRun();run.supplemental_interview_set_version='curated-work-interview-v3';run.questions.push(...curatedQuestions());
   const env=await setup({run});
-  assert.equal(env.roots['interview-items'].children.length+env.roots['interview-supplemental'].children.length,8);
+  assert.equal(env.roots['interview-items'].children.length+env.roots['interview-supplemental'].children.length,7);
   assert.equal(env.roots['interview-supplemental-add'].hidden,true);
   assert.match(env.roots['interview-supplemental'].textContent,/질문 4/);
-  assert.match(env.roots['interview-supplemental'].textContent,/질문 8/);
+  assert.match(env.roots['interview-supplemental'].textContent,/질문 7/);
 });
 
 test('active sixteen-question legacy run upgrades once before rendering and preserves history',async()=>{
@@ -59,18 +71,18 @@ test('active sixteen-question legacy run upgrades once before rendering and pres
     if(call.path.endsWith('/supplemental-interview')){
       server.interview_question_history=[{questions:clone(server.questions)}];
       server.questions=[...clone(questions),...curatedQuestions()];
-      server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      server.supplemental_interview_set_version='curated-work-interview-v3';server.revision++;
       return Response.json(server);
     }
   }});
-  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.roots['interview-supplemental'].children.length,4);
   assert.equal(env.calls.filter(c=>c.path.endsWith('/supplemental-interview')).length,1);
   await env.click('interview-refresh');
   assert.equal(env.calls.filter(c=>c.path.endsWith('/supplemental-interview')).length,1);
 });
 
 test('retired draft and rejected request remain readable without locking current questions or report',async()=>{
-  const run=baseRun();run.supplemental_interview_set_version='curated-work-interview-v2';run.questions.push(...curatedQuestions());
+  const run=baseRun();run.supplemental_interview_set_version='curated-work-interview-v3';run.questions.push(...curatedQuestions());
   run.interview_question_history=[{questions:wmQuestions()}];
   const storage=new Map([['astra.interview.v1:interview-user:interview-run',JSON.stringify({drafts:{
     'wm-experience-1':{text:'퇴역 문항에 작성 중이던 원문',base_answer_id:null,base_answer_version:null}},
@@ -87,13 +99,13 @@ test('legacy curation waits for the game mutation lock and resumes when it clear
   const run=baseRun();run.questions.push(...wmQuestions(),...workQuestions());
   const env=await setup({run,gameLocked:true,handler(call,{server}){
     if(call.path.endsWith('/supplemental-interview')){
-      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v3';server.revision++;
       return Response.json(server);
     }
   }});
   assert.equal(env.calls.filter(c=>c.method==='POST').length,0);
   await env.changeScope({user:{user_id:'interview-user'},run:clone(env.server()),busy:false,locked:false,gameLocked:false,reportLocked:false,authStatus:'authenticated'});
-  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.roots['interview-supplemental'].children.length,4);
   assert.equal(env.calls.filter(c=>c.method==='POST').length,1);
 });
 
@@ -103,12 +115,12 @@ test('legacy curation reconciles a competing revision once instead of leaving an
     if(call.path.endsWith('/supplemental-interview')){
       if(attempts++===0){server.revision++;return Response.json({error:'revision_conflict'},{status:409});}
       assert.equal(call.body.expected_revision,server.revision);
-      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v3';server.revision++;
       return Response.json(server);
     }
   }});
   assert.equal(attempts,2);
-  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.roots['interview-supplemental'].children.length,4);
 });
 
 test('own interview lock notifications cannot restart a twice-conflicted curation request',async()=>{
@@ -116,7 +128,7 @@ test('own interview lock notifications cannot restart a twice-conflicted curatio
   const env=await setup({run,gameLocked:true,notifyLocks:true,handler(call,{server}){
     if(call.path.endsWith('/supplemental-interview')){
       if(attempts++<6){server.revision++;return Response.json({error:'revision_conflict'},{status:409});}
-      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      server.questions=[...clone(questions),...curatedQuestions()];server.supplemental_interview_set_version='curated-work-interview-v3';server.revision++;
       return Response.json(server);
     }
   }});
@@ -125,46 +137,46 @@ test('own interview lock notifications cannot restart a twice-conflicted curatio
   assert.equal(env.document.getElementById('interview-answer-0').disabled,true);
 });
 
-test('working-memory-only run upgrades to five work questions and can save and reload',async()=>{
+test('working-memory-only run upgrades to four work questions and can save and reload',async()=>{
   const run=baseRun();run.questions.push(...wmQuestions());
   const env=await setup({run,handler(call,{server}){
     if(call.path.endsWith('/supplemental-interview')){
       server.interview_question_history=[{questions:clone(server.questions)}];
       server.questions=[...clone(questions),...curatedQuestions()];
-      server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      server.supplemental_interview_set_version='curated-work-interview-v3';server.revision++;
       return Response.json(server);
     }
   }});
-  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.roots['interview-supplemental'].children.length,4);
   assert.equal(env.roots['interview-supplemental-add'].hidden,true);
   assert.match(env.roots['interview-supplemental'].textContent,/질문 6/);
-  assert.match(env.roots['interview-supplemental'].textContent,/질문 8/);
-  for(let i=3;i<8;i++){
+  assert.match(env.roots['interview-supplemental'].textContent,/질문 7/);
+  for(let i=3;i<7;i++){
     await env.input('interview-answer-'+i,'업무 답변 '+i);
     await env.click('interview-save-'+i);
   }
-  assert.equal(env.server().records.length,5);
+  assert.equal(env.server().records.length,4);
   assert.match(env.roots['interview-progress'].textContent,/0 \/ 3/);
   const restored=await setup({run:env.server()});
-  assert.equal(restored.document.getElementById('interview-answer-7').value,'업무 답변 7');
+  assert.equal(restored.document.getElementById('interview-answer-6').value,'업무 답변 6');
 });
 
 test('supplemental questions save separately and remain editable when game linkage is stale',async()=>{
-  const run=baseRun();run.questions.push(...curatedQuestions());run.supplemental_interview_set_version='curated-work-interview-v2';run.evidence_linkage_stale=true;
+  const run=baseRun();run.questions.push(...curatedQuestions());run.supplemental_interview_set_version='curated-work-interview-v3';run.evidence_linkage_stale=true;
   const env=await setup({run});
-  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.roots['interview-supplemental'].children.length,4);
   assert.equal(env.roots['interview-items'].children.length,3);
   assert.match(env.roots['interview-progress'].textContent,/0 \/ 3/);
-  for(let i=3;i<8;i++){
+  for(let i=3;i<7;i++){
     assert.equal(env.document.getElementById('interview-answer-'+i).disabled,false);
     await env.input('interview-answer-'+i,'  개별 응답 '+i+' 🙂\n ');
     await env.click('interview-save-'+i);
   }
-  assert.equal(env.server().records.length,5);
-  assert.match(env.roots['interview-supplemental-progress'].textContent,/5 \/ 5/);
+  assert.equal(env.server().records.length,4);
+  assert.match(env.roots['interview-supplemental-progress'].textContent,/4 \/ 4/);
   assert.match(env.roots['interview-progress'].textContent,/0 \/ 3/);
   const restored=await setup({run:env.server()});
-  assert.equal(restored.document.getElementById('interview-answer-7').value,'  개별 응답 7 🙂\n ');
+  assert.equal(restored.document.getElementById('interview-answer-6').value,'  개별 응답 6 🙂\n ');
   const completed=await setup({run:{...env.server(),status:'completed'}});
   assert.equal(completed.document.getElementById('interview-answer-3').disabled,true);
 });
@@ -172,12 +184,12 @@ test('supplemental questions save separately and remain editable when game linka
 test('existing runs can add optional questions without replacing baseline answers',async()=>{
   const env=await setup({handler(call,{server}){
     if(call.path.endsWith('/supplemental-interview')){
-      server.questions.push(...curatedQuestions());server.supplemental_interview_set_version='curated-work-interview-v2';server.revision++;
+      server.questions.push(...curatedQuestions());server.supplemental_interview_set_version='curated-work-interview-v3';server.revision++;
       return Response.json(server);
     }
   }});
   await env.click('interview-supplemental-add');
-  assert.equal(env.roots['interview-supplemental'].children.length,5);
+  assert.equal(env.roots['interview-supplemental'].children.length,4);
   assert.equal(env.roots['interview-supplemental-add'].hidden,true);
   assert.equal(env.roots['interview-items'].children.length,3);
 });
