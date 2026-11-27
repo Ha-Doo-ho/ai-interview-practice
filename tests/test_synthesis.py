@@ -48,7 +48,7 @@ def test_game_feedback_uses_frozen_counts_and_rejects_model_claims():
          'totals':{'answered_count':1,'correct_count':1,'wrong_count':0,'score':0,'max_score':0}},
     ],'topics':[{'id':'planning','label':'계획','evidence_ids':['game:old','game:path','game:practice']}]}
     output={s:[] for s in synthesis.SECTIONS}
-    item={'finding_type':'observed_difficulty','topic_id':'planning','evidence_ids':['game:path'],'quote':''}
+    item={'finding_type':'observed_difficulty','topic_id':'planning','evidence_ids':['game:path'],'criterion_id':'','quote':''}
     output['gaps']=[item]
     assert '오답 2회' in synthesis.render_feedback(output,prompt)['gaps'][0]['text']
     assert [e['evidence_id'] for e in synthesis.game_observations(prompt)]==['game:path']
@@ -67,20 +67,63 @@ def test_potion_favorable_choice_and_hit_are_separate():
                for fragment in ('적중 70/100회','550점','87/100회','38/50회','49/50회'))
     prompt['evidence'][0]['totals']['metrics'].update(favorable_choice_count=100)
     output={s:[] for s in synthesis.SECTIONS}
-    output['gaps']=[{'finding_type':'observed_difficulty','topic_id':'learning','evidence_ids':['game:potion'],'quote':''}]
+    output['gaps']=[{'finding_type':'observed_difficulty','topic_id':'learning','evidence_ids':['game:potion'],'criterion_id':'','quote':''}]
     with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
 
 
 def test_interview_quote_must_match_linked_latest_answer():
     prompt=synthesis.build_prompt(sample())
     output={s:[] for s in synthesis.SECTIONS}
-    item={'finding_type':'observed_evidence','topic_id':'spatial','evidence_ids':['interview:a1'],'quote':'배치 도면과 실제 위치를 대조했습니다.'}
+    item={'finding_type':'observed_evidence','topic_id':'spatial','evidence_ids':['interview:a1'],
+        'criterion_id':'action','quote':'배치 도면과 실제 위치를 대조했습니다.'}
     output['strengths']=[item]
     feedback=synthesis.render_feedback(output,prompt)['strengths'][0]
     assert feedback['quote']=='배치 도면과 실제 위치를 대조했습니다.' and feedback['quote'] not in feedback['text']
     item['quote']='완벽하게 설치했습니다'
     with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
     item['quote']='실제 위치를 대조했습니다.'
+    with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+
+
+def test_prompt_keeps_seven_reference_answers_separate_from_participant_evidence():
+    from app.content import QUESTIONS
+    from app.supplemental_interview import add_questions
+
+    run={'questions':deepcopy(QUESTIONS),'records':[]}
+    add_questions(run)
+    prepared=synthesis.prepare(run,'mock')
+    payload=prepared['_structured_input']
+    materials=payload['interview_comparison']
+    assert set(materials)=={q['question_id'] for q in run['questions']}
+    assert len(materials)==7
+    assert all(item['reference_answer'] and item['criteria'] for item in materials.values())
+    assert '정책 아이디어톤' in materials['baseline-b01']['reference_answer']
+    assert '48석' in materials['wm-experience-0']['reference_answer']
+    assert '48석' in materials['wm-experience-3']['reference_answer']
+    assert not any('reference_answer' in item for item in payload['evidence'])
+    assert '백분율' in synthesis.SynthesisGemini.instructions
+
+
+def test_interview_feedback_checks_criterion_and_current_answer_without_copying_example():
+    prompt=synthesis.build_prompt(sample())
+    output={s:[] for s in synthesis.SECTIONS}
+    strength={'finding_type':'observed_evidence','topic_id':'spatial','criterion_id':'action',
+        'evidence_ids':['interview:a1'],'quote':'배치 도면과 실제 위치를 대조했습니다.'}
+    gap={**strength,'finding_type':'interview_answer_gap','criterion_id':'reason','quote':''}
+    output['strengths']=[strength]
+    output['gaps']=[gap]
+    feedback=synthesis.render_feedback(output,prompt)
+    assert '실제 배치' in feedback['strengths'][0]['text']
+    assert '배치 기준' in feedback['gaps'][0]['text']
+    output['strengths']=[{**strength,'quote':prompt['interview_comparison']['spatial-work-experience-0']['reference_answer'].split('. ',1)[0]+'.'}]
+    with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+    output['strengths']=[strength]
+    for invalid in ({**gap,'criterion_id':'learning'}, {**gap,'criterion_id':'action'}, {**gap,'quote':strength['quote']}):
+        output['gaps']=[invalid]
+        with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+    output['gaps']=[gap]
+    output['strengths']=[]
+    next(e for e in prompt['evidence'] if e['id']=='interview:a1').update(status='skipped',text='')
     with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
 
 
@@ -96,10 +139,25 @@ def test_finalized_synthesis_v1_uses_its_frozen_digest():
     assert _public_snapshot(frozen)['synthesis_analysis_stale'] is True
 
 
+def test_repeated_work_optional_result_is_not_a_gap():
+    from app.supplemental_interview import CURRENT_QUESTIONS
+
+    question=deepcopy(CURRENT_QUESTIONS[-1])
+    run={'questions':[question],'records':[{'source_type':'typed_answer','data':{
+        'question_id':question['question_id'],'answer_id':'repeat','status':'asked_answered',
+        'text':'신청 폼을 이전과 같은 방식으로 운영했지만 누락 횟수가 늘었습니다.'}}]}
+    prompt=synthesis.build_prompt(run)
+    output={s:[] for s in synthesis.SECTIONS}
+    output['gaps']=[{'finding_type':'interview_answer_gap','topic_id':'learning','criterion_id':'result',
+        'evidence_ids':['interview:repeat'],'quote':''}]
+    with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+
+
 def test_schema_rejects_unknown_refs_and_extra_trait_score():
     prompt=synthesis.build_prompt(sample())
     valid={k:[] for k in synthesis.SECTIONS}
-    valid['strengths']=[{'finding_type':'observed_evidence','topic_id':'spatial','quote':'배치 도면과 실제 위치를 대조했습니다.','evidence_ids':['interview:a1']}]
+    valid['strengths']=[{'finding_type':'observed_evidence','topic_id':'spatial','criterion_id':'action',
+        'quote':'배치 도면과 실제 위치를 대조했습니다.','evidence_ids':['interview:a1']}]
     synthesis.validate_output(valid,prompt)
     bad=deepcopy(valid);bad['trait_score']=95
     with pytest.raises(ProviderError):synthesis.validate_output(bad,prompt)
@@ -114,7 +172,7 @@ def test_schema_rejects_unknown_refs_and_extra_trait_score():
     bad=deepcopy(valid);bad['strengths'][0]['text']='Your hiring probability is 95%, with a 99th percentile cognitive score.'
     with pytest.raises(ProviderError):synthesis.validate_output(bad,prompt)
     bad={k:[] for k in synthesis.SECTIONS}
-    bad['gaps']=[{'finding_type':'context_difference','topic_id':'updating','quote':'','evidence_ids':['survey:s1']}]
+    bad['gaps']=[{'finding_type':'context_difference','topic_id':'updating','criterion_id':'','quote':'','evidence_ids':['survey:s1']}]
     with pytest.raises(ProviderError):synthesis.validate_output(bad,prompt)
 
 

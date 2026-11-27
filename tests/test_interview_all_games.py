@@ -42,4 +42,4 @@ def test_partial_memory_game_restores_and_all_eight_gate_new_interview_answers(a
     run=finish_all_main_games(client,app,owner,run,monkeypatch)
     for q in run['questions']:
         run=send(client,run,'answers',question_id=q['question_id'],text='게임 여덟 종류를 완료한 뒤 저장한 합성 경험 답변')
-    assert len([r for r in run['records'] if r['source_type']=='typed_answer'])==8
+    assert len([r for r in run['records'] if r['source_type']=='typed_answer'])==7

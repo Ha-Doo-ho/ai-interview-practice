@@ -1,6 +1,7 @@
 """Same-run, real SQLite/API verification for the new appointment games."""
 from uuid import uuid4
 from datetime import timedelta
+from copy import deepcopy
 import json
 from test_completion_pipeline import api, HEADERS, ok
 from test_rule_games import visit_surveys
@@ -127,7 +128,10 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
     # including saved surveys, 30 memory tasks, and current conditional questions.
     for q in run['questions']:
         if q['question_mode']=='supplemental' and q['question_id']!='spatial-work-experience-0':
-            run=ok(client,run,'answers',question_id=q['question_id'],text='여러 번의 결과를 살펴보고 유지할 조건과 바꿀 조건을 정했습니다. '*4)
+            text=('다음 행사에서는 연락처를 필수 입력으로 바꿨습니다.'
+                  if q['question_id']=='repeated-work-experience-v2-0'
+                  else '여러 번의 결과를 살펴보고 유지할 조건과 바꿀 조건을 정했습니다. '*4)
+            run=ok(client,run,'answers',question_id=q['question_id'],text=text)
     from app import aptitude_games
     from test_aptitude_state import start,solve,act
     def complete_additional_games(snapshot):
@@ -151,9 +155,15 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
         synthesis_calls.append(payload)
         structured=json.loads(payload['contents'][0]['parts'][0]['text'])
         potion=next(e for e in structured['evidence'] if e.get('game_type')=='potion')
+        repeated=next(e for e in structured['evidence'] if e.get('question_id')=='repeated-work-experience-v2-0')
         return {'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':json.dumps({
-            'strengths':[],'gaps':[],'clarifying_questions':[],
-            'practice_plan':[{'finding_type':'practice_suggestion','topic_id':'learning','evidence_ids':[potion['id']],'quote':''}],
+            'strengths':[{'finding_type':'observed_evidence','topic_id':'learning','evidence_ids':[repeated['id']],
+                'criterion_id':'action','quote':repeated['text']}],
+            'gaps':[{'finding_type':'interview_answer_gap','topic_id':'learning','evidence_ids':[repeated['id']],
+                'criterion_id':'information','quote':''}],
+            'clarifying_questions':[],
+            'practice_plan':[{'finding_type':'practice_suggestion','topic_id':'learning','evidence_ids':[potion['id']],
+                'criterion_id':'','quote':''}],
         })}]}}]}
     monkeypatch.setattr('app.interview_analysis._PROVIDER_TRANSPORT',synthesis_transport)
     run=ok(client,run,'synthesis-analysis',mode='live')
@@ -161,10 +171,26 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
     sent=json.loads(synthesis_calls[0]['contents'][0]['parts'][0]['text'])
     assert sent['source_digest']==run['synthesis_analysis']['report']['source_digest']
     assert len([e for e in sent['evidence'] if e['source']=='game'])==8
+    assert len(sent['interview_comparison'])==7
+    assert all(item['reference_answer'] for item in sent['interview_comparison'].values())
     result=run['synthesis_analysis']['report']
     assert len(result['game_observations'])==8
     assert '가능성이 더 높은 색 선택' in next(e['text'] for e in result['game_observations'] if '마법약' in e['label'])
     assert '같은 재료 조합' in result['feedback']['practice_plan'][0]['text']
+    assert '다음 업무에 실제로 적용한 방식' in result['feedback']['strengths'][0]['text']
+    assert result['feedback']['strengths'][0]['quote']=='다음 행사에서는 연락처를 필수 입력으로 바꿨습니다.'
+    assert '같은 방식에서 나온 서로 다른 결과' in result['feedback']['gaps'][0]['text']
+
+    from app.synthesis import prepare
+    longer_answers=deepcopy(run)
+    for record in longer_answers['records']:
+        if record['source_type']=='typed_answer' and record['data'].get('question_id') in sent['interview_comparison']:
+            record['data']['text']=('요청에 대한 처리 기준과 실제 결과를 정리했습니다. '*40)[:800]
+    prepared=prepare(longer_answers,'live')
+    assert prepared['max_input_tokens']==80000
+    long_input=prepared['_structured_input']['evidence']
+    assert sum(len(e.get('text',''))==800 for e in long_input if e.get('question_id') in sent['interview_comparison'])==7
+
     run = ok(client, run, 'interview-finalize')
     assert run['report']['synthesis_analysis']==run['synthesis_analysis']
     assert client.get(f"/api/runs/{run['run_id']}/synthesis-prompt").json()==run['report']['synthesis_prompt']

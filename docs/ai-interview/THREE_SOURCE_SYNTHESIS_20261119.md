@@ -32,14 +32,18 @@ AI 리포트 탭에서 기존 기본 보고서를 만든 다음 **세 활동 종
 
 ## 분석 경계와 구현
 
-`app/synthesis.py`는 출처, 주제별 연결 문항, 근거 ID와 응답 규칙을 프롬프트에 넣는다. 모델은 네 섹션에서 각각 피드백 종류, 주제, 근거 ID, 필요한 면접 인용을 고른다. 아래는 마법약 만들기 연습을 제안한 응답 예다. 실제 근거 ID는 회차마다 다르다.
+`app/synthesis.py`는 출처, 주제별 연결 문항, 근거 ID와 응답 규칙을 프롬프트에 넣는다. `interview_comparison`에는 고정 면접 7문항의 비교 답안과 문항별 기준이 들어가며, 지원자의 설문·게임·면접 기록은 `evidence`에 들어간다. 예시는 본인이 한 일, 문제, 방법, 확인된 결과를 설명하는 방식을 보여 준다. 답변의 문장 순서나 예시와의 유사도는 평가 기준에서 제외한다. 결과는 확인 가능한 수치나 구체적인 변화로 설명할 수 있다.
+
+모델은 네 섹션에서 피드백 종류, 주제, 근거 ID를 고른다. 면접에서 잘 드러난 부분에는 해당 문항의 기준과 원문 인용을, 보완점에는 해당 기준을 함께 고른다. 아래는 배분 이유를 더 설명하도록 안내하고 마법약 연습을 제안한 응답 예다. 실제 근거 ID는 회차마다 다르다.
 
 ```json
 {
   "strengths": [],
-  "gaps": [],
+  "gaps": [
+    {"finding_type": "interview_answer_gap", "topic_id": "planning", "evidence_ids": ["interview:answer-example"], "criterion_id": "reason", "quote": ""}
+  ],
   "practice_plan": [
-    {"finding_type": "practice_suggestion", "topic_id": "learning", "evidence_ids": ["game:potion-example"], "quote": ""}
+    {"finding_type": "practice_suggestion", "topic_id": "learning", "evidence_ids": ["game:potion-example"], "criterion_id": "", "quote": ""}
   ],
   "clarifying_questions": []
 }
@@ -52,7 +56,7 @@ AI 리포트 탭에서 기존 기본 보고서를 만든 다음 **세 활동 종
 - GET `/api/runs/{run_id}/synthesis-prompt`
 - POST `/api/runs/{run_id}/synthesis-analysis`: 소유권·CSRF·예상 revision·멱등키·완료 회차 보호. 기존 AI 예약으로 중복 실행 방지, 변경 중 결과 게시 방지, 비용 한도 공유.
 - 기본 AI 분석 입력에는 설문을 새로 섞지 않는다. 종합 요청에만 세 출처를 포함한다.
-- 기본 종합 입력 한도는 64,000 보수 추정 단위(UTF-8 바이트 기준)다. `AI_SYNTHESIS_MAX_INPUT_TOKENS`가 우선한다. 별도 값이 없고 `AI_MAX_INPUT_TOKENS`를 사용자가 명시했다면 그 값을 존중한다. `.env.example`에 전용 값을 안내했다. 실제 사용자 설정/키/비용 한도는 변경하지 않았다.
+- 기본 종합 입력 한도는 80,000 보수 추정 단위(UTF-8 바이트 기준)다. `AI_SYNTHESIS_MAX_INPUT_TOKENS`가 우선한다. 별도 값이 없고 `AI_MAX_INPUT_TOKENS`를 사용자가 명시했다면 그 값을 존중한다. `.env.example`에 전용 값을 안내했다.
 - 범위를 넘으면 원문을 몰래 잘라 보내지 않고 전송 전 `budget_exceeded`로 거절한다. 기존 공급자와 최대 출력·시간·비용·호출수 제한은 그대로 적용한다.
 
 ## 검증
