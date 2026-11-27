@@ -681,6 +681,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         def apply(snapshot: dict) -> None:
             require_current_questions(snapshot)
             _require_five_games(snapshot)
+            require_all_games(snapshot)
             question = next((item for item in snapshot["questions"] if item["question_id"] == body.get("question_id")), None)
             if question is None:
                 raise Validation("validation_error")

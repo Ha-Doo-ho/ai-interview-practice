@@ -34,9 +34,8 @@
     (state.run?.questions||[]).some(q=>q.question_id===questionId&&q.question_mode==='adaptive_followup'));
   const latest = questionId => window.AstraClient.latestAnswer(state.run || {records: []}, questionId);
   const currentCount = () => baselineQuestions().filter(question => latest(question.question_id)).length;
-  const gamesIncomplete = () => state.run?.flow_version === 'five-game-v2' && (
-    ['rsp','card'].some(type => (state.run?.rule_games?.games?.[type]?.rounds || []).filter(r=>r.status==='completed').length!==3) ||
-    (state.run?.appointment_games?.games || []).filter(g=>g.status==='complete' && g.questions?.length===10).length!==3);
+  const gamesIncomplete = () => state.run?.status !== 'completed' && state.run?.flow_version === 'five-game-v2' &&
+    window.AstraClient.allGamesComplete(state.run) !== true;
   const writeBlocked = () => !state.loaded || !state.scope || state.busy || Boolean(state.journal.pending) ||
     Boolean(state.journal.rejected) || !state.storageOK || state.context?.busy || state.context?.locked ||
     state.context?.gameLocked || state.context?.reportLocked || gamesIncomplete() || questionUpgradePending() || state.run?.status === 'completed';
@@ -223,7 +222,7 @@
     const hasScope = Boolean(state.scope);
     $('interview-status').textContent = !hasScope ? '설문 화면에서 로그인한 계정의 연습 회차를 선택해 주세요.' :
       !state.loaded ? (state.loadFailed ? '기본 면접 질문을 불러오지 못했습니다.' : '기본 면접 질문과 저장 기록을 불러오는 중입니다.') :
-      gamesIncomplete() ? '다섯 게임을 모두 완료한 뒤 기본 면접을 시작해 주세요.' :
+      gamesIncomplete() ? '여덟 종류의 본게임을 모두 완료한 뒤 기본 면접을 시작해 주세요. 저장된 회차에서 남은 게임을 이어갈 수 있습니다.' :
       questionUpgradePending() ? '면접 질문 목록을 갱신하고 있습니다. 완료되지 않으면 저장된 면접 다시 불러오기를 눌러 주세요.' :
       `현재 회차: ${state.scope.run_id} · ${state.journal.pending ? '제출 결과 확인 대기' : state.busy ? '서버 저장 확인 중' : '서버 기록 연결됨'}`;
     const count = state.loaded ? currentCount() : 0;

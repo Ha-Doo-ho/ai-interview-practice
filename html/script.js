@@ -445,11 +445,19 @@ function renderRecordsTable() {
 const tabNames = ['survey', 'game', 'interview', 'report', 'records', 'guide'];
 let activeTabName = null;
 let tabNavigationInitialized = false;
+let interviewRequiresGames = false;
 
 function initializeTabNavigation() {
-  if (tabNavigationInitialized || !window.location || !window.history ||
-      typeof document.querySelectorAll !== 'function') return;
+  if (tabNavigationInitialized) return;
   tabNavigationInitialized = true;
+  window.AstraPractice?.subscribe?.(({run}) => {
+    interviewRequiresGames = run?.flow_version === 'five-game-v2' && run.status === 'in_progress' &&
+      window.AstraClient?.allGamesComplete?.(run) !== true;
+    if (interviewRequiresGames && activeTabName === 'interview') {
+      navigateTab('game', {replace:true});
+    }
+  });
+  if (!window.location || !window.history || typeof document.querySelectorAll !== 'function') return;
   const restore = () => {
     const requested = window.location.hash.replace(/^#\//, '');
     const valid = tabNames.includes(requested);
@@ -461,6 +469,10 @@ function initializeTabNavigation() {
 }
 
 function navigateTab(tabName, {fromHistory = false, replace = false} = {}) {
+  if (tabName === 'interview' && interviewRequiresGames) {
+    tabName = 'game';
+    if (fromHistory) { fromHistory = false; replace = true; }
+  }
   const tabIndex = tabNames.indexOf(tabName);
   const target = document.getElementById(`view-${tabName}`);
   if (tabIndex < 0 || !target) return false;

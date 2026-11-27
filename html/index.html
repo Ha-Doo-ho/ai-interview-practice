@@ -10,8 +10,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- 외부 스타일시트 -->
-  <link rel="stylesheet" href="/frontend/style.css?v=20261125-eight-interview">
-  <link rel="stylesheet" href="/frontend/aptitude-games.css?v=20261125-eight-interview">
+  <link rel="stylesheet" href="/frontend/style.css?v=20261128-game-journey">
+  <link rel="stylesheet" href="/frontend/aptitude-games.css?v=20261128-game-journey">
 </head>
 <body>
 
@@ -145,7 +145,20 @@
 
     <!-- 2. 실전 역량게임 탭 (연습 없이 바로 실전 진행) -->
     <section id="view-game" class="tab-view">
-      <div id="rule-game-panel" class="glass-card">
+      <section id="game-journey" class="glass-card" aria-labelledby="journey-heading">
+        <h2 id="journey-heading">게임 진행</h2>
+        <p id="journey-progress" role="status">회차를 불러오고 있습니다.</p>
+        <p class="survey-help">화면을 나가도 서버에 저장된 기록은 남습니다. 같은 회차를 열어 이어갈 수 있으며, 진행 중인 게임의 제한시간은 계속 흐릅니다.</p>
+        <div class="practice-actions">
+          <button type="button" id="journey-resume" class="btn-action btn-gradient" hidden>현재 게임 이어하기</button>
+          <button type="button" id="journey-refresh" class="btn-action btn-light" disabled>저장 상태 다시 불러오기</button>
+          <button type="button" id="journey-leave" class="btn-action btn-light" hidden>게임 화면 나가기</button>
+          <button type="button" id="journey-interview" class="btn-action btn-gradient" hidden>면접으로 이동</button>
+        </div>
+        <p id="journey-notice" class="survey-help" role="status">진행 상태가 표시되지 않으면 화면을 새로고침해 주세요.</p>
+        <button type="button" id="journey-reload" class="btn-action btn-light" onclick="window.location.reload()">화면 새로고침</button>
+      </section>
+      <div id="rule-game-panel" class="glass-card" tabindex="-1">
         <div class="card-header-flex">
           <div class="section-headline"><i data-lucide="cpu" class="icon-primary"></i> 잡다 실전 역량게임</div>
           <span class="step-badge" id="gamePhaseText">MAIN ROUND 1</span>
@@ -218,8 +231,8 @@
         <p class="survey-help">게임 점수·정오답·기록된 선택을 확인할 수 있습니다. 이 기록만으로 협업 성향이나 능력을 판정하지 않습니다.</p>
         <div id="game-round-records"></div>
       </div>
-      <section id="appointment-games" class="glass-card" hidden aria-label="약속 기억 게임"></section>
-      <section id="aptitude-games" class="glass-card" aria-label="추가 역량 게임"></section>
+      <section id="appointment-games" class="glass-card" tabindex="-1" hidden aria-label="약속 기억 게임"></section>
+      <section id="aptitude-games" class="glass-card" tabindex="-1" aria-label="추가 역량 게임"></section>
     </section>
 
     <!-- 3. 기본 면접 탭 -->
@@ -367,15 +380,16 @@
   </footer>
 
   <!-- 외부 스크립트 연결 -->
-  <script src="/frontend/client.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/auth.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/script.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/practice.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/games.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/interview.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/report.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/records.js?v=20261125-eight-interview"></script>
-  <script type="module" src="/frontend/appointment-games.js?v=20261125-eight-interview"></script>
-  <script src="/frontend/aptitude-games.js?v=20261125-eight-interview"></script>
+  <script src="/frontend/client.js?v=20261128-game-journey"></script>
+  <script src="/frontend/auth.js?v=20261128-game-journey"></script>
+  <script src="/frontend/script.js?v=20261128-game-journey"></script>
+  <script src="/frontend/practice.js?v=20261128-game-journey"></script>
+  <script src="/frontend/game-journey.js?v=20261128-game-journey"></script>
+  <script src="/frontend/games.js?v=20261128-game-journey"></script>
+  <script src="/frontend/interview.js?v=20261128-game-journey"></script>
+  <script src="/frontend/report.js?v=20261128-game-journey"></script>
+  <script src="/frontend/records.js?v=20261128-game-journey"></script>
+  <script src="/frontend/appointment-games.js?v=20261128-game-journey"></script>
+  <script src="/frontend/aptitude-games.js?v=20261128-game-journey"></script>
 </body>
 </html>

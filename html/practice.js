@@ -57,8 +57,16 @@
     if (run.survey_set_version && window.AstraClient.requiredSurveyIds(run).length!==5) throw Error('unreadable_response');
     return run;
   }
-  function recordsLocked() { return !state.user||state.busy||gameLocked()||state.interviewLocked||state.reportLocked||Boolean(state.journal.active||state.journal.pending||state.journal.create); }
+  function recordsLocked({returnToGame=false} = {}) {
+    return !state.user || state.busy || (gameLocked() && !returnToGame) ||
+      state.interviewLocked || state.reportLocked || Boolean(state.journal.active || state.journal.pending || state.journal.create);
+  }
+  function canResumeCurrentGame(runId) {
+    return state.ready && gameLocked() && state.run?.status === 'in_progress' &&
+      state.run.run_id === runId && state.run.user_id === state.user?.user_id && !recordsLocked({returnToGame:true});
+  }
   function openRun(runId) {
+    if (canResumeCurrentGame(runId)) { navigateTab('game'); return; }
     if(recordsLocked()||!state.ready||!state.runs.some(r=>r.run_id===runId))return;
     return work(async allow=>{
       const run=await api('/runs/'+encodeURIComponent(runId));
@@ -348,7 +356,7 @@
   }
   window.AstraPractice = {
     active: () => Boolean(state.run),
-    openRun,refreshRuns,deleteRun,
+    openRun,refreshRuns,deleteRun,canResumeCurrentGame,
     subscribe(listener) { listeners.add(listener); listener(publicState()); return () => listeners.delete(listener); },
     updateRun(run) {
       if (!state.run || run.user_id !== state.user?.user_id || run.run_id !== state.run.run_id || run.revision < state.run.revision) return false;

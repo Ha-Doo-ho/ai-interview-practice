@@ -1,7 +1,7 @@
 ﻿/* Server-authoritative appointment memory games; no question generation or scoring here. */
-import {placeArt} from './appointment-town.mjs';
 (function () {
   'use strict';
+  let placeArt = null;
   const state = {scope:null, run:null, context:null, epoch:0, busy:false, pending:null, loaded:false, timer:null, sampledAt:0, remaining:0, error:'', boundary:false};
   const names = {day:'약속 요일 정하기', place:'약속 장소 정하기', bus:'버스 기억하기'};
   const days = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
@@ -50,7 +50,8 @@ import {placeArt} from './appointment-town.mjs';
       const col=i%4,row=Math.floor(i/4), x=[7,120,293,406][col],y=[6,81,200,275][row];
       Object.assign(tile.style,{position:'absolute',left:`${x/520*100}%`,top:`${y/350*100}%`,width:`${107/520*100}%`,height:`${69/350*100}%`,padding:'0',border:highlighted?'4px solid #32a75b':'2px solid #e7eee8',borderRadius:'5px',background:'#e3e7e1',overflow:'hidden',opacity:!answering&&!highlighted?'0.48':'1'});
       // placeArt is static trusted source artwork indexed only by the local 0–15 loop.
-      tile.innerHTML=placeArt(i);
+      if(placeArt)tile.innerHTML=placeArt(i);
+      else tile.append(node('strong',`장소 ${i+1}`));
       if(tile.firstElementChild){tile.firstElementChild.style.width='100%';tile.firstElementChild.style.height='100%';}
       if(selectable){tile.type='button';tile.disabled=disabled()||q.phase!=='answer'||left()<=0;tile.setAttribute('aria-label',`장소 ${i+1}`);tile.addEventListener('click',()=>send('answer',{question_id:q.id,choice:i}));const n=node('span',String(i+1));Object.assign(n.style,{position:'absolute',right:'3px',bottom:'2px',background:'#fff',color:'#222',borderRadius:'3px',padding:'0 3px'});tile.append(n);}
       else tile.setAttribute('aria-label',`장소 ${i+1}${highlighted?' 표시됨':''}`);
@@ -62,7 +63,7 @@ import {placeArt} from './appointment-town.mjs';
   function render() {
     if(!root)return;
     root.replaceChildren(); root.hidden = !state.scope || state.run?.flow_version !== 'five-game-v2' || !ready();
-    if(root.hidden)return;
+    if(root.hidden){lock(true);return;}
     const heading=node('h2','3–5. 약속 기억 게임'); root.append(heading);
     root.append(node('p','요일 → 장소 → 버스 순서로 각 10문항을 진행합니다. 난이도는 세 게임에 한 번만 선택합니다.'));
     if(state.error){const e=node('p',state.error,'error');e.setAttribute('role','alert');root.append(e);}
@@ -72,7 +73,7 @@ import {placeArt} from './appointment-town.mjs';
     if(!data()?.difficulty){root.append(node('p','난이도를 선택해 주세요. 쉬움은 제시 시간이 각 3초, 어려움은 각 1.5초입니다.'));root.append(button('appointment-easy','쉬움',()=>send('configure',{difficulty:'easy'}),disabled()),button('appointment-hard','어려움',()=>send('configure',{difficulty:'hard'}),disabled()));lock();return;}
     const game=current();
     for(const g of games()) root.append(node('p',`${names[g.type]} · ${g.status === 'complete' ? '완료' : g.status === 'active' ? '진행 중' : '대기'} · ${g.questions.length}/10문항 · ${g.score}점`));
-    if(!game){root.append(node('p','세 게임을 모두 완료했습니다.'),button('appointment-interview','면접 연습으로 이동',()=>navigateTab('interview'),disabled()));lock();return;}
+    if(!game){const complete=window.AstraClient.allGamesComplete?.(state.run)===true;root.append(node('p','세 가지 약속 기억 게임을 모두 완료했습니다.'),button('appointment-continue',complete?'면접 연습으로 이동':'도형 회전 · 길 만들기 · 마법약 이어하기',()=>{if(complete)navigateTab('interview');else{navigateTab('game');document.getElementById('aptitude-games')?.scrollIntoView?.({behavior:'smooth'});}},disabled()));lock();return;}
     root.append(node('h3',names[game.type]));
     root.append(node('p',`난이도: ${data().difficulty === 'easy' ? '쉬움' : '어려움'} · 서버 저장 점수: ${game.score}점`));
     const q=game.current_question, last=game.questions.at(-1);
@@ -93,15 +94,15 @@ import {placeArt} from './appointment-town.mjs';
     }
     lock();
   }
-  function lock(){if(state.scope)window.AstraPractice.setAppointmentGameLock({...state.scope,locked:state.busy || !!state.pending || games().some(g=>g.status==='active')});}
+  function lock(hidden=false){if(state.scope)window.AstraPractice.setAppointmentGameLock({...state.scope,locked:(!hidden&&state.busy) || !!state.pending || games().some(g=>g.status==='active')});}
   function left(){return Math.max(0,state.remaining-(performance.now()-state.sampledAt));}
   function updateClock(){const e=document.getElementById('appointment-timer');if(e)e.textContent=`남은 시간 ${Math.ceil(left()/1000)}초`;}
-  function accept(run){if(!state.scope || run?.user_id!==state.scope.user_id || run?.run_id!==state.scope.run_id || !Number.isInteger(run.revision))throw Error('wrong_run');state.run=run;window.AstraPractice.updateRun(run);}
-  async function fetchCurrent(allow){const requestedAt=performance.now();const result=await api(path());if(!allow())return;const receivedAt=performance.now();accept(result.run);const q=current()?.current_question;state.sampledAt=receivedAt;state.remaining=Math.max(0,(Number(q?.remaining_ms)||0)-Math.max(0,receivedAt-requestedAt));state.loaded=true;state.boundary=false;render();}
+  function accept(run){if(!state.scope || run?.user_id!==state.scope.user_id || run?.run_id!==state.scope.run_id || !Number.isInteger(run.revision))throw Error('wrong_run');if(run.revision<(state.run?.revision??-1))return false;state.run=run;window.AstraPractice.updateRun(run);return true;}
+  async function fetchCurrent(allow){const requestedAt=performance.now();const result=await api(path());if(!allow())return;const receivedAt=performance.now();if(!accept(result.run)){state.loaded=true;render();return;}const q=current()?.current_question;state.sampledAt=receivedAt;state.remaining=Math.max(0,(Number(q?.remaining_ms)||0)-Math.max(0,receivedAt-requestedAt));state.loaded=true;state.boundary=false;render();}
   async function sendPending(allow){if(!state.pending)return;const body=structuredClone(state.pending);try{const run=await api(path(),{method:'POST',body});if(!allow())return;accept(run);state.pending=null;save();await fetchCurrent(allow);}catch(e){if(!allow())return;if(e.status>=400 && e.status<500 && ![401,404,410].includes(e.status)){await fetchCurrent(allow);if(!allow())return;state.pending=null;save();if(body.action==='timeout')state.boundary=true;state.error='요청이 적용되지 않아 서버의 최신 상태를 확인했습니다. 현재 상태에서 이어가 주세요.';return;}throw e;}}
   async function task(fn){if(!state.scope || state.busy)return;const epoch=state.epoch;state.busy=true;state.error='';render();try{await fn(()=>state.epoch===epoch);}catch(e){if(epoch!==state.epoch)return;if([401,404,410].includes(e.status)||e.message==='wrong_run'){const scope={...state.scope};if(e.status!==401)try{window.sessionStorage.removeItem(key(scope));}catch(_){}window.AstraPractice.invalidateRun(scope);if(e.status===401||e.message==='wrong_run')window.AstraAuth?.recheck();state.error='로그인 또는 회차 상태를 다시 확인해 주세요.';}else state.error='서버 응답을 확인하지 못했습니다. 보관된 요청을 같은 내용으로 다시 시도해 주세요.';}finally{if(epoch===state.epoch){state.busy=false;render();}}}
   function send(action,values={}){if(disabled() || !ready())return;return task(async allow=>{state.pending={action,...values,expected_revision:state.run.revision,idempotency_key:crypto.randomUUID()};if(!save()){state.pending=null;return;}render();await sendPending(allow);});}
   function tick(){updateClock();const q=current()?.current_question;if(!q||left()>0||disabled()||state.boundary)return;state.boundary=true;if(q.phase==='timeout')return send('timeout',{question_id:q.id});const epoch=state.epoch;return task(fetchCurrent).then(()=>{if(epoch!==state.epoch)return;const latest=current()?.current_question;if(latest?.phase==='timeout' && !state.pending && !state.error)send('timeout',{question_id:latest.id});});}
-  function changed(context){const scope=context.user&&context.run?{user_id:context.user.user_id,run_id:context.run.run_id}:null;const same=scope&&state.scope&&scope.user_id===state.scope.user_id&&scope.run_id===state.scope.run_id;state.context=context;if(same){if(context.run.revision>=state.run.revision)state.run=context.run;render();return;}state.epoch++;state.scope=scope;state.run=context.run;state.busy=false;state.loaded=false;state.pending=null;state.error='';state.boundary=false;if(state.timer!==null)clearInterval(state.timer);state.timer=null;render();if(!scope||context.run.flow_version!=='five-game-v2')return;try{state.pending=JSON.parse(window.sessionStorage.getItem(key(scope))||'{}').pending||null;}catch(_){state.error='임시 진행 상태를 읽지 못했습니다.';render();return;}task(fetchCurrent);state.timer=setInterval(tick,200);}
-  document.addEventListener('DOMContentLoaded',()=>{root=document.getElementById('appointment-games');if(!root)return;api=window.AstraClient.createApi();window.AstraPractice.subscribe(changed);});
+  function changed(context){const scope=context.user&&context.run?{user_id:context.user.user_id,run_id:context.run.run_id}:null;const same=scope&&state.scope&&scope.user_id===state.scope.user_id&&scope.run_id===state.scope.run_id;state.context=context;if(same){if(context.run.revision>state.run.revision){state.run=context.run;state.sampledAt=performance.now();state.remaining=Number(current()?.current_question?.remaining_ms)||0;state.boundary=false;}render();return;}state.epoch++;state.scope=scope;state.run=context.run;state.busy=false;state.loaded=false;state.pending=null;state.error='';state.boundary=false;if(state.timer!==null)clearInterval(state.timer);state.timer=null;render();if(!scope||context.run.flow_version!=='five-game-v2')return;try{state.pending=JSON.parse(window.sessionStorage.getItem(key(scope))||'{}').pending||null;}catch(_){state.error='임시 진행 상태를 읽지 못했습니다.';render();return;}task(fetchCurrent);state.timer=setInterval(tick,200);}
+  document.addEventListener('DOMContentLoaded',()=>{root=document.getElementById('appointment-games');if(!root)return;api=window.AstraClient.createApi();window.AstraPractice.subscribe(changed);import('./appointment-town.mjs').then(module=>{placeArt=module.placeArt;render();}).catch(()=>{/* Numbered place tiles remain playable without optional artwork. */});});
 })();

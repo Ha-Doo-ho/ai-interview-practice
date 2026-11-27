@@ -133,6 +133,37 @@ test('owned server records resume an existing run and confirmed delete clears ev
   assert.equal(env.context.window.AstraPractice.active(),false);assert.equal(env.roots.recordsTbody.textContent,'');assert.match(env.roots['records-status'].textContent,/0개/);
 });
 
+test('records resume only the selected active game without a request, preserving other locks',async()=>{
+  const run={run_id:'day-four',user_id:user.user_id,revision:9,status:'in_progress',records:[],questions:[],
+    flow_version:'five-game-v2',appointment_games:{games:[{type:'day',status:'active',questions:Array(4).fill({})}]}};
+  const other={...clone(run),run_id:'other'};
+  const env=await setup({runs:[run,other],withRecords:true});
+  const bridge=env.context.window.AstraPractice;
+  const scope={user_id:user.user_id,run_id:run.run_id};
+  const disabled=id=>env.document.getElementById(id).disabled;
+  await env.click('records-open-0');
+  bridge.setAppointmentGameLock({...scope,locked:true});
+  assert.equal(disabled('records-open-0'),false);
+  for(const id of ['records-open-1','records-delete-0','records-delete-1','records-refresh'])assert.equal(disabled(id),true);
+  const count=env.calls.length;
+  await env.click('records-open-0');
+  assert.equal(env.navigation.at(-1),'game');
+  const navigations=env.navigation.length;
+  await bridge.openRun(other.run_id);await bridge.deleteRun(run.run_id);await bridge.refreshRuns();
+  assert.equal(env.navigation.length,navigations);
+  for(const lock of ['setInterviewLock','setReportLock']){
+    bridge[lock]({...scope,locked:true});
+    assert.equal(disabled('records-open-0'),true);
+    await bridge.openRun(run.run_id);
+    bridge[lock]({...scope,locked:false});
+  }
+  await env.click('practice-start-item');
+  assert.equal(disabled('records-open-0'),true);
+  await bridge.openRun(run.run_id);
+  assert.equal(env.navigation.length,navigations);
+  assert.equal(env.calls.length,count);
+});
+
 test('server records confirm cancellation and clear private list on logout; late account list responses cannot repopulate it',async()=>{
   assert.equal(fs.existsSync('html/records.js'),true,'server records adapter must exist');
   const run={run_id:'server-owned',user_id:user.user_id,revision:0,status:'in_progress',records:[],questions:[],created_at:'2026-10-13T00:00:00Z'};

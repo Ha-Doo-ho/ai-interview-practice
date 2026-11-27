@@ -7,7 +7,7 @@ from completion_helpers import send, missing_survey
 from test_aptitude_api import request
 
 
-def test_optional_starts_wait_for_all_five_games_then_interview_remains_available(api, monkeypatch):
+def test_extra_games_wait_for_core_five_and_interview_requires_all_eight(api, monkeypatch):
     client, app, owner, _, rule_clock = api
     response = client.post('/api/runs', headers=HEADERS, json={
         'flow_version':'five-game-v2', 'survey_set_version':'work-behavior-v2'})
@@ -57,6 +57,12 @@ def test_optional_starts_wait_for_all_five_games_then_interview_remains_availabl
         response, _ = request(client, run, action='stop', attempt_id=attempt['id'], question_id=attempt['current_question']['id'])
         assert response.status_code == 200, response.text
         run = response.json()
+    rejected=client.post(f"/api/runs/{run['run_id']}/answers",headers=HEADERS,json={
+        'expected_revision':run['revision'],'idempotency_key':str(uuid4()),
+        'question_id':'baseline-b01','text':'연습이나 중단은 본게임 완료가 아닙니다.'})
+    assert rejected.status_code==409 and rejected.json()['error']=='all_games_completion_required'
+    from completion_helpers import finish_all_main_games
+    run=finish_all_main_games(client,app,owner,run,monkeypatch)
     run = send(client, run, 'answers', question_id='baseline-b01', text='합성 교차 검증용 면접 답변입니다.')
     assert run['records'][-1]['data']['text'] == '합성 교차 검증용 면접 답변입니다.'
 

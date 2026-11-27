@@ -19,8 +19,9 @@
       const row=element('tr');
       for(const text of [run.created_at?new Date(run.created_at).toLocaleString('ko-KR'):'시각 없음',run.run_id,run.status==='completed'?'최종 확정':'연습 진행 중',`Rev. ${run.revision}`])row.append(element('td',text));
       const actions=element('td');
-      const open=element('button',run.status==='completed'?'최종 보고서 보기':'이어하기');open.type='button';open.className='btn-action btn-light btn-sm';open.setAttribute('id',`records-open-${index}`);open.disabled=locked();
-      open.addEventListener('click',()=>{if(!locked())return window.AstraPractice.openRun(run.run_id);});
+      const canOpen=()=>!locked() || window.AstraPractice.canResumeCurrentGame?.(run.run_id);
+      const open=element('button',run.status==='completed'?'최종 보고서 보기':'이어하기');open.type='button';open.className='btn-action btn-light btn-sm';open.setAttribute('id',`records-open-${index}`);open.disabled=!canOpen();
+      open.addEventListener('click',()=>{if(canOpen())return window.AstraPractice.openRun(run.run_id);});
       const remove=element('button','삭제');remove.type='button';remove.className='btn-action btn-light btn-sm';remove.setAttribute('id',`records-delete-${index}`);remove.disabled=locked();
       remove.addEventListener('click',()=>{if(locked())return;if(!window.confirm('이 회차의 설문·게임·면접 원본과 파생 보고서를 서버에서 삭제하시겠습니까? 삭제한 회차는 복구할 수 없습니다.'))return;return window.AstraPractice.deleteRun(run.run_id);});
       actions.append(open,remove);row.append(actions);root.append(row);

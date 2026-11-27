@@ -186,7 +186,7 @@ test('five-game run prevents interview editing until all games are complete',asy
   const run=baseRun();run.flow_version='five-game-v2';run.rule_games={games:{rsp:{rounds:[]},card:{rounds:[]}}};
   run.appointment_games={games:[{type:'day',status:'pending',questions:[]},{type:'place',status:'pending',questions:[]},{type:'bus',status:'pending',questions:[]}]};
   const env=await setup({run});
-  assert.match(env.roots['interview-status'].textContent,/다섯 게임/);
+  assert.match(env.roots['interview-status'].textContent,/여덟 종류의 본게임/);
   assert.equal(env.document.getElementById('interview-answer-0').disabled,true);
 });
 
