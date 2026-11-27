@@ -22,7 +22,7 @@ _FIELDS = {'start': {'action', 'game_type', 'mode', 'difficulty'},
            'rotate': _ID_FIELDS | {'command'}, 'cell': _ID_FIELDS | {'row', 'col'},
            'undo': _ID_FIELDS, 'reset': _ID_FIELDS, 'submit': _ID_FIELDS,
            'next': _ID_FIELDS, 'stop': _ID_FIELDS, 'timeout': _ID_FIELDS}
-_ACTIVE_HIDDEN = {'red_probability', 'favorable_color', 'favorable_choice', 'seed',
+_ACTIVE_HIDDEN = {'red_probability', 'favorable_color', 'favorable_choice', 'favorable_choice_count', 'seed',
                   'favorable_choice_rate', 'favorable_choice_change'}
 
 
@@ -278,9 +278,10 @@ def _choice_stats(records: list[dict]) -> dict:
     selected = [q for q in records if q['metrics'].get('choice') in ('red', 'blue')]
     count = len(selected)
     red = sum(q['metrics']['choice'] == 'red' for q in selected)
+    favorable = sum(q['metrics'].get('favorable_choice') is True for q in selected)
     return {'choice_count': count, 'red_choice_count': red, 'blue_choice_count': count - red,
             'red_choice_rate': _rate(red, count), 'blue_choice_rate': _rate(count - red, count),
-            'favorable_choice_rate': _rate(sum(q['metrics'].get('favorable_choice') is True for q in selected), count)}
+            'favorable_choice_count': favorable, 'favorable_choice_rate': _rate(favorable, count)}
 
 
 def _potion_metrics(attempt: dict, records: list[dict]) -> dict:
@@ -357,8 +358,11 @@ def _summary(attempt: dict) -> dict:
                            reset_count=sum(q['metrics'].get('reset_count', 0) for q in shown),
                            operation_efficiency=_mean([min(1.0, q['metrics']['min_operations'] / max(1, q['metrics']['operations'])) for q in successful]))
         else:
+            successful = [q for q in shown if q['outcome'] == 'correct']
             metrics.update(used_fences=sum(q['metrics'].get('used_fences', 0) for q in shown),
                            minimum_fences=sum(q['metrics'].get('minimum_fences', 0) for q in shown),
+                           successful_fences=sum(q['metrics'].get('used_fences', 0) for q in successful),
+                           successful_minimum_fences=sum(q['metrics'].get('minimum_fences', 0) for q in successful),
                            fence_changes=sum(q['metrics'].get('fence_changes', 0) for q in shown),
                            fence_removals=sum(q['metrics'].get('fence_removals', 0) for q in shown))
         result['metrics'] = metrics

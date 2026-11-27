@@ -360,9 +360,20 @@
     if(state.run?.status!=='completed'&&state.run?.synthesis_analysis_stale){
       section.append(element('p','이 종합 평가는 이전 입력 기준입니다. 최신 저장 자료로 다시 요청해 주세요.'));parent.append(section);return;
     }
-    section.append(element('p',analysis.provider_execution==='provider_completed'?'AI가 작성한 연습 피드백 · 인용 근거와 함께 확인하세요.':analysis.provider_execution==='test_double'?'테스트 대역 · 실제 AI 미사용':'AI 미사용 · 종합 근거 저장'));
     const result=analysis.report||{},sources=new Map((result.prompt?.evidence||[]).map(e=>[e.id,e]));
-    const labels={strengths:'잘한 점',gaps:'보완점과 비교 제한',practice_plan:'개선 계획',clarifying_questions:'추가 확인 질문'};
+    const gameObservations = result.game_observations;
+    const liveLabel = Array.isArray(gameObservations) ? 'AI가 선택한 연습 항목 · 저장 기록에 근거한 설명' : 'AI가 작성한 연습 피드백 · 인용 근거와 함께 확인하세요.';
+    section.append(element('p',analysis.provider_execution==='provider_completed'?liveLabel:analysis.provider_execution==='test_double'?'테스트 대역 · 실제 AI 미사용':'AI 미사용 · 종합 근거 저장'));
+    if(Array.isArray(gameObservations)&&gameObservations.length){
+      section.append(element('h4','본게임 수행 기록'));
+      const list=element('ul');
+      for(const observation of gameObservations){
+        if(sources.get(observation.evidence_id)?.source!=='game')continue;
+        list.append(element('li',`${observation.label} · ${observation.text}`));
+      }
+      section.append(list);
+    }
+    const labels={strengths:Array.isArray(gameObservations)?'잘한 점과 면접 답변 발췌':'잘한 점',gaps:'보완점과 비교 제한',practice_plan:'개선 계획',clarifying_questions:'추가 확인 질문'};
     for(const [key,label] of Object.entries(labels)){
       section.append(element('h4',label));
       const items=result.feedback?.[key]||[];
@@ -370,6 +381,9 @@
       for(const item of items){
         if(!item.evidence_ids?.length||item.evidence_ids.some(id=>!sources.has(id)))continue;
         section.append(element('p',item.text));
+        if(item.quote){
+          section.append(element('p','저장된 면접 답변 인용'),element('blockquote',item.quote,'report-quote'));
+        }
         for(const id of item.evidence_ids){const details=element('details');details.append(element('summary','인용 근거 확인: '+id),element('pre',JSON.stringify(sources.get(id),null,2),'interview-saved-text'));section.append(details);}
       }
     }

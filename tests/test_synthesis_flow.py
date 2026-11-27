@@ -149,14 +149,22 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
     synthesis_calls=[]
     def synthesis_transport(endpoint,payload,**kwargs):
         synthesis_calls.append(payload)
+        structured=json.loads(payload['contents'][0]['parts'][0]['text'])
+        potion=next(e for e in structured['evidence'] if e.get('game_type')=='potion')
         return {'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':json.dumps({
-            'strengths':[],'gaps':[],'practice_plan':[],'clarifying_questions':[]})}]}}]}
+            'strengths':[],'gaps':[],'clarifying_questions':[],
+            'practice_plan':[{'finding_type':'practice_suggestion','topic_id':'learning','evidence_ids':[potion['id']],'quote':''}],
+        })}]}}]}
     monkeypatch.setattr('app.interview_analysis._PROVIDER_TRANSPORT',synthesis_transport)
     run=ok(client,run,'synthesis-analysis',mode='live')
     assert len(synthesis_calls)==1
     sent=json.loads(synthesis_calls[0]['contents'][0]['parts'][0]['text'])
     assert sent['source_digest']==run['synthesis_analysis']['report']['source_digest']
     assert len([e for e in sent['evidence'] if e['source']=='game'])==8
+    result=run['synthesis_analysis']['report']
+    assert len(result['game_observations'])==8
+    assert '가능성이 더 높은 색 선택' in next(e['text'] for e in result['game_observations'] if '마법약' in e['label'])
+    assert '같은 재료 조합' in result['feedback']['practice_plan'][0]['text']
     run = ok(client, run, 'interview-finalize')
     assert run['report']['synthesis_analysis']==run['synthesis_analysis']
     assert client.get(f"/api/runs/{run['run_id']}/synthesis-prompt").json()==run['report']['synthesis_prompt']

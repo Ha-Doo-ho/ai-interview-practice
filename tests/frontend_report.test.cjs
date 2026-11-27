@@ -146,6 +146,16 @@ test('synthesis preview is read only and AI is explicit with source details and 
   assert.doesNotMatch(stale.roots['report-content'].textContent,/기록된 행동/);
 });
 
+test('grounded synthesis shows game records and identifies an exact interview quote',async()=>{
+  const run=runWithReport();run.flow_version='five-game-v2';completeGameStages(run);
+  run.synthesis_analysis={report:{report_version:'three-source-practice-v2',prompt:{evidence:[{id:'interview:a',text:'요청표를 대조했습니다.'},{id:'game:p',source:'game'}]},
+    game_observations:[{evidence_id:'game:p',label:'마법약 만들기',text:'제조 결과 적중 7/10회 · 가능성이 더 높은 색 선택 9/10회'}],
+    feedback:{strengths:[{text:'이 주제에 연결된 면접 답변에서 인용한 내용입니다.',quote:'요청표를 대조했습니다.',evidence_ids:['interview:a']}],gaps:[],practice_plan:[],clarifying_questions:[]}}};
+  const env=await setup({run});const text=env.roots['report-content'].textContent;
+  assert.match(text,/본게임 수행 기록.*마법약 만들기.*제조 결과 적중 7\/10회.*가능성이 더 높은 색 선택 9\/10회/);
+  assert.match(text,/저장된 면접 답변 인용.*요청표를 대조했습니다\./);
+});
+
 test('game analysis is an explicit separate request after the baseline report',async()=>{
   const run=runWithReport();run.flow_version='five-game-v2';completeGameStages(run);run.interview_report.five_games={version:'five-game-report-v1',source_digest:'digest',games:[]};
   const env=await setup({run,handler:call=>call.path.endsWith('/game-analysis')?Response.json({...run,revision:21}):undefined});

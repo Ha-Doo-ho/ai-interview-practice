@@ -140,9 +140,12 @@ def _public_snapshot(snapshot: dict, *, definition: bool = False, visibility_sna
             public["game_analysis_stale"] = True
     if isinstance(snapshot.get("synthesis_analysis"), dict):
         try:
-            from .synthesis import build_prompt
-            lineage = visibility_snapshot if visibility_snapshot is not None and snapshot.get('status') != 'completed' else snapshot
-            public['synthesis_analysis_stale'] = snapshot['synthesis_analysis']['input_snapshot']['source_digest'] != build_prompt(lineage)['source_digest']
+            if snapshot.get('status') == 'completed':
+                current_digest = snapshot['report']['synthesis_prompt']['source_digest']
+            else:
+                from .synthesis import build_prompt
+                current_digest = build_prompt(visibility_snapshot if visibility_snapshot is not None else snapshot)['source_digest']
+            public['synthesis_analysis_stale'] = snapshot['synthesis_analysis']['input_snapshot']['source_digest'] != current_digest
         except Exception:
             public['synthesis_analysis_stale'] = True
     if snapshot.get("evidence_linkage") is not None:
