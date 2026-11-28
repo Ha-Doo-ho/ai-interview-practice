@@ -27,7 +27,9 @@
     provider_schema_invalid:'AI 응답의 형식이 올바르지 않아 결과를 표시하지 않았습니다.',
     provider_incomplete:'AI 응답이 끝까지 생성되지 않아 결과를 표시하지 않았습니다.',
     provider_failed:'AI 서비스에 연결하거나 응답을 처리하지 못했습니다. 네트워크와 서버 상태를 확인해 주세요.',
-    citation_invalid:'AI 응답의 인용이 저장된 답변과 일치하지 않아 결과를 표시하지 않았습니다.',
+    citation_invalid:'AI가 선택한 근거, 면접 기준 또는 원문 인용이 검사를 통과하지 못해 결과를 표시하지 않았습니다.',
+    synthesis_input_limit_exceeded:'종합 평가에 보낼 자료가 서버 입력 한도를 넘었습니다. 서버를 실행한 환경의 AI_SYNTHESIS_MAX_INPUT_TOKENS를 확인해 주세요.',
+    provider_model_mismatch:'AI 공급자와 모델 설정이 일치하지 않습니다. Gemini를 쓸 때는 AI_PROVIDER=gemini로 설정해 주세요.',
     budget_exceeded:'설정된 회차별 AI 사용 한도를 초과해 요청이 거절되었습니다.',
     live_answer_required:'AI 분석에는 내용이 입력된 면접 답변이 한 개 이상 필요합니다.',
     analysis_request_failed:'이전 분석 요청은 실패했습니다. 실패 원인을 확인한 후 새로 요청해 주세요.'
@@ -109,7 +111,10 @@
     const capability=state.capabilities;
     if (!capability) return state.scope ? 'AI 분석 가능 여부를 확인하는 중입니다.' : '';
     if (capability.live_available) return `AI 분석 사용 가능 · 서버 허용 모델 ${capability.model_id || '설정됨'} · 회차당 최대 ${capability.max_calls_per_run}회`;
-    const reasons={live_not_configured:'서버에 AI 분석 설정이 준비되지 않았습니다.',live_disabled:'서버에서 AI 분석 사용이 꺼져 있습니다.',paid_ai_disabled:'서버에서 유료 AI 실행이 허용되지 않았습니다.',model_not_allowed:'서버 허용 모델 설정을 확인해 주세요.'};
+    if (capability.reason==='live_not_configured' && Array.isArray(capability.missing_settings) && capability.missing_settings.length) {
+      return `서버에 AI 분석 설정이 준비되지 않았습니다. 누락된 환경변수 ${capability.missing_settings.join(', ')}. 서버를 실행한 환경에 설정한 뒤 서버를 다시 시작해 주세요.`;
+    }
+    const reasons={live_not_configured:'서버에 AI 분석 설정이 준비되지 않았습니다.',live_disabled:'서버에서 AI 분석 사용이 꺼져 있습니다.',paid_ai_not_approved:'서버에서 유료 AI 실행이 허용되지 않았습니다.',model_not_allowed:'서버 허용 모델 설정을 확인해 주세요.',provider_model_mismatch:analysisErrors.provider_model_mismatch};
     return reasons[capability.reason] || `서버 설정으로 AI 분석을 사용할 수 없습니다${capability.reason ? ` (${capability.reason})` : '.'}`;
   }
 
@@ -421,8 +426,7 @@
     if($('report-completion')){const p=completionProgress();$('report-completion').textContent=state.scope?`최종 확정 준비: 설문 방문 ${p.surveys}/${p.surveyTotal} · 가위바위보 ${p.rsp}/3 · 카드 ${p.card}/3${state.run?.flow_version==='five-game-v2'?` · 약속 게임 ${p.appointment}/3 · 추가 본게임 ${p.aptitude}/3`:''} · 기본 면접 ${p.answers}/3 · ${state.run?.evidence_linkage_stale?'근거 연결 갱신 필요':state.run?.evidence_linkage?'근거 연결 저장됨':'근거 연결 필요'} · 후속 답변은 선택입니다.${state.context?.interviewDrafts?` 미저장 면접 입력 ${state.context.interviewDrafts}개: 면접에서 입력을 저장하거나 정리한 뒤 확정해 주세요.`:''}`:'';}
     $('report-retry').hidden=!state.pending; $('report-retry').disabled=!state.pending||state.busy||!state.storageOK||otherWorkLocked();
     if(state.loaded)renderReport();else $('report-content').replaceChildren();
-    if(stale&&!state.pending)notice('이 보고서는 이전 입력 기준입니다. 현재 답변으로 바꾸려면 저장 근거 보고서 또는 새 분석을 명시적으로 요청해 주세요.');
-    else if(state.run?.evidence_linkage_stale&&!state.pending)notice('근거 연결이 이전 입력 기준입니다. 근거 연결·후속 질문 만들기를 다시 요청한 후 최종 보고서를 확정해 주세요.');
+    if(stale&&!state.pending)$('report-status').textContent+=' · 현재 답변으로 바꾸려면 저장 근거 보고서 또는 새 분석을 요청해 주세요.';
     if(state.scope)window.AstraPractice.setReportLock({...state.scope,locked:state.busy||Boolean(state.pending)});
   }
 

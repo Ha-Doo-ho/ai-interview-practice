@@ -99,7 +99,9 @@ def _positive_int(name: str, default: int | None = None, *, allow_zero: bool = F
 
 
 def _live_config() -> dict[str, Any]:
-    provider_name = os.getenv('AI_PROVIDER', 'openai').strip().lower()
+    model_id = os.getenv('AI_MODEL_ID', '')
+    model_provider = 'gemini' if model_id.startswith('gemini-') else 'openai'
+    provider_name = (os.getenv('AI_PROVIDER', '').strip().lower() or model_provider)
     if provider_name not in ('openai', 'gemini'):
         raise _error('provider_invalid')
     missing = sorted(key for key in LIVE_CONFIG_KEYS if not os.getenv(key))
@@ -109,7 +111,8 @@ def _live_config() -> dict[str, Any]:
         raise _error("live_disabled")
     if os.getenv("PAID_AI_ENABLED", "").lower() != "true":
         raise _error("paid_ai_not_approved")
-    model_id = os.environ["AI_MODEL_ID"]
+    if provider_name != model_provider:
+        raise _error('provider_model_mismatch')
     allowed = {item.strip() for item in os.environ["AI_ALLOWED_MODEL_IDS"].split(",") if item.strip()}
     if model_id not in allowed:
         raise _error("model_not_allowed")
@@ -137,13 +140,16 @@ def analysis_capabilities() -> dict[str, Any]:
         config = _live_config()
     except ProviderError as exc:
         code = str(exc).split(":", 1)[0]
-        return {
+        capability = {
             "live_available": False,
             "reason": code,
             "model_id": os.getenv("AI_MODEL_ID") or None,
             "max_calls_per_run": _safe_public_int("AI_MAX_CALLS_PER_RUN"),
             "max_cost_microusd": _safe_public_int("AI_MAX_COST_MICROUSD"),
         }
+        if code == "live_not_configured":
+            capability["missing_settings"] = sorted(name for name in LIVE_CONFIG_KEYS if not os.getenv(name))
+        return capability
     return {
         "live_available": True,
         "reason": "available",

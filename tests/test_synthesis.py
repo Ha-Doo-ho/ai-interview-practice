@@ -225,7 +225,7 @@ def test_input_budget_rejects_before_transport(monkeypatch):
     monkeypatch.setenv('AI_MAX_INPUT_TOKENS','10')
     calls=[]
     monkeypatch.setattr(synthesis.interview,'_PROVIDER_TRANSPORT',lambda *a,**k:calls.append(a))
-    with pytest.raises(ProviderError,match='budget_exceeded'):synthesis.prepare(sample(),'live')
+    with pytest.raises(ProviderError,match='synthesis_input_limit_exceeded'):synthesis.prepare(sample(),'live')
     assert calls==[]
 
 

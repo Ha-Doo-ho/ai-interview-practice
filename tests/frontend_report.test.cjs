@@ -114,6 +114,15 @@ test('Gemini server error shows the safe status code',async()=>{
   await env.click('report-analyze');
   assert.match(env.roots['report-error'].textContent,/HTTP 503/);
 });
+test('synthesis input limit reports the dedicated setting',async()=>{
+  const run=runWithReport();run.flow_version='five-game-v2';completeGameStages(run);run.interview_report.five_games={games:[]};
+  run.evidence_linkage_stale=true;
+  const env=await setup({run,handler:call=>call.path.endsWith('/synthesis-analysis')?
+    Response.json({error:'synthesis_input_limit_exceeded'},{status:422}):undefined});
+  await env.click('report-synthesis-ai');
+  assert.match(env.roots['report-error'].textContent,/입력 한도.*AI_SYNTHESIS_MAX_INPUT_TOKENS/);
+  assert.match(env.roots['report-completion'].textContent,/근거 연결 갱신 필요/);
+});
 test('each practice suggestion is visible while shared provenance is shown once',async()=>{
   const run=runWithReport();
   run.interview_report.cards[0].practice_suggestions=[
@@ -324,9 +333,10 @@ test('never auto-posts and sends exact explicit mock/live bodies with separate c
 });
 
 test('missing live configuration stays safe and explains why without model or key input UI',async()=>{
-  const env=await setup({run:runWithReport({report:false,analysis:false}),capabilities:{live_available:false,reason:'live_not_configured',model_id:null,max_calls_per_run:0,max_cost_microusd:0}});
+  const env=await setup({run:runWithReport({report:false,analysis:false}),capabilities:{live_available:false,reason:'live_not_configured',model_id:null,max_calls_per_run:0,max_cost_microusd:0,missing_settings:['AI_PROVIDER_KEY']}});
   assert.equal(env.roots['report-analyze'].disabled,true);assert.equal(env.roots['report-mock'].disabled,false);
   assert.match(env.roots['report-capability'].textContent,/서버.*설정/);assert.doesNotMatch(env.roots['report-content'].textContent,/API\s*키|모델 선택/);
+  assert.match(env.roots['report-capability'].textContent,/누락.*AI_PROVIDER_KEY/);
 });
 
 test('response loss keeps one frozen request, restores per-run journal, retries same body then reads current',async()=>{
@@ -352,7 +362,7 @@ test('running reservation remains retryable but definitive failure clears pendin
 
 test('stale and execution modes are labeled conservatively and completed runs stay read-only',async()=>{
   const stale=await setup({run:runWithReport({stale:true,runtime:'mock',requested:'live',provider:'test_double'})});
-  assert.match(stale.roots['report-status'].textContent,/테스트 대역/);assert.match(stale.roots['report-error'].textContent,/이전 입력 기준.*새 분석/);
+  assert.match(stale.roots['report-status'].textContent,/테스트 대역.*이전 입력 기준.*새 분석/);
   assert.equal(stale.calls.filter(call=>call.method==='POST').length,0);
   const live=await setup({run:runWithReport({runtime:'live',requested:'live',provider:'provider_completed',status:'completed'})});
   assert.match(live.roots['report-status'].textContent,/AI 분석 완료/);assert.equal(live.roots['report-mock'].disabled,true);assert.equal(live.roots['report-analyze'].disabled,true);assert.match(live.roots['report-content'].textContent,/B01/);

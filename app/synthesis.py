@@ -330,7 +330,9 @@ def prepare(run,mode):
     # Reserve framing overhead as well as content, never silently truncate evidence.
     tokens+=256
     cost=interview._cost_microusd(tokens,config['max_output_tokens'],config['input_rate'],config['output_rate'])
-    if tokens>config['max_input_tokens'] or cost>config['max_cost_microusd'] or config['max_calls_per_run']<1:
+    if tokens>config['max_input_tokens']:
+        raise ProviderError('synthesis_input_limit_exceeded')
+    if cost>config['max_cost_microusd'] or config['max_calls_per_run']<1:
         raise ProviderError('budget_exceeded')
     result.update({k:config[k] for k in ('model_id','max_input_tokens','max_output_tokens','timeout_ms','max_retries','max_calls_per_run','max_cost_microusd')})
     result.update(calls_required=1,cost_microusd=cost,_input_tokens=tokens,_config=config,

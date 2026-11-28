@@ -90,6 +90,8 @@ def test_gemini_game_suggestions_keep_verified_sources(run, monkeypatch):
     assert result['provider_execution']=='test_double'
     assert result['report']['source_digest']=='digest'
     monkeypatch.setenv('AI_PROVIDER','openai')
+    monkeypatch.setenv('AI_MODEL_ID','test-openai')
+    monkeypatch.setenv('AI_ALLOWED_MODEL_IDS','test-openai')
     with pytest.raises(ProviderError, match='configuration_changed'):
         ai.execute(prepared)
 

@@ -12,6 +12,29 @@ def config(monkeypatch):
         monkeypatch.setenv(key, value)
 
 
+def test_synthesis_routes_gemini_model_when_provider_is_omitted(monkeypatch):
+    from app import synthesis
+
+    config(monkeypatch)
+    monkeypatch.delenv('AI_PROVIDER', raising=False)
+    monkeypatch.setenv('AI_INPUT_RATE_MICROUSD_PER_MILLION_TOKENS', '1')
+    monkeypatch.setenv('AI_OUTPUT_RATE_MICROUSD_PER_MILLION_TOKENS', '1')
+    called=[]
+
+    def transport(endpoint,payload,**kwargs):
+        called.append(endpoint)
+        return {'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':json.dumps({k:[] for k in synthesis.SECTIONS})}]}}]}
+
+    monkeypatch.setattr('app.interview_analysis._PROVIDER_TRANSPORT',transport)
+    synthesis.execute(synthesis.prepare({'questions':[],'records':[]},'live'))
+    assert called==['https://generativelanguage.googleapis.com/v1beta/models/gemini-test:generateContent']
+
+    monkeypatch.setenv('AI_PROVIDER','openai')
+    with pytest.raises(ProviderError,match='provider_model_mismatch'):
+        synthesis.prepare({'questions':[],'records':[]},'live')
+    assert len(called)==1
+
+
 def test_gemini_sends_schema_and_key_in_header_and_parses_json(monkeypatch):
     from app.ai_provider import GeminiProvider
     config(monkeypatch)
@@ -120,8 +143,13 @@ def test_gemini_interview_pipeline_validates_actual_answer_and_guard(monkeypatch
     assert calls[0].startswith('https://generativelanguage.googleapis.com/')
     assert output['provider_execution']=='test_double'
     monkeypatch.setenv('AI_PROVIDER','openai')
+    with pytest.raises(ProviderError,match='provider_model_mismatch'):
+        analysis.execute_analysis(prepared)
+    monkeypatch.setenv('AI_MODEL_ID','test-openai')
+    monkeypatch.setenv('AI_ALLOWED_MODEL_IDS','test-openai')
     with pytest.raises(ProviderError,match='configuration_changed'):
         analysis.execute_analysis(prepared)
+    assert len(calls)==1
 
 
 def test_gemini_quote_offset_repair_requires_exact_unique_source():

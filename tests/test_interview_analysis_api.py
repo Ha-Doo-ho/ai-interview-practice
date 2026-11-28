@@ -150,6 +150,20 @@ def test_failed_reservation_does_not_store_untrusted_error_text(tmp_path, monkey
             assert row.status=='failed' and row.response is None
 
 
+def test_capabilities_lists_missing_server_settings_without_values(tmp_path, monkeypatch):
+    from test_live_interview_analysis import _configure_live
+
+    _configure_live(monkeypatch)
+    monkeypatch.delenv('AI_PROVIDER_KEY', raising=False)
+    application=create_app(f"sqlite:///{tmp_path / 'missing-settings.db'}")
+    with TestClient(application) as client:
+        _register(client)
+        response=client.get('/api/interview-analysis-capabilities')
+        assert response.status_code==200
+        assert response.json()['reason']=='live_not_configured'
+        assert response.json()['missing_settings']==['AI_PROVIDER_KEY']
+
+
 def test_capabilities_and_analysis_save_new_namespace_without_changing_evidence(tmp_path, monkeypatch):
     monkeypatch.setitem(sys.modules, "app.interview_analysis", _fake_module())
     app = create_app(f"sqlite:///{tmp_path / 'analysis.db'}")

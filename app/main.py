@@ -474,7 +474,11 @@ def create_app(database_url: str | None = None) -> FastAPI:
         }
         if not isinstance(capabilities, dict) or not public_keys.issubset(capabilities):
             raise Validation("config_invalid")
-        return {key: copy.deepcopy(capabilities[key]) for key in public_keys}
+        public = {key: copy.deepcopy(capabilities[key]) for key in public_keys}
+        missing = capabilities.get("missing_settings")
+        if public["reason"] == "live_not_configured" and isinstance(missing, list):
+            public["missing_settings"] = sorted(name for name in module.LIVE_CONFIG_KEYS if name in missing)
+        return public
 
     @application.post("/api/logout", status_code=204)
     async def logout(request: Request):
