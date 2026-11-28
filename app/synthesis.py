@@ -12,7 +12,7 @@ from .five_game_reporting import build_five_game_report
 from .interview_comparison import CRITERION_IDS, MATERIALS
 from . import synthesis_game_facts as games
 
-VERSION = 'three-source-practice-v3'
+VERSION = 'three-source-practice-v4'
 PDF = 'https://recruit.jobda.im/hubfs/TREND%20REPORT_HR%20%EA%B3%A0%EB%AF%BC%EC%9E%88%EC%8A%B5%EB%8B%88%EB%8B%A4_2%ED%8E%B8.pdf'
 SECTIONS = ('strengths', 'gaps', 'practice_plan', 'clarifying_questions')
 FINDINGS = {'strengths':('observed_evidence',), 'gaps':('observed_difficulty','context_difference','insufficient_evidence','interview_answer_gap'),
@@ -24,8 +24,8 @@ evidence_ids는 선택한 topic에 연결된 근거만 사용한다. 게임 근�
 interview_comparison은 질문별 기준과 연습용 비교 답안이다. 지원자의 행동·결과나 게임 근거로 인용하지 않는다. 문장 유사도나 예시와 같은 선택을 기준으로 삼지 않는다.
 면접 답변에서 본인이 맡은 일, 부딪힌 문제, 취한 방법, 확인된 결과를 질문에 맞춰 살핀다. 질문별 criteria만 적용한다. 문장 순서는 자유다. 근거 있는 수치와 구체적으로 확인 가능한 결과를 인정하고, 백분율을 요구하거나 없는 수치를 보충하지 않는다. 결과가 좋았다는 이유만으로 판단 과정이 충실하다고 보지 않는다.
 일부 내용을 말하지 않은 경우 답변에 확인되지 않은 내용으로 다룬다. 조건 변경 후속 문항은 같은 회차의 앞선 답변으로 상황을 파악한다. 앞 질문의 배경을 되풀이하거나 없던 누락을 말하라고 요구하지 않는다. 의미가 불명확하면 생략한다.
-strengths의 observed_evidence는 정답 기록이 있는 게임 하나 또는 답변이 있는 면접 하나를 선택한다. 마법약은 가능성이 더 높은 색을 고른 기록을 사용한다. 면접을 선택한 경우 실제 행동을 설명한 완결된 한 문장 또는 한 줄을 문장부호까지 quote에 그대로 복사한다. 뜻이 바뀌는 발췌는 피하고 적절한 인용이 없으면 생략한다.
-비교 자료가 있는 면접에서 잘 드러난 설명에는 인용문으로 확인되는 criterion_id를 하나 선택한다. interview_answer_gap은 답변이 있는 면접에서 추가로 구체화할 기준 하나를 선택한다. optional_criteria 누락은 보완점으로 선택하지 않는다. 같은 답변의 같은 기준은 한 번만 사용한다. 두 경우를 제외하면 criterion_id는 빈 문자열로 둔다.
+strengths의 observed_evidence는 정답 기록이 있는 게임 하나 또는 답변이 있는 면접 하나를 선택한다. 마법약은 가능성이 더 높은 색을 고른 기록을 사용한다. 면접을 선택한 경우 해당 기준의 근거가 되는 완결된 한 문장 또는 한 줄을 문장부호까지 quote에 그대로 복사한다. 뜻이 바뀌는 발췌는 피하고 적절한 인용이 없으면 생략한다.
+비교 자료가 있는 면접에서 잘 드러난 설명에는 인용문으로 확인되는 criterion_id를 하나 선택한다. interview_answer_gap은 답변이 있는 면접에서 추가로 구체화할 기준 하나를 선택한다. 같은 답변의 같은 기준을 잘한 점과 보완점에 함께 쓰지 않는다. optional_criteria 누락은 보완점으로 선택하지 않는다. 반복 업무 답변에서 다음 업무의 결과가 아직 드러나지 않으면 practice_suggestion에서 같은 답변을 근거로 선택하여 criterion_id를 result로 지정할 수 있다. 이 안내는 결과를 실제 확인한 경우의 선택적 연습 제안이다. 그 밖의 경우에는 criterion_id를 빈 문자열로 둔다.
 gaps의 observed_difficulty는 오답 또는 시간 초과가 있는 게임 하나를 선택한다. 마법약의 예측 불일치 자체는 보완 근거가 아니다. 더 가능성이 높은 색을 고르지 않은 경우나 시간 초과만 선택할 수 있다.
 gaps의 context_difference는 보완 관찰이 있는 게임 하나와 응답이 있는 설문 또는 조건부 후속이 아닌 면접 하나를 선택한다. 각 기록의 조건을 따로 살펴보는 연습의 근거다.
 gaps의 insufficient_evidence는 답변이 없는 면접 하나를 선택한다. practice_plan의 practice_suggestion은 게임 하나 또는 답변이 있는 면접 하나를 선택한다. clarifying_questions의 clarification은 면접 질문 하나를 선택한다.
@@ -241,7 +241,7 @@ def _render_selection(kind, sources, quote, game_text, criterion):
         if kind=='insufficient_evidence' and not _answer_present(source):
             return '이 면접 문항에 저장된 답변 원문이 없어 비교에 필요한 경험을 확인하기 어렵습니다. '+guidance
         if kind=='clarification' or (kind=='practice_suggestion' and _answer_present(source)):
-            return guidance
+            return criterion or guidance
     raise ProviderError('citation_invalid')
 
 
@@ -270,19 +270,24 @@ def render_feedback(output,prompt):
             needs_quote = kind=='observed_evidence' and sources[0]['source']=='interview'
             if (needs_quote and not quote.strip()) or (not needs_quote and quote):
                 raise ProviderError('citation_invalid')
-            material=prompt.get('interview_comparison',{}).get(sources[0].get('question_id'))
+            material=prompt.get('interview_comparison',{}).get(sources[0].get('question_id'),{})
+            optional=material.get('optional_criteria',{})
             is_interview_gap=kind=='interview_answer_gap'
             criterion=None
             if is_interview_gap or (needs_quote and material):
-                criterion=(material or {}).get('criteria',{}).get(criterion_id)
+                criterion=material.get('criteria',{}).get(criterion_id)
                 checked=(refs[0],criterion_id)
-                if not criterion or checked in reviewed or (is_interview_gap and criterion_id in material.get('optional_criteria',[])):
+                if not criterion or checked in reviewed or (is_interview_gap and criterion_id in optional):
                     raise ProviderError('citation_invalid')
                 reviewed.add(checked)
+            elif kind=='practice_suggestion' and criterion_id in optional:
+                criterion=optional[criterion_id]
             elif criterion_id:
                 raise ProviderError('citation_invalid')
             description=_render_selection(kind,sources,quote,game_text,criterion)
             feedback[section].append({**entry,'text':description})
+    feedback['practice_plan'] = [item for item in feedback['practice_plan']
+        if (item['evidence_ids'][0], item['criterion_id']) not in reviewed]
     return feedback
 
 

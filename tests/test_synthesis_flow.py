@@ -162,8 +162,12 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
             'gaps':[{'finding_type':'interview_answer_gap','topic_id':'learning','evidence_ids':[repeated['id']],
                 'criterion_id':'information','quote':''}],
             'clarifying_questions':[],
-            'practice_plan':[{'finding_type':'practice_suggestion','topic_id':'learning','evidence_ids':[potion['id']],
-                'criterion_id':'','quote':''}],
+            'practice_plan':[
+                {'finding_type':'practice_suggestion','topic_id':'learning','evidence_ids':[potion['id']],
+                    'criterion_id':'','quote':''},
+                {'finding_type':'practice_suggestion','topic_id':'learning','evidence_ids':[repeated['id']],
+                    'criterion_id':'result','quote':''},
+            ],
         })}]}}]}
     monkeypatch.setattr('app.interview_analysis._PROVIDER_TRANSPORT',synthesis_transport)
     run=ok(client,run,'synthesis-analysis',mode='live')
@@ -173,10 +177,12 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
     assert len([e for e in sent['evidence'] if e['source']=='game'])==8
     assert len(sent['interview_comparison'])==7
     assert all(item['reference_answer'] for item in sent['interview_comparison'].values())
+    assert 'result' not in sent['interview_comparison']['spatial-work-experience-0']['criteria']
     result=run['synthesis_analysis']['report']
     assert len(result['game_observations'])==8
     assert '가능성이 더 높은 색 선택' in next(e['text'] for e in result['game_observations'] if '마법약' in e['label'])
     assert '같은 재료 조합' in result['feedback']['practice_plan'][0]['text']
+    assert '결과까지 확인했다면' in result['feedback']['practice_plan'][1]['text']
     assert '다음 업무에 실제로 적용한 방식' in result['feedback']['strengths'][0]['text']
     assert result['feedback']['strengths'][0]['quote']=='다음 행사에서는 연락처를 필수 입력으로 바꿨습니다.'
     assert '같은 방식에서 나온 서로 다른 결과' in result['feedback']['gaps'][0]['text']

@@ -139,7 +139,19 @@ def test_finalized_synthesis_v1_uses_its_frozen_digest():
     assert _public_snapshot(frozen)['synthesis_analysis_stale'] is True
 
 
-def test_repeated_work_optional_result_is_not_a_gap():
+def test_spatial_feedback_does_not_assess_the_result():
+    prompt=synthesis.build_prompt(sample())
+    assert 'result' not in prompt['interview_comparison']['spatial-work-experience-0']['criteria']
+    output={s:[] for s in synthesis.SECTIONS}
+    feedback={'topic_id':'spatial','criterion_id':'result','evidence_ids':['interview:a1']}
+    output['gaps']=[{**feedback,'finding_type':'interview_answer_gap','quote':''}]
+    with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+    output['gaps']=[]
+    output['strengths']=[{**feedback,'finding_type':'observed_evidence','quote':'배치 도면과 실제 위치를 대조했습니다.'}]
+    with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+
+
+def test_repeated_work_optional_result_is_guidance_and_never_a_gap():
     from app.supplemental_interview import CURRENT_QUESTIONS
 
     question=deepcopy(CURRENT_QUESTIONS[-1])
@@ -150,6 +162,24 @@ def test_repeated_work_optional_result_is_not_a_gap():
     output={s:[] for s in synthesis.SECTIONS}
     output['gaps']=[{'finding_type':'interview_answer_gap','topic_id':'learning','criterion_id':'result',
         'evidence_ids':['interview:repeat'],'quote':''}]
+    with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+    guidance={**output['gaps'][0],'finding_type':'practice_suggestion'}
+    output['gaps']=[]
+    output['practice_plan']=[guidance]
+    text=synthesis.render_feedback(output,prompt)['practice_plan'][0]['text']
+    assert '확인했다면' in text and '덧붙여' in text
+    output['practice_plan']=[{**guidance,'criterion_id':'action'}]
+    with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
+    output['practice_plan']=[guidance]
+    answer=next(item for item in prompt['evidence'] if item['id']=='interview:repeat')
+    answer['text']='새 양식에서는 연락처 누락이 없었습니다.'
+    output['strengths']=[{**guidance,'finding_type':'observed_evidence','quote':answer['text']}]
+    for conflicting in (output,dict(reversed(tuple(output.items())))):
+        rendered=synthesis.render_feedback(conflicting,prompt)
+        assert rendered['strengths'][0]['quote']==answer['text']
+        assert rendered['practice_plan']==[]
+    output['strengths']=[]
+    answer.update(status='skipped',text='')
     with pytest.raises(ProviderError):synthesis.render_feedback(output,prompt)
 
 
