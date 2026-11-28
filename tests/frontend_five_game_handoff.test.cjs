@@ -232,7 +232,7 @@ test('the final card leads through the three appointments and three more main ga
       await ui.get('aptitude-menu').click();
       ui.navigate('interview');
       assert.equal(ui.get('view-interview').classList.contains('active'), false);
-      const questionCount = kind === 'potion' ? 100 : 10;
+      const questionCount = kind === 'potion' ? 48 : 10;
       run.aptitude_games.attempts.push({
         type:kind, mode:'main', status:'complete', score:0,
         question_limit:questionCount,

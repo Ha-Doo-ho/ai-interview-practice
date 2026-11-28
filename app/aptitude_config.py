@@ -12,7 +12,8 @@ GAME_CONFIG = {
              'question_count': 10, 'total_duration_ms': 240_000,
              'question_duration_ms': None, 'max_operations': 19, 'board_size': 5},
     'potion': {'title': '마법약 만들기', 'ability': '확률 학습·작업기억 관련 과제 수행',
-               'question_count': 100, 'quick_question_count': 20,
+               # Both 24-question halves cover full cycles of three or six combinations.
+               'question_count': 48, 'quick_question_count': 20,
                'total_duration_ms': None, 'question_duration_ms': 15_000,
                'max_operations': None},
 }

@@ -90,7 +90,7 @@ def finish_all_main_games(client,app,owner,run,monkeypatch):
             run=send(client,run,'aptitude-games',action='timeout',attempt_id=attempt['id'],question_id=attempt['current_question']['id'])
         else:
             # Potion main has individual questions and no overall deadline.
-            # Actually submit all 100 synthetic predictions through its API.
+            # Submit all predictions required by this attempt through the API.
             for index in range(attempt['question_limit']):
                 attempt=run['aptitude_games']['attempts'][-1]
                 run=send(client,run,'aptitude-games',action='submit',attempt_id=attempt['id'],

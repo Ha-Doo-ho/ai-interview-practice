@@ -1,4 +1,5 @@
 """Server state tests use real algorithms, synthetic choices and a controlled clock."""
+from collections import Counter
 import copy
 import importlib
 import json
@@ -255,18 +256,33 @@ def test_malformed_actions_are_validation_not_server_errors(game, clock, extra):
     assert snapshot == before
 
 
-def test_potion_main_completes_one_hundred_questions_with_own_maximum(game, clock):
-    snapshot, attempt = start(game, 'potion', 'main', 'hard')
-    for number in range(100):
+@pytest.mark.parametrize('limit', [48, 100])
+def test_potion_main_completes_with_its_saved_limit_and_maximum(game, clock, monkeypatch, limit):
+    from app.aptitude_config import GAME_CONFIG
+
+    if limit == 100:
+        with monkeypatch.context() as old:
+            old.setitem(GAME_CONFIG['potion'], 'question_count', 100)
+            snapshot, _ = start(game, 'potion', 'main', 'hard')
+        snapshot = json.loads(json.dumps(snapshot))
+        attempt = snapshot['aptitude_games']['attempts'][0]
+    else:
+        snapshot, attempt = start(game, 'potion', 'main', 'hard')
+    assert attempt['question_limit'] == limit
+    for number in range(limit):
         solve(game, snapshot, attempt)
-        if number < 99:
+        if number < limit - 1:
+            assert attempt['status'] == 'active'
             act(game, snapshot, attempt, 'next')
     public = game.public_state(snapshot['aptitude_games'])['attempts'][0]
-    assert public['status'] == 'complete' and public['question_limit'] == 100
-    assert public['score'] == public['summary']['max_score'] == 1000
+    assert public['status'] == 'complete' and public['question_limit'] == limit
+    assert public['score'] == public['summary']['max_score'] == limit * 10
     assert public['summary']['normalized_score'] == 100
-    assert public['summary']['correct_count'] == 100
+    assert public['summary']['correct_count'] == limit
     assert len(public['summary']['metrics']['by_combination']) == 6
+    if limit == 48:
+        for half in (attempt['questions'][:24], attempt['questions'][24:]):
+            assert sorted(Counter(question['combination_id'] for question in half).values()) == [4] * 6
 
 
 def test_config_snapshot_and_public_reads_cannot_change_attempt(game, clock, monkeypatch):

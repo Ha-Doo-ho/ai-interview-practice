@@ -120,7 +120,7 @@ def _assert_replay_and_fresh_rejection(client, run, body):
 
 @pytest.mark.parametrize("kind,mode,count", [
     ("rotation", "main", 10), ("path", "main", 10),
-    ("potion", "quick", 20), ("potion", "main", 100),
+    ("potion", "quick", 20), ("potion", "main", 48),
 ])
 def test_complete_http_games_practice_refresh_replay_results_and_delete(game_api, kind, mode, count):
     client, app, owner, run, _legacy_clock, now = game_api
@@ -139,6 +139,10 @@ def test_complete_http_games_practice_refresh_replay_results_and_delete(game_api
 
     run, _ = _ok(client, run, action="start", game_type=kind, mode=mode, difficulty="hard")
     assert _attempt(run)["question_limit"] == count
+    definitions = client.get('/api/aptitude-games/definitions').json()['games']
+    definition = next(item for item in definitions if item['type'] == kind)
+    count_field = 'quick_question_count' if mode == 'quick' else 'question_count'
+    assert definition[count_field] == count
     score, correct_count = 0, 0
     for number in range(1, count + 1):
         active = _attempt(run)
