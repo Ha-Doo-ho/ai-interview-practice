@@ -177,6 +177,14 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
     assert len([e for e in sent['evidence'] if e['source']=='game'])==8
     assert len(sent['interview_comparison'])==7
     assert all(item['reference_answer'] for item in sent['interview_comparison'].values())
+    from base64 import b64decode
+    from hashlib import sha256
+    from app.interview_reference_images import REFERENCES
+    photo_guides=sent['interview_reference_images']
+    assert set(photo_guides)==set(REFERENCES)
+    ready_guides=[photo_guides[question_id] for question_id in REFERENCES if photo_guides[question_id]['file_ready']]
+    media=[part['inlineData'] for part in synthesis_calls[0]['contents'][0]['parts'] if 'inlineData' in part]
+    assert [sha256(b64decode(image['data'])).hexdigest() for image in media]==[guide['sha256'] for guide in ready_guides]
     assert 'result' not in sent['interview_comparison']['spatial-work-experience-0']['criteria']
     result=run['synthesis_analysis']['report']
     assert len(result['game_observations'])==8
@@ -194,6 +202,7 @@ def test_synthesis_real_api_freezes_prompt_preserves_baseline_and_detects_new_an
             record['data']['text']=('요청에 대한 처리 기준과 실제 결과를 정리했습니다. '*40)[:800]
     prepared=prepare(longer_answers,'live')
     assert prepared['max_input_tokens']==80000
+    assert len(prepared['_image_parts'])==2*len(media)
     long_input=prepared['_structured_input']['evidence']
     assert sum(len(e.get('text',''))==800 for e in long_input if e.get('question_id') in sent['interview_comparison'])==7
 

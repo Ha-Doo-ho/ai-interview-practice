@@ -232,13 +232,14 @@ class GeminiProvider(LiveProvider):
     """Gemini REST adapter with the same server-side limits and gates."""
 
     def generate(self, structured_input, *, input_tokens, output_tokens, timeout_ms=15000,
-                 retries=0, calls_per_run=1, estimated_cost=None, output_schema=None):
+                 retries=0, calls_per_run=1, estimated_cost=None, output_schema=None, image_parts=()):
         self.check_budget(input_tokens=input_tokens, output_tokens=output_tokens, timeout_ms=timeout_ms,
                           retries=retries, calls_per_run=calls_per_run)
         key, _ = self._configuration(estimated_cost=estimated_cost)
         if not re.fullmatch(r'gemini-[A-Za-z0-9][A-Za-z0-9._-]*', self.model_id):
             raise ProviderError('model_not_allowed')
         payload = self.payload(structured_input, output_tokens, output_schema, model_id=self.model_id)
+        payload['contents'][0]['parts'].extend(image_parts)
         endpoint = f'https://generativelanguage.googleapis.com/v1beta/models/{self.model_id}:generateContent'
         transport = self.transport or self._http_transport
         try:

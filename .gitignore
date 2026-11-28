@@ -44,3 +44,6 @@ Thumbs.db
 
 # Historical local delivery manifest; not a manifest of this repository
 /PACKAGE_MANIFEST.json
+
+# Optional interview example images supplied locally
+/reference_images/

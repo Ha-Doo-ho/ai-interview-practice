@@ -15,4 +15,15 @@
 
 리포트에 `서버에 AI 분석 설정이 준비되지 않았습니다`가 보이면 화면에 표시된 환경변수 이름을 확인한다. 로컬 Gemini 테스트는 기존 서버를 종료한 뒤 저장소 루트에서 `./tools/start_gemini_local.ps1`을 실행하고 숨김 입력에 키를 넣는다. 기존 회차가 있는 `interview.db`를 사용한다.
 
+## 면접 보완 설명용 사진
+
+프로젝트 루트의 `reference_images/`에 아래 원본을 복사하고 파일명을 맞춘다. 두 사진은 로컬에 둔다. 파일이 없어도 같은 문항 기준과 보완 설명 안내가 텍스트로 전달된다. 진행 중인 회차에서 사진을 추가하거나 제거했다면 보고서 확정 전에 종합 평가를 다시 실행한다.
+
+| 문항 | 원본과 저장할 이름 | 사진을 보는 이유 |
+| --- | --- | --- |
+| 3번, 새 정보를 반영한 경험 | `스크린샷 2026-11-28 222235.png` → `question-03-design-feedback.png` | 디자인 사례에서 처음 선택한 방식, 새로 알게 된 사실, 수정하거나 유지한 이유를 설명하는 연습 |
+| 7번, 반복 업무에서 방식을 정한 경험 | `스크린샷 2026-11-28 224112.png` → `question-07-repeat-work.png` | 개발 사례에서 같은 방식을 사용한 두 번의 결과 차이와 다음 방식의 결정 근거를 설명하는 연습 |
+
+Gemini는 종합 자료 JSON과 함께 각 사진의 관련 영역을 안내하는 문장, 해당 PNG를 받는다. 피드백은 지원자 원문과 문항별 기준을 바탕으로 한다. 사진 속 답변은 추가 설명의 예시다. NCS의 정보 수집 및 검증, 의사결정 수행 및 검토, 성찰 및 피드백을 참고해 문항과 연결했다. 사진 자체의 잡다·NCS 공식 출처는 확인되지 않았다. [NCS 문제해결능력](https://m.ncs.go.kr/unity/th03/TH0309.do?jobCd=03) · [Gemini 이미지 입력](https://ai.google.dev/gemini-api/docs/image-understanding#inline-image)
+
 공식 문서: https://ai.google.dev/gemini-api/docs/generate-content/structured-output, https://ai.google.dev/gemini-api/docs/pricing
